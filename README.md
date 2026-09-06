@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerAI: AI-Powered Personalized Career Guidance Platform
 
-## Getting Started
+A complete, production-grade full-stack platform built with Next.js, React 19, Python Machine Learning, PostgreSQL (Prisma), and Google Gemini AI.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📁 Repository Directory Structure
+
+```
+├── 📁 frontend/     # Client UI, Components, Layouts & Theme System
+│   ├── components/  # Navbar, Footer, Sidebar, Radar Charts, UI Cards
+│   ├── globals.css  # Strict Light/White Theme Design Tokens
+│   └── README.md    # Frontend Architecture Guide
+│
+├── 📁 backend/      # Server Logic, ML Pipeline, AI Engine & APIs
+│   ├── ml/          # Python scikit-learn, pandas, numpy Recommender
+│   ├── ai/          # LLM Abstraction, Embeddings, RAG Service
+│   ├── auth.ts      # Authentication & JWT Security
+│   ├── db.ts        # Prisma PostgreSQL Singleton Client
+│   ├── tests/       # End-to-End & ML Unit Test Suites
+│   └── README.md    # Backend Architecture Guide
+│
+├── 📁 database/     # Database Schema, Relational Models & Seeds
+│   ├── schema.prisma# PostgreSQL Database Schema
+│   ├── seed.ts      # Seed script (20 Careers, 79 Skills, 25 Questions)
+│   └── README.md    # Database Setup Guide
+│
+├── 📁 docs/         # Comprehensive Technical Documentation
+│   ├── ARCHITECTURE.md       # High-Level System Architecture
+│   ├── API_DOCUMENTATION.md  # All 15+ REST API Endpoints
+│   ├── MACHINE_LEARNING.md   # Python ML Mathematical Formulation & Pipeline
+│   ├── RAG_AND_EMBEDDINGS.md # Retrieval-Augmented Generation & Vector Search
+│   ├── DATABASE_SCHEMA.md    # Relational Data Models & Indexing
+│   ├── AGENTS.md             # Developer Agent Rules
+│   └── CLAUDE.md             # Project Configuration
+│
+├── 📁 public/       # Static Visual Assets & SVG Icons
+├── 📁 src/          # Next.js App Router Page Routes & API Handlers
+├── 📄 package.json  # NPM Dependencies & Build Scripts
+└── 📄 tsconfig.json # TypeScript Path Mappings (@/frontend, @/backend, @/database)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌟 Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Strict Light / White Theme Only**: Pure `#FFFFFF` and `#F8FAFC` clean aesthetic with `#2563EB` blue accents. Zero dark mode.
+2. **Dual-Model ML Recommendation Engine**:
+   - Python `scikit-learn`, `pandas`, and `numpy` inference via high-performance IPC bridge.
+   - Transparent 7-factor explainability scoring.
+3. **Retrieval-Augmented Generation (RAG)**: Aura AI Assistant grounded in career knowledge vectors with explicit citations.
+4. **Cognitive Assessment**: Diagnostic tests measuring 5 cognitive abilities.
+5. **Interactive 6-Month Roadmap**: Dynamic milestones with task completion tracking.
+6. **Real Resume ATS Parser**: PDF & DOCX extraction with keyword matching and bullet-point rewrites.
+7. **Enterprise Admin Portal**: Telemetry, user role management, career catalog, and question bank CRUD.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Quick Start
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 1. Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 2. Database setup & seeding
+npx prisma db push
+npx prisma db seed
 
-## Deploy on Vercel
+# 3. Start local development server
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 4. Run automated test suites
+python -m unittest backend/ml/test_ml_engine.py
+npx tsx src/tests/testAIMLSubsystems.test.ts
+npx tsx src/tests/e2eFullWorkflow.test.ts
+```
