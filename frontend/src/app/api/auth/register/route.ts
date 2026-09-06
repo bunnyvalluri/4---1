@@ -2,17 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { hashPassword, signToken, AUTH_COOKIE } from '@/lib/auth';
 import { RegisterSchema } from '@/lib/types';
+import { authRateLimiter, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    // Defense against automated spam registrations & DoS
+    const ip = getClientIp(req);
+    const rateCheck = authRateLimiter.check(`register:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Registration rate limit reached. Please wait ${rateCheck.resetTime} seconds before trying again.` },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.resetTime) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = RegisterSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: parsed.error.format() },
-        { status: 400 }
-      );
+      const firstIssue = parsed.error.issues[0]?.message || 'Invalid registration input';
+      return NextResponse.json({ error: firstIssue }, { status: 400 });
     }
 
     const { name, email, password } = parsed.data;
@@ -26,8 +35,8 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email: email.toLowerCase(),
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
         passwordHash,
         profile: {
           create: {

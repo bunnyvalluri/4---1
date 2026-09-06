@@ -6,6 +6,9 @@ import { prisma } from './db';
 import { Role } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-super-secret-career-guidance-key-2026';
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('fallback'))) {
+  console.warn('[SECURITY CRITICAL] Running in production mode with a fallback JWT secret. Set JWT_SECRET in environment variables.');
+}
 const AUTH_COOKIE_NAME = 'career_auth_token';
 
 export interface TokenPayload {

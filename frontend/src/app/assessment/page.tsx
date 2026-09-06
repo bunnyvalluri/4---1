@@ -13,6 +13,11 @@ import {
   Sparkles,
   Award,
   HelpCircle,
+  Check,
+  Zap,
+  BarChart3,
+  Clock,
+  Compass,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 
@@ -91,9 +96,9 @@ export default function AssessmentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8 max-w-4xl mx-auto space-y-6 animate-pulse">
-        <div className="h-10 w-72 bg-slate-200 rounded-lg" />
-        <div className="h-64 bg-white rounded-2xl border border-slate-200" />
+      <div className="min-h-screen bg-slate-50 p-6 md:p-10 max-w-4xl mx-auto space-y-6 animate-pulse">
+        <div className="h-20 bg-slate-200/80 rounded-2xl" />
+        <div className="h-96 bg-white rounded-3xl border border-slate-200" />
       </div>
     );
   }
@@ -102,63 +107,104 @@ export default function AssessmentPage() {
   const currentQuestion = questions[currentIndex];
   const progressPercent = totalQuestions > 0 ? Math.round(((currentIndex + 1) / totalQuestions) * 100) : 0;
   const isAnswered = currentQuestion ? answers[currentQuestion.id] !== undefined : false;
+  const answeredCount = Object.keys(answers).length;
   const allAnswered = questions.every((q) => answers[q.id] !== undefined);
 
+  const getCategoryColor = (cat: string) => {
+    const c = (cat || '').toUpperCase();
+    if (c.includes('LOGICAL')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (c.includes('QUANTITATIVE')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (c.includes('VERBAL')) return 'bg-violet-50 text-violet-700 border-violet-200';
+    if (c.includes('ANALYTICAL')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    return 'bg-amber-50 text-amber-700 border-amber-200';
+  };
+
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
       <Sidebar userName={userProfile?.name} userEmail={userProfile?.email} />
 
-      <div className="flex-1 bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 overflow-y-auto">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-4xl mx-auto w-full">
+        <div className="space-y-6">
           {/* Header Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-blue-600">
-              <BrainCircuit className="h-4 w-4" />
-              <span>PSYCHOMETRIC & COGNITIVE ASSESSMENT</span>
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700">
+                  <BrainCircuit className="h-3.5 w-3.5" />
+                  <span>Cognitive Diagnostic Battery</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Aptitude & Psychometric Diagnostic
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Calibrates your logical, quantitative, verbal, and analytical fitness against real tech benchmarks.
+                </p>
+              </div>
+
+              {!result && (
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-100/80 px-3.5 py-2 rounded-xl shrink-0">
+                  <span>Answered:</span>
+                  <span className="text-blue-600 font-black">{answeredCount}</span>
+                  <span>/ {totalQuestions}</span>
+                </div>
+              )}
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Aptitude & Diagnostic Evaluation
-            </h1>
-            <p className="text-xs text-slate-500">
-              Calibrates your logical, quantitative, verbal, and analytical fitness against real tech benchmarks.
-            </p>
           </div>
 
           {result ? (
-            /* Result Screen */
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+            /* ======================================================== */
+            /* RESULT SCREEN */
+            /* ======================================================== */
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-xs space-y-8">
               <div className="text-center space-y-3">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-sm">
-                  <Award className="h-7 w-7" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                  <Award className="h-8 w-8" />
                 </div>
-                <h2 className="text-2xl font-extrabold text-slate-900">Diagnostic Completed!</h2>
-                <p className="text-sm text-slate-600 max-w-md mx-auto">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Diagnostic Successfully Completed!
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
                   Your cognitive psychometrics have been evaluated and synchronized with the recommendation engine.
                 </p>
               </div>
 
-              {/* Score Dial */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-6 text-center space-y-1">
-                <div className="text-4xl font-extrabold text-blue-600">{result.score}%</div>
-                <div className="text-xs font-bold uppercase tracking-wider text-blue-800">Overall Aptitude Index</div>
-                <div className="text-xs text-slate-500">
-                  {result.correctCount} of {result.totalQuestions} questions correct
+              {/* Score Dial & Benchmark Badge */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-indigo-50/40 p-6 text-center space-y-1">
+                  <div className="text-5xl font-black text-blue-600 tracking-tight">{result.score}%</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-blue-800">Overall Aptitude Index</div>
+                  <div className="text-xs text-slate-500">
+                    {result.correctCount} of {result.totalQuestions} questions correct
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-6 flex flex-col justify-center items-center text-center space-y-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Performance Tier</span>
+                  <div className="text-2xl font-extrabold text-emerald-700">
+                    {result.score >= 80 ? 'Tier 1 • Exceptional' : result.score >= 60 ? 'Tier 2 • Proficient' : 'Tier 3 • Developing'}
+                  </div>
+                  <p className="text-[11px] text-slate-600 max-w-xs">
+                    Satisfies core cognitive requirements for advanced engineering and analytical pathways.
+                  </p>
                 </div>
               </div>
 
               {/* Category Breakdown */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              <div className="space-y-4">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                   Cognitive Dimensional Performance
                 </h3>
-                <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(result.categoryScores || {}).map(([cat, stats]: [string, any]) => {
                     const catPct = stats.percentage ?? 0;
                     return (
-                      <div key={cat} className="p-3 rounded-xl border border-slate-100 bg-slate-50 space-y-1.5">
+                      <div
+                        key={cat}
+                        className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/60 space-y-2"
+                      >
                         <div className="flex justify-between text-xs">
-                          <span className="font-semibold text-slate-800">{cat.replace('_', ' ')}</span>
-                          <span className="font-bold text-slate-900">{catPct}%</span>
+                          <span className="font-bold text-slate-800">{cat.replace('_', ' ')}</span>
+                          <span className="font-extrabold text-slate-900">{catPct}%</span>
                         </div>
                         <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                           <div
@@ -173,7 +219,7 @@ export default function AssessmentPage() {
               </div>
 
               {/* CTA to View Recommendations */}
-              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -181,50 +227,71 @@ export default function AssessmentPage() {
                     setCurrentIndex(0);
                     setAnswers({});
                   }}
-                  className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+                  className="text-xs font-bold text-slate-600 hover:text-slate-900 px-4 py-2.5 rounded-xl hover:bg-slate-100 transition-colors"
                 >
-                  Retake Test
+                  Retake Diagnostic
                 </button>
                 <Link
                   href="/recommendations"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>View Updated Career Recommendations</span>
+                  <span>View Updated Career Matches</span>
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
           ) : currentQuestion ? (
-            /* Question Screen */
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
-              {/* Progress & Category */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-blue-600 uppercase tracking-wider">
-                    Question {currentIndex + 1} of {totalQuestions}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[10px] border border-slate-200">
-                    Category: {currentQuestion.category?.replace('_', ' ')}
-                  </span>
+            /* ======================================================== */
+            /* QUESTION SCREEN */
+            /* ======================================================== */
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-xs space-y-6">
+              {/* Question Navigator Pills */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full">
+                  {questions.map((q, idx) => {
+                    const isQAnswered = answers[q.id] !== undefined;
+                    const isQCurrent = idx === currentIndex;
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`h-7 w-7 rounded-lg text-xs font-bold transition-all flex items-center justify-center shrink-0 ${
+                          isQCurrent
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : isQAnswered
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                        title={`Question ${idx + 1}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getCategoryColor(
+                    currentQuestion.category
+                  )}`}
+                >
+                  {currentQuestion.category?.replace('_', ' ')}
+                </span>
               </div>
 
-              {/* Question Text */}
-              <div className="space-y-2 pt-2">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+              {/* Question Statement */}
+              <div className="space-y-3 pt-2">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Question {currentIndex + 1} of {totalQuestions}
+                </div>
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
                   {currentQuestion.question}
                 </h2>
               </div>
 
               {/* Answer Options */}
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-3 pt-2">
                 {(currentQuestion.options as string[]).map((optionText, optIdx) => {
                   const isSelected = answers[currentQuestion.id] === optIdx;
                   return (
@@ -232,37 +299,38 @@ export default function AssessmentPage() {
                       key={optIdx}
                       type="button"
                       onClick={() => handleSelectOption(currentQuestion.id, optIdx)}
-                      className={`w-full p-4 rounded-xl border text-left text-xs sm:text-sm font-medium transition-colors flex items-center justify-between ${
+                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between ${
                         isSelected
-                          ? 'border-blue-600 bg-blue-50/70 text-blue-900 font-semibold shadow-xs'
+                          ? 'border-blue-600 bg-blue-50/70 text-blue-900 font-bold shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3.5">
                         <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-colors ${
                             isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {String.fromCharCode(65 + optIdx)}
                         </span>
-                        <span>{optionText}</span>
+                        <span className="leading-relaxed">{optionText}</span>
                       </div>
-                      {isSelected && <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0" />}
+                      {isSelected && <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />}
                     </button>
                   );
                 })}
               </div>
 
               {/* Navigation Controls */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={currentIndex === 0}
-                  className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-30"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 disabled:opacity-30 transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Back
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Previous</span>
                 </button>
 
                 {currentIndex === totalQuestions - 1 ? (
@@ -270,9 +338,9 @@ export default function AssessmentPage() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitting || !isAnswered}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-40 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-40 transition-all hover:-translate-y-0.5"
                   >
-                    <span>{submitting ? 'Submitting...' : 'Submit & Calculate Scores'}</span>
+                    <span>{submitting ? 'Calculating Diagnostics...' : 'Submit Diagnostic'}</span>
                     <Sparkles className="h-4 w-4" />
                   </button>
                 ) : (
@@ -280,7 +348,7 @@ export default function AssessmentPage() {
                     type="button"
                     onClick={handleNext}
                     disabled={!isAnswered}
-                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-40 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 transition-all hover:-translate-y-0.5"
                   >
                     <span>Next Question</span>
                     <ArrowRight className="h-4 w-4" />
@@ -289,8 +357,8 @@ export default function AssessmentPage() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 space-y-3">
-              <div className="text-sm font-bold text-slate-800">No questions found</div>
+            <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 p-8 space-y-3">
+              <div className="text-sm font-bold text-slate-800">No questions available in database</div>
             </div>
           )}
         </div>

@@ -3,10 +3,21 @@ import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { SubmitAptitudeSchema } from '@/lib/types';
 import { AptitudeCategory } from '@prisma/client';
+import { generalApiRateLimiter, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
     const session = await requireAuth(req);
+
+    const rateKey = `assessment:${session.userId || getClientIp(req)}`;
+    const rateCheck = generalApiRateLimiter.check(rateKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Too many submissions. Please wait ${rateCheck.resetTime} seconds.` },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.resetTime) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = SubmitAptitudeSchema.safeParse(body);
 

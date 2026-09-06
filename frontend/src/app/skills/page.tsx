@@ -12,6 +12,11 @@ import {
   Map,
   Compass,
   TrendingUp,
+  Zap,
+  Clock,
+  Layers,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 
@@ -52,61 +57,108 @@ export default function SkillGapsPage() {
     return true;
   });
 
+  const criticalCount = skillGaps.filter(
+    (g) => g.gapSeverity === 'Critical' || g.priority === 1
+  ).length;
+  const highCount = skillGaps.filter(
+    (g) => g.gapSeverity === 'High' || g.priority === 2
+  ).length;
+
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Sidebar Navigation */}
+    <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
       <Sidebar userName={userProfile?.name} userEmail={userProfile?.email} />
 
-      {/* Main Content */}
-      <div className="flex-1 bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 overflow-y-auto">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 bg-white p-6 rounded-2xl border shadow-xs">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-blue-600 mb-1">
-                <BarChart2 className="h-4 w-4" />
-                <span>DYNAMIC SKILL GAP ANALYSIS</span>
+      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700">
+                  <BarChart2 className="h-3.5 w-3.5 text-blue-600" />
+                  <span>Dynamic Skill Gap Matrix</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Skill Gap Telemetry & Milestones
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Compares verified competency against market requirements. Prioritize high-ROI learning items to maximize career match fidelity.
+                </p>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Skill Gap Telemetry</h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Compare your current verified level against target requirements and prioritize high-ROI learning milestones.
-              </p>
+
+              {/* Filter Tabs */}
+              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/70 shrink-0">
+                {[
+                  { key: 'ALL', label: 'All', count: skillGaps.length },
+                  { key: 'HIGH', label: 'Critical', count: criticalCount + highCount },
+                  { key: 'MEDIUM', label: 'Moderate', count: skillGaps.length - (criticalCount + highCount) },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilterPriority(f.key)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                      filterPriority === f.key
+                        ? 'bg-white text-blue-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <span>{f.label}</span>
+                    <span className="ml-1.5 text-[10px] text-slate-400">({f.count})</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Filter Buttons */}
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-              {['ALL', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setFilterPriority(p)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                    filterPriority === p
-                      ? 'bg-white text-blue-700 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
+            {/* Quick KPI Bar */}
+            <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 text-red-600 font-bold">
+                  {criticalCount}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Critical Skill Gaps</div>
+                  <div className="text-[11px] text-slate-500">Must bridge for candidate shortlisting</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600 font-bold">
+                  {skillGaps.length}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Total Telemetry Items</div>
+                  <div className="text-[11px] text-slate-500">Tracked against target roles</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 font-bold">
+                  ~6 wk
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Estimated Velocity</div>
+                  <div className="text-[11px] text-slate-500">Average bridging duration</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Skill Gaps List */}
+          {/* Gaps List */}
           {loading ? (
             <div className="space-y-4 animate-pulse">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-28 bg-white rounded-2xl border border-slate-200" />
+                <div key={i} className="h-32 bg-white rounded-3xl border border-slate-200" />
               ))}
             </div>
           ) : filteredGaps.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-4 shadow-xs">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <CheckCircle2 className="h-6 w-6" />
+            <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center space-y-4 shadow-xs">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <CheckCircle2 className="h-7 w-7" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">No skill gaps under this filter</h3>
+              <h3 className="text-lg font-bold text-slate-900">No skill gaps under this filter</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Generate recommendations on the matches page to synchronize new skill requirements.
+                Generate career recommendations to synchronize target benchmarks and discover skill opportunities.
               </p>
               <Link
                 href="/recommendations"
@@ -120,13 +172,12 @@ export default function SkillGapsPage() {
               {filteredGaps.map((item) => {
                 const current = item.currentProficiency || 0;
                 const required = item.requiredProficiency || 3;
-                const currentPercent = Math.min(100, Math.round((current / 5) * 100));
-                const requiredPercent = Math.min(100, Math.round((required / 5) * 100));
+                const gap = Math.max(0, required - current);
 
                 const isCritical = item.gapSeverity === 'Critical' || item.priority === 1;
                 const isHigh = item.gapSeverity === 'High' || item.priority === 2;
 
-                const badgeColor = isCritical
+                const badgeStyle = isCritical
                   ? 'bg-red-50 text-red-700 border-red-200'
                   : isHigh
                   ? 'bg-amber-50 text-amber-800 border-amber-200'
@@ -135,60 +186,93 @@ export default function SkillGapsPage() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3"
+                    className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:border-slate-300 transition-all space-y-4"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-slate-900">{item.skill?.name}</h3>
-                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}`}>
-                            {item.gapSeverity} Priority
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="text-base font-extrabold text-slate-900">{item.skill?.name}</h3>
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
+                            {item.gapSeverity || 'Moderate'} Severity
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                            Priority #{item.priority || 1}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Career Target: <strong className="text-slate-700">{item.career?.title}</strong>
+                        <p className="text-xs text-slate-500">
+                          Required for: <strong className="text-slate-800">{item.career?.title || 'Target Pathway'}</strong>
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs font-semibold">
+                      {/* Level Badges */}
+                      <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200/70 text-xs">
                         <div>
-                          <span className="text-slate-500">Current: </span>
-                          <span className="text-slate-900 font-bold">{current} / 5</span>
+                          <span className="text-slate-400 text-[10px] block">Current</span>
+                          <span className="font-extrabold text-slate-900">Lvl {current} / 5</span>
                         </div>
+                        <div className="h-6 w-px bg-slate-200" />
                         <div>
-                          <span className="text-slate-500">Required: </span>
-                          <span className="text-blue-600 font-bold">{required} / 5</span>
+                          <span className="text-slate-400 text-[10px] block">Required</span>
+                          <span className="font-extrabold text-blue-600">Lvl {required} / 5</span>
+                        </div>
+                        <div className="h-6 w-px bg-slate-200" />
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">Gap</span>
+                          <span className={`font-extrabold ${gap > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {gap > 0 ? `-${gap} Lvl` : 'Filled'}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Visual Comparison Bars */}
+                    {/* Segmented Level Comparison Visualizer */}
                     <div className="space-y-1.5 pt-1">
-                      <div className="flex justify-between text-[11px] text-slate-500">
-                        <span>Current Competency ({currentPercent}%)</span>
-                        <span>Target Benchmark ({requiredPercent}%)</span>
+                      <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+                        <span>Proficiency Milestone Progression</span>
+                        <span>
+                          {current >= required ? 'Benchmark Satisfied' : `Needs +${gap} proficiency steps`}
+                        </span>
                       </div>
-                      <div className="relative h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                        {/* Target Marker */}
-                        <div
-                          className="absolute top-0 bottom-0 bg-blue-100/80 rounded-full"
-                          style={{ width: `${requiredPercent}%` }}
-                        />
-                        {/* Current Level */}
-                        <div
-                          className={`absolute top-0 bottom-0 rounded-full transition-all duration-300 ${
-                            currentPercent >= requiredPercent ? 'bg-emerald-500' : 'bg-blue-600'
-                          }`}
-                          style={{ width: `${currentPercent}%` }}
-                        />
+
+                      {/* 5-Segment Level Bar */}
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[1, 2, 3, 4, 5].map((lvl) => {
+                          const hasCurrent = current >= lvl;
+                          const hasRequired = required >= lvl;
+
+                          let bgClass = 'bg-slate-100 text-slate-400';
+                          if (hasCurrent) {
+                            bgClass = 'bg-blue-600 text-white shadow-2xs';
+                          } else if (hasRequired) {
+                            bgClass = 'bg-amber-100 text-amber-800 border border-dashed border-amber-300';
+                          }
+
+                          return (
+                            <div
+                              key={lvl}
+                              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${bgClass}`}
+                            >
+                              Lvl {lvl} {hasCurrent ? '✓' : hasRequired ? 'Target' : ''}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Learning Resource */}
+                    {/* Actionable Learning Resource Card */}
                     {item.suggestedResource && (
-                      <div className="rounded-lg bg-slate-50 p-2.5 text-xs text-slate-600 flex items-start gap-2 border border-slate-100">
-                        <BookOpen className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                        <span>{item.suggestedResource}</span>
+                      <div className="rounded-2xl bg-slate-50/80 p-3 text-xs text-slate-600 flex items-center justify-between gap-3 border border-slate-200/60">
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <BookOpen className="h-4 w-4 text-blue-600 shrink-0" />
+                          <span className="truncate">{item.suggestedResource}</span>
+                        </div>
+                        <Link
+                          href="/roadmap"
+                          className="shrink-0 text-[11px] font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                        >
+                          <span>Add to Roadmap</span>
+                          <ChevronRight className="h-3 w-3" />
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -197,7 +281,7 @@ export default function SkillGapsPage() {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

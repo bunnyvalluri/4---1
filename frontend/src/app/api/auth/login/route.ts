@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { comparePassword, signToken, AUTH_COOKIE } from '@/lib/auth';
 import { LoginSchema } from '@/lib/types';
+import { authRateLimiter, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    // Brute-force & credential stuffing defense
+    const ip = getClientIp(req);
+    const rateCheck = authRateLimiter.check(`login:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Too many login attempts. Please wait ${rateCheck.resetTime} seconds before retrying.` },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.resetTime) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = LoginSchema.safeParse(body);
 

@@ -85,24 +85,25 @@ export class GeminiProvider implements ILLMProvider {
       parts: [{ text: m.content }],
     }));
 
+    const bodyPayload: Record<string, unknown> = {
+      contents,
+      generationConfig: {
+        temperature: options?.temperature ?? 0.7,
+        maxOutputTokens: options?.maxTokens ?? 800,
+      },
+    };
+
     if (systemPrompt) {
-      contents.unshift({
-        role: 'user',
-        parts: [{ text: `System Instruction: ${systemPrompt}` }],
-      });
+      bodyPayload.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
     }
 
     const timeout = options?.timeoutMs || 3000;
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        generationConfig: {
-          temperature: options?.temperature ?? 0.7,
-          maxOutputTokens: options?.maxTokens ?? 800,
-        },
-      }),
+      body: JSON.stringify(bodyPayload),
       signal: AbortSignal.timeout(timeout),
     });
 

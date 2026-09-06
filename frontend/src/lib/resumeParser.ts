@@ -31,8 +31,13 @@ export class ResumeParserService {
       mime.includes('wordprocessingml') ||
       mime.endsWith('.docx')
     ) {
-      const result = await mammoth.extractRawText({ buffer });
-      return result.value;
+      try {
+        const result = await mammoth.extractRawText({ buffer });
+        return result.value || '';
+      } catch (err) {
+        console.warn('DOCX parsing error, falling back to string extraction:', err);
+        return buffer.toString('utf-8');
+      }
     } else {
       // Plain text fallback
       return buffer.toString('utf-8');
