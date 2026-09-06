@@ -27,14 +27,21 @@ export interface PythonBridgeResponse {
   error?: string;
 }
 
+import fs from 'fs';
+
 export class PythonRecommenderBridge {
-  private static scriptPath = path.resolve(process.cwd(), 'backend', 'ml', 'career_recommender.py');
+  private static getScriptPath(): string {
+    const direct = path.resolve(process.cwd(), 'backend', 'ml', 'career_recommender.py');
+    if (fs.existsSync(direct)) return direct;
+    return path.resolve(process.cwd(), '..', 'backend', 'ml', 'career_recommender.py');
+  }
 
   public static async runInference(candidate: any, careers: any[]): Promise<PythonBridgeResponse | null> {
     return new Promise((resolve) => {
       try {
         const payload = JSON.stringify({ candidate, careers });
-        const pythonProcess = spawn('python', [this.scriptPath, '--stdin']);
+        const scriptPath = this.getScriptPath();
+        const pythonProcess = spawn('python', [scriptPath, '--stdin']);
 
         let stdoutData = '';
         let stderrData = '';

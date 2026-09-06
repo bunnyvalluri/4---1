@@ -3,14 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "npm run start --prefix frontend",
-    "lint": "npm run lint --prefix frontend",
-    "test:ml": "python -m unittest backend/ml/test_ml_engine.py",
-    "test:ai": "npx tsx frontend/src/tests/testAIMLSubsystems.test.ts",
-    "test:e2e": "npx tsx frontend/src/tests/e2eFullWorkflow.test.ts",
-    "test": "npm run test:ml && npm run test:ai && npm run test:e2e"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
   "prisma": {
     "schema": "database/schema.prisma",
