@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SkillCategory {
+  TECHNICAL
+  SOFT
+  TOOL
+  FRAMEWORK
+  DATABASE
+  CLOUD
+}
+
+enum AptitudeCategory {
+  LOGICAL
+  QUANTITATIVE
+  VERBAL
+  ANALYTICAL
+  PROBLEM_SOLVING
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(USER)
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile               Profile?
+  skills                UserSkill[]
+  aptitudeAttempts      AptitudeAttempt[]
+  recommendations       CareerRecommendation[]
+  skillGaps             SkillGap[]
+  roadmaps              Roadmap[]
+  resumeAnalyses        ResumeAnalysis[]
+  chatSessions          ChatSession[]
+  notifications         Notification[]
+}
+
+model Profile {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone               String?
+  location            String?
+  bio                 String?
+  degree              String?
+  branch              String?
+  college             String?
+  gradYear            Int?
+  cgpa                Float?
+  interests           String[]  @default([])
+  preferredIndustries String[]  @default([])
+  preferredRoles      String[]  @default([])
+  preferredLocations  String[]  @default([])
+  careerGoals         String?
+  workExperienceYears Float?    @default(0)
+  githubUrl           String?
+  linkedinUrl         String?
+  portfolioUrl        String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Skill {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  category    SkillCategory @default(TECHNICAL)
+  description String?
+  createdAt   DateTime      @default(now())
+
+  userSkills      UserSkill[]
+  careerSkills    CareerSkill[]
+  skillGaps       SkillGap[]
+}
+
+model UserSkill {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  proficiency Int      @default(1) // 1 to 5
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, skillId])
+}
+
+model Career {
+  id                  String   @id @default(cuid())
+  title               String   @unique
+  slug                String   @unique
+  category            String
+  description         String
+  salaryRange         String
+  demandLevel         String   @default("High") // High, Very High, Moderate
+  experienceLevel     String   @default("Entry / Mid")
+  overview            String
+  educationReqs       String
+  aptitudeReqs        Json     // benchmark scores per AptitudeCategory
+  commonJobTitles     String[] @default([])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  skills              CareerSkill[]
+  recommendations     CareerRecommendation[]
+  skillGaps           SkillGap[]
+  roadmaps            Roadmap[]
+  projectSuggestions  ProjectRecommendation[]
+  resumeAnalyses      ResumeAnalysis[]
+}
+
+model CareerSkill {
+  id              String   @id @default(cuid())
+  careerId        String
+  career          Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  skillId         String
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  isRequired      Boolean  @default(true) // true = core/required, false = preferred/bonus
+  minProficiency  Int      @default(3)    // 1 to 5
+  weight          Float    @default(1.0)  // relative importance weight
+
+  @@unique([careerId, skillId])
+}
+
+model AptitudeQuestion {
+  id            String           @id @default(cuid())
+  category      AptitudeCategory
+  question      String
+  options       Json             // string[] options
+  correctOption Int              // 0-indexed
+  explanation   String
+  difficulty    String           @default("Medium") // Easy, Medium, Hard
+  createdAt     DateTime         @default(now())
+}
+
+model AptitudeAttempt {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score          Float     // Percentage 0-100
+  totalQuestions Int
+  correctCount   Int
+  categoryScores Json      // { [category]: { score, total, percentage } }
+  strengths      String[]  @default([])
+  weaknesses     String[]  @default([])
+  completedAt    DateTime  @default(now())
+}
+
+model CareerRecommendation {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId           String
+  career             Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  matchScore         Float    // Percentage 0-100
+  matchingSkills     Json     // list of matched skills with user vs required proficiency
+  missingSkills      Json     // list of missing skills
+  reasoning          String   // AI-grounded explainable narrative
+  breakdown          Json     // { skillScore, aptitudeScore, educationScore, interestScore, experienceScore }
+  recommendedActions String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([userId, careerId])
+}
+
+model SkillGap {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId            String
+  career              Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  skillId             String
+  skill               Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  currentProficiency  Int      @default(0)
+  requiredProficiency Int      @default(3)
+  gapSeverity         String   @default("Moderate") // Low, Moderate, High, Critical
+  priority            Int      @default(1)          // 1 (highest) to 5
+  suggestedResource   String?
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, careerId, skillId])
+}
+
+model Roadmap {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId       String
+  career         Career        @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  durationMonths Int           @default(6)
+  progressPercent Float        @default(0)
+  status         String        @default("IN_PROGRESS") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  items          RoadmapItem[]
+
+  @@unique([userId, careerId])
+}
+
+model RoadmapItem {
+  id          String    @id @default(cuid())
+  roadmapId   String
+  roadmap     Roadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  month       Int
+  title       String
+  description String
+  skills      String[]  @default([])
+  tasks       Json      // array of { id, text, done }
+  isCompleted Boolean   @default(false)
+  notes       String?
+  completedAt DateTime?
+
+  @@index([roadmapId, month])
+}
+
+model ProjectRecommendation {
+  id               String   @id @default(cuid())
+  careerId         String
+  career           Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  title            String
+  difficulty       String   // Beginner, Intermediate, Advanced
+  techStack        String[] @default([])
+  problemStatement String
+  expectedOutcome  String
+  skillsLearned    String[] @default([])
+  estimatedDuration String  // e.g. "3-4 weeks"
+  portfolioValue   String   // e.g. "High - Full Stack deployment with CI/CD"
+  createdAt        DateTime @default(now())
+}
+
+model ResumeAnalysis {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId           String?
+  career             Career?  @relation(fields: [careerId], references: [id], onDelete: SetNull)
+  fileName           String
+  atsScore           Float    // 0-100
+  extractedSkills    String[] @default([])
+  missingSkills      String[] @default([])
+  formattingIssues   String[] @default([])
+  weakBulletPoints   Json     // array of { original, issue, suggested }
+  suggestedKeywords  String[] @default([])
+  recommendations    String[] @default([])
+  summary            String?
+  createdAt          DateTime @default(now())
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String        @default("Career Consultation")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String      // user, assistant, system
+  content   String
+  metadata  Json?       // references, quickActions
+  createdAt DateTime    @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, RECOMMENDATION
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
