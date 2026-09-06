@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { AIService } from '@/lib/gemini';
+import { RAGService } from '@/lib/ai/ragService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -70,15 +71,23 @@ Interests: ${user?.profile?.interests.join(', ') || 'Technology'}`;
       },
     });
 
-    // Format conversation history
+    // Format conversation history for RAG & LLM
     const conversation = chatSession.messages.map((m) => ({
-      role: m.role,
+      role: m.role as 'user' | 'assistant',
       content: m.content,
     }));
-    conversation.push({ role: 'user', content: message });
 
-    // Generate AI response
-    const assistantReply = await AIService.chatAssistant(conversation, userContext);
+    // Generate RAG grounded response with citations
+    const { answer: assistantReply, citations } = await RAGService.generateGroundedAnswer(
+      message,
+      conversation,
+      {
+        targetRole: topCareer,
+        topSkills: user?.skills.map((s) => s.skill.name),
+        topSkillGap: user?.recommendations[0]?.missingSkills ? (user.recommendations[0].missingSkills as string[])[0] : undefined,
+        roadmapProgress: user?.roadmaps[0]?.progressPercent,
+      }
+    );
 
     // Save assistant message
     const savedReply = await prisma.chatMessage.create({
@@ -93,6 +102,8 @@ Interests: ${user?.profile?.interests.join(', ') || 'Technology'}`;
       success: true,
       sessionId: chatSession.id,
       message: savedReply,
+      citations,
+      ragEnabled: true,
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'UNAUTHORIZED') {

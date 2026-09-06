@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { AIService } from './gemini';
+import { PythonRecommenderBridge } from './pythonBridge';
 
 export interface ContributingFactor {
   id: string;
@@ -965,6 +966,25 @@ export class RecommendationEngine {
 
     // Sort descending by match score
     results.sort((a, b) => b.matchScore - a.matchScore);
+
+    // Python ML Model Inference (scikit-learn, pandas, numpy)
+    try {
+      const pythonOutput = await PythonRecommenderBridge.runInference(candidateProfile, careers);
+      if (pythonOutput?.results && pythonOutput.results.length > 0) {
+        const pyMap = new Map(pythonOutput.results.map((r) => [r.careerId, r]));
+        for (const rec of results) {
+          const pyRes = pyMap.get(rec.careerId);
+          if (pyRes) {
+            // Blend ML prediction with multi-criteria scores
+            rec.matchScore = Math.round(0.6 * rec.matchScore + 0.4 * pyRes.matchScore);
+            rec.reasoning = `${pyRes.reasoning} ${rec.reasoning}`;
+          }
+        }
+        results.sort((a, b) => b.matchScore - a.matchScore);
+      }
+    } catch (err) {
+      console.warn('[RecommendationEngine] Python ML bridge fallback:', err);
+    }
 
     // AI Enrichment for Top Matches
     for (let i = 0; i < Math.min(5, results.length); i++) {
