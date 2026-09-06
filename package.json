@@ -9,7 +9,8 @@
     "lint": "eslint"
   },
   "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
+    "schema": "database/schema.prisma",
+    "seed": "npx tsx database/seed.ts"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
