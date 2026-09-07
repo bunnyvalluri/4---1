@@ -53,3 +53,13 @@ __pycache__/
 *.sqlite3
 venv/
 .venv/
+
+# firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+serviceAccountKey*.json
+*service-account*.json
+firebase-credentials.json
+

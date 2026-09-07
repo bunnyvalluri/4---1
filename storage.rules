@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ==========================================================
+    // HELPER FUNCTIONS
+    // ==========================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'ADMIN';
+    }
+
+    function isValidResumeType() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
+             request.resource.contentType.matches('application/msword');
+    }
+
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/jpeg') ||
+             request.resource.contentType.matches('image/png') ||
+             request.resource.contentType.matches('image/webp');
+    }
+
+    function isUnderMaxSize(maxMegabytes) {
+      return request.resource.size <= maxMegabytes * 1024 * 1024;
+    }
+
+    // ==========================================================
+    // STORAGE PATH PERMISSIONS
+    // ==========================================================
+
+    // 1. User Resumes: users/{userId}/resumes/{resumeId}/original
+    match /users/{userId}/resumes/{resumeId}/{fileName} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) &&
+                      isValidResumeType() &&
+                      isUnderMaxSize(10);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // 2. User Profile Images: users/{userId}/profile/{filename}
+    match /users/{userId}/profile/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) &&
+                      isValidImageType() &&
+                      isUnderMaxSize(5);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // 3. User Project Artifacts: users/{userId}/projects/{projectId}/{filename}
+    match /users/{userId}/projects/{projectId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) &&
+                      isUnderMaxSize(25);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

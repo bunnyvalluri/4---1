@@ -53,3 +53,13 @@ class AIProcessingError(DomainException):
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=detail,
         )
+
+
+class ValidationError(DomainException):
+    def __init__(self, detail: str = "Validation failed for the requested operation."):
+        super().__init__(
+            status_code=422,
+            detail=detail,
+        )
+
+

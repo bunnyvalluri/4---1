@@ -48,6 +48,22 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
 
+    # Firebase Infrastructure
+    FIREBASE_PROJECT_ID: str = "careerai-app-9777b"
+    FIREBASE_CLIENT_EMAIL: str = ""
+    FIREBASE_PRIVATE_KEY: str = ""
+    FIREBASE_STORAGE_BUCKET: str = "careerai-app-9777b.firebasestorage.app"
+    FIREBASE_CREDENTIALS_PATH: str = "serviceAccountKey.json"
+    FIREBASE_DATABASE_URL: str = ""
+
+
+    # Firebase Local Emulators
+    USE_FIREBASE_EMULATOR: bool = False
+    FIREBASE_AUTH_EMULATOR_HOST: str = ""
+    FIRESTORE_EMULATOR_HOST: str = ""
+    FIREBASE_STORAGE_EMULATOR_HOST: str = ""
+
+
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
