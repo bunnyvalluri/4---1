@@ -19,7 +19,7 @@ import {
   BrainCircuit,
   Zap,
 } from 'lucide-react';
-import { auth, googleProvider } from '@/lib/firebase/client';
+import { auth, googleProvider, initFirebaseAuth } from '@/lib/firebase/client';
 import { signInWithPopup } from 'firebase/auth';
 
 function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
@@ -161,67 +161,70 @@ export function AuthCard({ initialMode }: AuthCardProps) {
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState('');
+
+  const handleGoogleAuth = async (providedKey?: string) => {
     try {
       setGoogleLoading(true);
       setError(null);
 
-      if (auth && googleProvider) {
-        try {
-          const result = await signInWithPopup(auth, googleProvider);
-          const user = result.user;
-          const idToken = await user.getIdToken();
-          const res = await fetch('/api/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              idToken,
-              email: user.email,
-              name: user.displayName,
-              photoURL: user.photoURL,
-              uid: user.uid,
-            }),
-          });
-          if (res.ok) {
-            router.push(mode === 'login' ? '/dashboard' : '/onboarding');
-            router.refresh();
-            return;
-          }
-        } catch (fbErr: any) {
-          if (fbErr.code === 'auth/popup-closed-by-user') {
-            setGoogleLoading(false);
-            return;
-          }
-        }
+      const activeKey = providedKey || customApiKey || (typeof window !== 'undefined' ? localStorage.getItem('NEXT_PUBLIC_FIREBASE_API_KEY') : null);
+      let client = initFirebaseAuth(activeKey || undefined);
+
+      if (!client.auth || !client.googleProvider) {
+        setGoogleLoading(false);
+        setApiKeyModalOpen(true);
+        return;
       }
 
-      const targetEmail = email?.trim() || 'alex@example.com';
-      const targetName = targetEmail === 'alex@example.com' ? 'Alex Johnson' : (name?.trim() || targetEmail.split('@')[0]);
-      const targetPhoto = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80';
+      const result = await signInWithPopup(client.auth, client.googleProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
 
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: targetEmail,
-          name: targetName,
-          photoURL: targetPhoto,
-          uid: 'google-' + targetEmail.replace(/[^a-zA-Z0-9]/g, '-'),
+          idToken,
+          email: user.email,
+          name: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Google Sign-In failed');
+        throw new Error(data.error || 'Google Sign-In failed on server.');
       }
 
+      setApiKeyModalOpen(false);
       router.push(mode === 'login' ? '/dashboard' : '/onboarding');
       router.refresh();
     } catch (err: any) {
-      setError(err.message || 'Google Sign-In failed');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setGoogleLoading(false);
+        return;
+      }
+      if (err.code === 'auth/invalid-api-key' || err.message?.includes('api-key')) {
+        setError('Invalid Firebase API Key. Please verify your Web API Key from Firebase Console.');
+        setApiKeyModalOpen(true);
+      } else {
+        setError(err.message || 'Google Sign-In could not be completed.');
+      }
     } finally {
       setGoogleLoading(false);
     }
+  };
+
+  const handleSaveApiKeyAndSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customApiKey.trim()) return;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('NEXT_PUBLIC_FIREBASE_API_KEY', customApiKey.trim());
+    }
+    handleGoogleAuth(customApiKey.trim());
   };
 
   return (
@@ -575,7 +578,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
           {/* Google Button */}
           <button
             type="button"
-            onClick={handleGoogleAuth}
+            onClick={() => handleGoogleAuth()}
             disabled={googleLoading || loading}
             className="w-full flex items-center justify-center gap-2.5 rounded-xl py-2.5 px-4 text-xs font-bold transition-all cursor-pointer"
             style={{
@@ -589,9 +592,95 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             ) : (
               <GoogleIcon className="h-4 w-4" />
             )}
-            <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
+            <span>{googleLoading ? 'Opening Google Sign-In...' : 'Sign in with Google'}</span>
           </button>
         </div>
+
+        {/* Real Google Account Setup Modal */}
+        {apiKeyModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setApiKeyModalOpen(false)}
+          >
+            <div
+              className="relative w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4"
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
+                    <GoogleIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold" style={{ color: '#0F172A' }}>
+                      Connect Real Google Accounts
+                    </h3>
+                    <p className="text-[11px]" style={{ color: '#64748B' }}>
+                      Official OAuth 2.0 via Google & Firebase
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setApiKeyModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-700 p-1 text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>
+                To launch the real Google popup (<span className="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">accounts.google.com</span>) allowing users to pick their personal Google profile, enter your Firebase Web API Key:
+              </p>
+
+              <form onSubmit={handleSaveApiKeyAndSignIn} className="space-y-3 text-left">
+                <div>
+                  <label className="block text-xs font-bold mb-1" style={{ color: '#334155' }}>
+                    Firebase Web API Key (AIzaSy...)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    className="w-full rounded-xl px-3 py-2 text-xs font-mono transition-all focus:outline-none"
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #CBD5E1',
+                      color: '#0F172A',
+                    }}
+                  />
+                  <span className="block text-[10px] mt-1" style={{ color: '#64748B' }}>
+                    Found in Firebase Console → Project Settings → General → Web App.
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <a
+                    href="https://console.firebase.google.com/project/careerai-app-9777b/settings/general"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-semibold text-blue-600 hover:underline"
+                  >
+                    Get Key from Console ↗
+                  </a>
+                  <button
+                    type="submit"
+                    disabled={googleLoading || !customApiKey.trim()}
+                    className="px-4 py-2 text-xs font-bold text-white rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                    style={{
+                      background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
+                    }}
+                  >
+                    {googleLoading ? 'Connecting...' : 'Launch Google Popup →'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Trust Badges Bar */}
         <div className="w-full flex items-center justify-center gap-4 text-xs py-3 mt-1" style={{ color: '#64748B' }}>
