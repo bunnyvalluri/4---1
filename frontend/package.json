@@ -4,13 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
   "prisma": {
-    "schema": "database/schema.prisma",
-    "seed": "npx tsx database/seed.ts"
+    "schema": "prisma/schema.prisma"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
