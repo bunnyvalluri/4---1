@@ -63,3 +63,6 @@ serviceAccountKey*.json
 *service-account*.json
 firebase-credentials.json
 
+
+# Local Netlify folder
+.netlify
