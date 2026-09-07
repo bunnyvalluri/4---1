@@ -20,6 +20,7 @@ import {
   BarChart2,
   FolderGit2,
   ChevronRight,
+  ArrowRight,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -27,6 +28,7 @@ export function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -37,6 +39,14 @@ export function Navbar() {
       })
       .catch(() => setUser(null));
   }, [pathname]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -52,23 +62,38 @@ export function Navbar() {
     pathname.startsWith('/reset-password') ||
     pathname.startsWith('/onboarding');
 
-  if (isAuthPage) return null;
+  const isWorkspacePage =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/chat') ||
+    pathname.startsWith('/assessment') ||
+    pathname.startsWith('/recommendations') ||
+    pathname.startsWith('/skills') ||
+    pathname.startsWith('/roadmap') ||
+    pathname.startsWith('/resume') ||
+    pathname.startsWith('/projects') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/careers');
+
+  if (isAuthPage || isWorkspacePage) return null;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-xl transition-all">
-      <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+        isScrolled
+          ? 'border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs'
+          : 'border-b border-slate-100 bg-white/90 backdrop-blur-sm'
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-500/20 group-hover:scale-[1.03] transition-transform">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 group-hover:scale-[1.03] transition-transform">
             <Compass className="h-5 w-5" />
-            <div className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500" />
-            </div>
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-              Career<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">AI</span>
+              Career<span className="text-blue-600">AI</span>
             </span>
             <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
               Guidance Platform
@@ -79,22 +104,25 @@ export function Navbar() {
         {/* Desktop Nav Links */}
         <nav className="hidden lg:flex items-center gap-1">
           {!user ? (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-7">
               <Link href="/" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                 Home
               </Link>
-              <Link href="/#how-it-works" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                How It Works
-              </Link>
-              <Link href="/recommendations" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                Careers
-              </Link>
-              <Link href="/#features" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                 Features
-              </Link>
-              <Link href="/#about" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                About
-              </Link>
+              </a>
+              <a href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                How It Works
+              </a>
+              <a href="#career-paths" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                Career Paths
+              </a>
+              <a href="#resources" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                Resources
+              </a>
+              <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                FAQ
+              </a>
             </div>
           ) : (
             <div className="flex items-center gap-1 bg-slate-100/70 p-1 rounded-xl border border-slate-200/60">
@@ -173,7 +201,7 @@ export function Navbar() {
                 }`}
               >
                 <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
-                AI Copilot
+                AI Assistant
               </Link>
               {user.role === 'ADMIN' && (
                 <Link
@@ -192,7 +220,7 @@ export function Navbar() {
           )}
         </nav>
 
-        {/* Right CTA / User Profile */}
+        {/* Right Actions: Sign In & Get Started */}
         <div className="hidden lg:flex items-center gap-3">
           {!user ? (
             <div className="flex items-center gap-3">
@@ -204,10 +232,10 @@ export function Navbar() {
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-all active:scale-[0.99]"
               >
                 <span>Get Started</span>
-                <ChevronRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           ) : (
@@ -217,7 +245,7 @@ export function Navbar() {
                 className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-slate-100/70 transition-colors"
                 title="View Profile Settings"
               >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs shadow-xs">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs shadow-xs">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                   <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
                 </div>
@@ -251,53 +279,68 @@ export function Navbar() {
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
+
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Sheet */}
       {mobileMenuOpen && (
-        <div className="border-b border-slate-200/80 bg-white/95 backdrop-blur-xl px-4 pt-3 pb-6 lg:hidden space-y-4 max-h-[85vh] overflow-y-auto">
+        <div className="border-b border-slate-200 bg-white/98 backdrop-blur-xl px-4 pt-3 pb-6 lg:hidden space-y-4 max-h-[85vh] overflow-y-auto shadow-lg">
           {!user ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 Home
               </Link>
-              <Link
-                href="/#how-it-works"
+              <a
+                href="#features"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
+              >
+                Features
+              </a>
+              <a
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
               >
                 How It Works
-              </Link>
-              <Link
-                href="/recommendations"
+              </a>
+              <a
+                href="#career-paths"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
               >
-                Explore Careers
-              </Link>
-              <Link
-                href="/#features"
+                Career Paths
+              </a>
+              <a
+                href="#resources"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
               >
-                Features & Science
-              </Link>
-              <div className="pt-4 flex flex-col gap-2">
+                Resources
+              </a>
+              <a
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
+              >
+                FAQ
+              </a>
+              <div className="pt-4 flex flex-col gap-2.5">
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl"
+                  className="w-full text-center py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-sm"
+                  className="w-full text-center py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl shadow-sm hover:bg-blue-700"
                 >
                   Get Started Free
                 </Link>
@@ -306,9 +349,9 @@ export function Navbar() {
           ) : (
             <div className="space-y-3">
               {/* User Profile Snippet */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-xs">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-bold text-sm shadow-xs">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>

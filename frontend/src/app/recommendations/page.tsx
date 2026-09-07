@@ -152,8 +152,8 @@ export default function RecommendationsPage() {
             </div>
 
             {/* Category Filter Pills */}
-            <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2 overflow-x-auto py-1">
-              <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-2 overflow-x-auto py-1 touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1 shrink-0">
                 <Filter className="h-3 w-3" /> Category:
               </span>
               {categories.map((cat) => (
@@ -161,7 +161,7 @@ export default function RecommendationsPage() {
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 ${
+                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 min-h-[36px] ${
                     activeCategory === cat
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -196,30 +196,30 @@ export default function RecommendationsPage() {
                   {/* Collapsed Header */}
                   <div
                     onClick={() => setExpandedId(isExpanded ? null : rec.id)}
-                    className="p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5 cursor-pointer select-none"
+                    className="p-4 sm:p-6 lg:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 cursor-pointer select-none"
                   >
-                    <div className="flex items-start sm:items-center gap-4">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                       {/* Rank Indicator */}
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 border border-blue-200/80 font-black text-lg shadow-2xs">
+                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 border border-blue-200/80 font-black text-sm sm:text-lg shadow-2xs">
                         #{index + 1}
                       </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight break-words">
                             {rec.career?.title}
                           </h2>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200">
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200 shrink-0">
                             {rec.career?.category}
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                           <span className="font-semibold text-slate-800">{rec.career?.salaryRange}</span>
                           <span>•</span>
                           <span>{rec.career?.experienceLevel || 'Entry to Senior'}</span>
                           <span>•</span>
-                          <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]">
+                          <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px] shrink-0">
                             <TrendingUp className="h-3 w-3" />
                             {rec.career?.demandLevel || 'High Demand'}
                           </span>
@@ -228,9 +228,9 @@ export default function RecommendationsPage() {
                     </div>
 
                     {/* Right: Score Gauge & Accordion Toggle */}
-                    <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <div className="text-right">
-                        <div className="text-3xl font-black text-blue-600 tracking-tight leading-none">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <div className="text-left sm:text-right">
+                        <div className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight leading-none">
                           {rec.matchScore}%
                         </div>
                         <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">
@@ -241,7 +241,7 @@ export default function RecommendationsPage() {
                         </div>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors">
+                      <div className="p-2.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center">
                         {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                       </div>
                     </div>

@@ -87,7 +87,7 @@ export default function SkillGapsPage() {
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/70 shrink-0">
+              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/70 w-full sm:w-auto overflow-x-auto touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0">
                 {[
                   { key: 'ALL', label: 'All', count: skillGaps.length },
                   { key: 'HIGH', label: 'Critical', count: criticalCount + highCount },
@@ -97,7 +97,7 @@ export default function SkillGapsPage() {
                     key={f.key}
                     type="button"
                     onClick={() => setFilterPriority(f.key)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 min-h-[36px] ${
                       filterPriority === f.key
                         ? 'bg-white text-blue-700 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -111,34 +111,34 @@ export default function SkillGapsPage() {
             </div>
 
             {/* Quick KPI Bar */}
-            <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 text-red-600 font-bold">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 text-red-600 font-bold shrink-0">
                   {criticalCount}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-xs font-bold text-slate-900">Critical Skill Gaps</div>
-                  <div className="text-[11px] text-slate-500">Must bridge for candidate shortlisting</div>
+                  <div className="text-[11px] text-slate-500 truncate">Must bridge for shortlisting</div>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600 font-bold">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600 font-bold shrink-0">
                   {skillGaps.length}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-xs font-bold text-slate-900">Total Telemetry Items</div>
-                  <div className="text-[11px] text-slate-500">Tracked against target roles</div>
+                  <div className="text-[11px] text-slate-500 truncate">Tracked against target roles</div>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 font-bold">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 font-bold shrink-0">
                   ~6 wk
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-xs font-bold text-slate-900">Estimated Velocity</div>
-                  <div className="text-[11px] text-slate-500">Average bridging duration</div>
+                  <div className="text-[11px] text-slate-500 truncate">Average bridging duration</div>
                 </div>
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function SkillGapsPage() {
               ))}
             </div>
           ) : filteredGaps.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center space-y-4 shadow-xs">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 text-center space-y-4 shadow-xs">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
@@ -162,7 +162,7 @@ export default function SkillGapsPage() {
               </p>
               <Link
                 href="/recommendations"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 min-h-[44px]"
               >
                 View Career Matches
               </Link>
@@ -186,7 +186,7 @@ export default function SkillGapsPage() {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:border-slate-300 transition-all space-y-4"
+                    className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-xs hover:border-slate-300 transition-all space-y-4"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1 min-w-0">
@@ -235,7 +235,7 @@ export default function SkillGapsPage() {
                       </div>
 
                       {/* 5-Segment Level Bar */}
-                      <div className="grid grid-cols-5 gap-1.5">
+                      <div className="grid grid-cols-5 gap-1 sm:gap-1.5">
                         {[1, 2, 3, 4, 5].map((lvl) => {
                           const hasCurrent = current >= lvl;
                           const hasRequired = required >= lvl;
@@ -250,9 +250,9 @@ export default function SkillGapsPage() {
                           return (
                             <div
                               key={lvl}
-                              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${bgClass}`}
+                              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all truncate px-0.5 ${bgClass}`}
                             >
-                              Lvl {lvl} {hasCurrent ? '✓' : hasRequired ? 'Target' : ''}
+                              L{lvl} {hasCurrent ? '✓' : hasRequired ? '•' : ''}
                             </div>
                           );
                         })}

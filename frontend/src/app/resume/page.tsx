@@ -143,7 +143,7 @@ export default function ResumePage() {
             )}
 
             {/* Mode Switcher */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                 Input Method
               </span>
@@ -151,7 +151,7 @@ export default function ResumePage() {
                 <button
                   type="button"
                   onClick={() => setInputMode('upload')}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`flex-1 xs:flex-none px-3 py-2 min-h-[36px] text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
                     inputMode === 'upload' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -160,7 +160,7 @@ export default function ResumePage() {
                 <button
                   type="button"
                   onClick={() => setInputMode('paste')}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`flex-1 xs:flex-none px-3 py-2 min-h-[36px] text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
                     inputMode === 'paste' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -195,7 +195,7 @@ export default function ResumePage() {
                   <div className="flex items-center justify-center gap-3 pt-1">
                     <label
                       htmlFor="resume-file"
-                      className="cursor-pointer rounded-xl bg-white border border-slate-300/90 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                      className="cursor-pointer min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white border border-slate-300/90 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
                     >
                       Browse Files
                     </label>
@@ -203,9 +203,9 @@ export default function ResumePage() {
                       <button
                         type="button"
                         onClick={() => setFile(null)}
-                        className="text-xs font-bold text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-red-600 hover:underline min-h-[44px] inline-flex items-center gap-1 cursor-pointer"
                       >
-                        <X className="h-3 w-3" /> Clear
+                        <X className="h-3.5 w-3.5" /> Clear
                       </button>
                     )}
                   </div>
@@ -218,7 +218,7 @@ export default function ResumePage() {
                     value={directText}
                     onChange={(e) => setDirectText(e.target.value)}
                     placeholder="Paste work experience, bullet points, technical skills, and project summaries here..."
-                    className="w-full rounded-2xl border border-slate-300 bg-white p-3.5 sm:p-4 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-300 bg-white p-3.5 sm:p-4 text-base sm:text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
               )}
@@ -227,7 +227,7 @@ export default function ResumePage() {
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all hover:-translate-y-0.5 cursor-pointer"
+                  className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all hover:-translate-y-0.5 cursor-pointer"
                 >
                   {analyzing ? <RotateCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   <span>{analyzing ? 'Scanning Keywords & Scoring...' : 'Analyze Resume Telemetry'}</span>

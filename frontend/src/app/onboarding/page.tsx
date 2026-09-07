@@ -198,8 +198,8 @@ export default function OnboardingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/60 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen min-h-screen-dvh bg-slate-50/60 py-4 sm:py-8 px-3 sm:px-6 lg:px-8 pb-safe">
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
         {/* ======================================================== */}
         {/* TOP BRAND & STEPPER BAR */}
         {/* ======================================================== */}
@@ -235,7 +235,7 @@ export default function OnboardingPage() {
                 key={s.num}
                 type="button"
                 onClick={() => setStep(s.num)}
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all text-center ${
+                className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all text-center cursor-pointer ${
                   isCurrent
                     ? 'bg-white border-2 border-blue-600 shadow-xs'
                     : isDone
@@ -266,12 +266,18 @@ export default function OnboardingPage() {
           })}
         </div>
 
-        {/* Mobile Mini Progress Bar */}
-        <div className="sm:hidden h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
+        {/* Mobile Mini Progress Bar & Step Title */}
+        <div className="sm:hidden space-y-1.5">
+          <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+            <span>Step {step}: {stepMeta[step - 1]?.label}</span>
+            <span className="text-blue-600">{progressPercent}% complete</span>
+          </div>
+          <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
 
         {/* ======================================================== */}
@@ -695,13 +701,13 @@ export default function OnboardingPage() {
           {/* ======================================================== */}
           {/* NAVIGATION CONTROLS */}
           {/* ======================================================== */}
-          <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
+          <div className="pt-6 border-t border-slate-200 flex flex-col-reverse xs:flex-row items-stretch xs:items-center justify-between gap-3">
             <div>
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors"
+                  className="w-full xs:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] text-xs font-bold text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>Previous</span>
@@ -711,9 +717,9 @@ export default function OnboardingPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
               {saveMessage && (
-                <span className="text-xs text-emerald-600 font-bold animate-pulse">
+                <span className="text-xs text-emerald-600 font-bold animate-pulse text-center xs:text-left">
                   {saveMessage}
                 </span>
               )}
@@ -721,7 +727,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={handleNext}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                className="w-full xs:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 min-h-[44px] text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer text-center"
               >
                 <span>{step === totalSteps ? 'Complete & Generate Career Matches' : 'Save & Continue'}</span>
                 <ArrowRight className="h-4 w-4" />

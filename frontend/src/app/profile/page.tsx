@@ -158,20 +158,20 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row overflow-x-hidden w-full">
       <Sidebar userName={name} userEmail={email} />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
-        <div className="space-y-6">
+      <main className="flex-1 min-w-0 py-4 sm:py-8 px-3 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header Card */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs relative overflow-hidden">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-8 shadow-xs relative overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700">
                   <User className="h-3.5 w-3.5" />
                   <span>Candidate Identity & Telemetry</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
                   Profile Management
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -179,9 +179,9 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 {savedSuccess && (
-                  <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="text-xs text-emerald-600 font-bold flex items-center justify-center gap-1">
                     <Check className="h-3.5 w-3.5" /> Changes saved!
                   </span>
                 )}
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => handleSave()}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 min-h-[44px] text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
                 >
                   <Save className="h-4 w-4" />
                   <span>{saving ? 'Saving...' : 'Save Profile'}</span>
@@ -198,7 +198,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto py-1">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-5 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -207,7 +207,7 @@ export default function ProfilePage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-2.5 min-h-[40px] text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer select-none shrink-0 ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -222,7 +222,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Form Tab Content Card */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-8 shadow-xs space-y-5">
             {error && (
               <div className="p-4 rounded-2xl bg-red-50 text-red-700 text-xs font-bold border border-red-200 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0" />

@@ -147,33 +147,33 @@ export default function RoadmapPage() {
     <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
       <Sidebar userName={userProfile?.name} userEmail={userProfile?.email} />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
-        <div className="space-y-6">
+      <main className="flex-1 min-w-0 py-4 sm:py-8 px-3 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header Card */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-6 relative overflow-hidden">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 sm:p-8 shadow-xs space-y-5 sm:space-y-6 relative overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1.5 max-w-2xl">
+              <div className="space-y-1.5 max-w-2xl min-w-0">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700">
-                  <Map className="h-3.5 w-3.5 text-blue-600" />
+                  <Map className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                   <span>Personalized 6-Month Curriculum</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight break-words">
                   Target: {roadmap.career?.title}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500">
+                <p className="text-xs sm:text-sm text-slate-500 break-words">
                   Calibrated to bridge your highest-priority skill gaps and prepare you for production tech hiring bars.
                 </p>
               </div>
 
-              <div className="text-right shrink-0 bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4">
-                <div className="text-3xl font-black text-blue-600 tracking-tight">{progressPercent}%</div>
+              <div className="text-left sm:text-right shrink-0 bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 sm:p-4">
+                <div className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight">{progressPercent}%</div>
                 <div className="text-[10px] uppercase font-bold text-blue-800 tracking-wider">Overall Progress</div>
               </div>
             </div>
 
             {/* Progress Bar */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-semibold text-slate-600">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between text-xs font-semibold text-slate-600 gap-1">
                 <span>Milestones Completed: {completedItemsCount} of {items.length} Months</span>
                 <span className="text-blue-600 font-bold">{progressPercent}% Complete</span>
               </div>
@@ -186,7 +186,7 @@ export default function RoadmapPage() {
             </div>
 
             {/* Month Timeline Navigation */}
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 pt-2">
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
               {items.map((item: any) => {
                 const isActive = item.month === activeMonth;
                 const isDone = item.isCompleted;
@@ -196,7 +196,7 @@ export default function RoadmapPage() {
                     key={item.id}
                     type="button"
                     onClick={() => setActiveMonth(item.month)}
-                    className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    className={`p-2.5 sm:p-3.5 rounded-2xl border text-center transition-all min-h-[48px] flex flex-col justify-center ${
                       isActive
                         ? 'border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs'
                         : isDone
@@ -205,8 +205,8 @@ export default function RoadmapPage() {
                     }`}
                   >
                     <div className="text-xs font-black">Month {item.month}</div>
-                    <div className="text-[10px] truncate mt-1">
-                      {isDone ? '✓ Completed' : item.title?.split(':')[0]}
+                    <div className="text-[10px] truncate mt-0.5">
+                      {isDone ? '✓ Done' : item.title?.split(':')[0]}
                     </div>
                   </button>
                 );

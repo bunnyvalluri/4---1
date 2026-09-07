@@ -22,6 +22,8 @@ import {
   Cpu,
   RefreshCw,
 } from 'lucide-react';
+import { ResponsiveModal } from '@/components/ui/ResponsiveModal';
+import { ResponsiveTable } from '@/components/ui/ResponsiveTable';
 
 type AdminTab = 'overview' | 'users' | 'careers' | 'skills' | 'questions' | 'telemetry';
 
@@ -347,7 +349,7 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => {
@@ -357,7 +359,7 @@ export default function AdminPage() {
                 if (activeTab === 'questions') loadQuestions();
                 notifySuccess('Telemetry synchronized with database');
               }}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm min-h-[40px]"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Sync</span>
@@ -366,7 +368,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setShowAddCareer(true)}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition min-h-[40px]"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Career Track</span>
@@ -376,7 +378,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setShowAddSkill(true)}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition min-h-[40px]"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Skill</span>
@@ -386,7 +388,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setShowAddQuestion(true)}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition min-h-[40px]"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Question</span>
@@ -467,8 +469,8 @@ export default function AdminPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-slate-200">
-          <nav className="flex space-x-6 overflow-x-auto pb-px">
+        <div className="border-b border-slate-200 overflow-hidden">
+          <nav className="flex space-x-4 sm:space-x-6 overflow-x-auto pb-px touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {[
               { id: 'overview', label: 'Overview & Demand', icon: BarChart3 },
               { id: 'users', label: 'User Directory', icon: Users },
@@ -597,8 +599,8 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
+            <ResponsiveTable>
+              <table className="w-full text-left text-xs text-slate-700 min-w-[640px]">
                 <thead className="border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 bg-slate-50">
                   <tr>
                     <th className="py-3 px-4">User</th>
@@ -644,7 +646,7 @@ export default function AdminPage() {
                           type="button"
                           disabled={roleUpdatingId === u.id}
                           onClick={() => handleRoleToggle(u.id, u.role)}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-blue-600 hover:text-blue-600 disabled:opacity-40 transition shadow-sm"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-blue-600 hover:text-blue-600 disabled:opacity-40 transition shadow-sm min-h-[36px]"
                         >
                           {roleUpdatingId === u.id
                             ? 'Updating...'
@@ -657,7 +659,7 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTable>
           </div>
         )}
 
@@ -939,268 +941,256 @@ export default function AdminPage() {
         )}
 
         {/* MODAL: Add Career Track */}
-        {showAddCareer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-blue-600" />
-                  Provision New Career Track
-                </h3>
-                <button onClick={() => setShowAddCareer(false)} className="text-slate-400 hover:text-slate-600">
-                  ✕
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateCareer} className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Career Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="e.g. Site Reliability Engineer"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Category</label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  >
-                    <option value="Software Engineering">Software Engineering</option>
-                    <option value="Artificial Intelligence & Data">Artificial Intelligence & Data</option>
-                    <option value="Cloud & Infrastructure">Cloud & Infrastructure</option>
-                    <option value="Security & Operations">Security & Operations</option>
-                    <option value="Design & Product">Design & Product</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Salary Range</label>
-                  <input
-                    type="text"
-                    value={newSalary}
-                    onChange={(e) => setNewSalary(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    placeholder="Core responsibilities and architectural expectations..."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddCareer(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingCareer}
-                    className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {creatingCareer ? 'Creating...' : 'Create Career Track'}
-                  </button>
-                </div>
-              </form>
+        <ResponsiveModal
+          isOpen={showAddCareer}
+          onClose={() => setShowAddCareer(false)}
+          title={
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-blue-600" />
+              <span>Provision New Career Track</span>
             </div>
-          </div>
-        )}
+          }
+          description="Register a new job profile used for transparent matching algorithms."
+        >
+          <form onSubmit={handleCreateCareer} className="space-y-3.5 text-xs">
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Career Title</label>
+              <input
+                type="text"
+                required
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="e.g. Site Reliability Engineer"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Category</label>
+              <select
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              >
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Artificial Intelligence & Data">Artificial Intelligence & Data</option>
+                <option value="Cloud & Infrastructure">Cloud & Infrastructure</option>
+                <option value="Security & Operations">Security & Operations</option>
+                <option value="Design & Product">Design & Product</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Salary Range</label>
+              <input
+                type="text"
+                value={newSalary}
+                onChange={(e) => setNewSalary(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Description</label>
+              <textarea
+                rows={3}
+                required
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="Core responsibilities and architectural expectations..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowAddCareer(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creatingCareer}
+                className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
+              >
+                {creatingCareer ? 'Creating...' : 'Create Career Track'}
+              </button>
+            </div>
+          </form>
+        </ResponsiveModal>
 
         {/* MODAL: Add Skill */}
-        {showAddSkill && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-blue-600" />
-                  Add Skill to Catalog
-                </h3>
-                <button onClick={() => setShowAddSkill(false)} className="text-slate-400 hover:text-slate-600">
-                  ✕
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateSkill} className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Skill Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newSkillName}
-                    onChange={(e) => setNewSkillName(e.target.value)}
-                    placeholder="e.g. Kubernetes"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Category</label>
-                  <select
-                    value={newSkillCategory}
-                    onChange={(e) => setNewSkillCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  >
-                    <option value="Technical">Technical</option>
-                    <option value="Soft Skills">Soft Skills</option>
-                    <option value="Tools">Tools</option>
-                    <option value="Frameworks">Frameworks</option>
-                    <option value="Languages">Languages</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Demand Score (0 - 100)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={newSkillDemand}
-                    onChange={(e) => setNewSkillDemand(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddSkill(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingSkill}
-                    className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {creatingSkill ? 'Saving...' : 'Add Skill'}
-                  </button>
-                </div>
-              </form>
+        <ResponsiveModal
+          isOpen={showAddSkill}
+          onClose={() => setShowAddSkill(false)}
+          title={
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4 text-blue-600" />
+              <span>Add Skill to Catalog</span>
             </div>
-          </div>
-        )}
+          }
+          description="Register a technical competency node in the taxonomy registry."
+        >
+          <form onSubmit={handleCreateSkill} className="space-y-3.5 text-xs">
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Skill Name</label>
+              <input
+                type="text"
+                required
+                value={newSkillName}
+                onChange={(e) => setNewSkillName(e.target.value)}
+                placeholder="e.g. Kubernetes"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Category</label>
+              <select
+                value={newSkillCategory}
+                onChange={(e) => setNewSkillCategory(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              >
+                <option value="Technical">Technical</option>
+                <option value="Soft Skills">Soft Skills</option>
+                <option value="Tools">Tools</option>
+                <option value="Frameworks">Frameworks</option>
+                <option value="Languages">Languages</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Demand Score (0 - 100)</label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={newSkillDemand}
+                onChange={(e) => setNewSkillDemand(Number(e.target.value))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowAddSkill(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creatingSkill}
+                className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
+              >
+                {creatingSkill ? 'Saving...' : 'Add Skill'}
+              </button>
+            </div>
+          </form>
+        </ResponsiveModal>
 
         {/* MODAL: Add Question */}
-        {showAddQuestion && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4 text-blue-600" />
-                  Add Diagnostic Question
-                </h3>
-                <button onClick={() => setShowAddQuestion(false)} className="text-slate-400 hover:text-slate-600">
-                  ✕
-                </button>
-              </div>
+        <ResponsiveModal
+          isOpen={showAddQuestion}
+          onClose={() => setShowAddQuestion(false)}
+          title={
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4 text-blue-600" />
+              <span>Add Diagnostic Question</span>
+            </div>
+          }
+          description="Contribute psychometric question measuring cognitive abilities."
+        >
+          <form onSubmit={handleCreateQuestion} className="space-y-3.5 text-xs">
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Category</label>
+              <select
+                value={newQCategory}
+                onChange={(e) => setNewQCategory(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              >
+                <option value="LOGICAL">Logical Reasoning</option>
+                <option value="QUANTITATIVE">Quantitative Aptitude</option>
+                <option value="VERBAL">Verbal Ability</option>
+                <option value="ANALYTICAL">Analytical Thinking</option>
+                <option value="PROBLEM_SOLVING">Problem Solving</option>
+              </select>
+            </div>
 
-              <form onSubmit={handleCreateQuestion} className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Category</label>
-                  <select
-                    value={newQCategory}
-                    onChange={(e) => setNewQCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  >
-                    <option value="LOGICAL">Logical Reasoning</option>
-                    <option value="QUANTITATIVE">Quantitative Aptitude</option>
-                    <option value="VERBAL">Verbal Ability</option>
-                    <option value="ANALYTICAL">Analytical Thinking</option>
-                    <option value="PROBLEM_SOLVING">Problem Solving</option>
-                  </select>
-                </div>
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Question Prompt</label>
+              <textarea
+                rows={2}
+                required
+                value={newQText}
+                onChange={(e) => setNewQText(e.target.value)}
+                placeholder="Enter question text..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
+              />
+            </div>
 
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Question Prompt</label>
-                  <textarea
-                    rows={2}
-                    required
-                    value={newQText}
-                    onChange={(e) => setNewQText(e.target.value)}
-                    placeholder="Enter question text..."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-slate-700 font-semibold">Multiple Choice Options</label>
-                  {newQOptions.map((opt, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="w-5 text-center font-bold text-slate-500">{String.fromCharCode(65 + idx)}:</span>
-                      <input
-                        type="text"
-                        required
-                        value={opt}
-                        onChange={(e) => {
-                          const updated = [...newQOptions];
-                          updated[idx] = e.target.value;
-                          setNewQOptions(updated);
-                        }}
-                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                        className="flex-1 rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
-                      />
-                      <input
-                        type="radio"
-                        name="correctOpt"
-                        checked={newQCorrect === idx}
-                        onChange={() => setNewQCorrect(idx)}
-                        className="h-4 w-4 text-blue-600"
-                        title="Mark as correct answer"
-                      />
-                    </div>
-                  ))}
-                  <p className="text-[10px] text-slate-400">Select the radio button corresponding to the correct answer.</p>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Explanation</label>
+            <div className="space-y-2">
+              <label className="block text-slate-700 font-semibold">Multiple Choice Options</label>
+              {newQOptions.map((opt, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="w-5 text-center font-bold text-slate-500">{String.fromCharCode(65 + idx)}:</span>
                   <input
                     type="text"
-                    value={newQExplanation}
-                    onChange={(e) => setNewQExplanation(e.target.value)}
-                    placeholder="Reasoning behind correct answer..."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none"
+                    required
+                    value={opt}
+                    onChange={(e) => {
+                      const updated = [...newQOptions];
+                      updated[idx] = e.target.value;
+                      setNewQOptions(updated);
+                    }}
+                    placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                    className="flex-1 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+                  />
+                  <input
+                    type="radio"
+                    name="correctOpt"
+                    checked={newQCorrect === idx}
+                    onChange={() => setNewQCorrect(idx)}
+                    className="h-5 w-5 text-blue-600 cursor-pointer"
+                    title="Mark as correct answer"
                   />
                 </div>
-
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddQuestion(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingQuestion}
-                    className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {creatingQuestion ? 'Adding...' : 'Add Question'}
-                  </button>
-                </div>
-              </form>
+              ))}
+              <p className="text-[10px] text-slate-400">Select the radio button corresponding to the correct answer.</p>
             </div>
-          </div>
-        )}
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-1">Explanation</label>
+              <input
+                type="text"
+                value={newQExplanation}
+                onChange={(e) => setNewQExplanation(e.target.value)}
+                placeholder="Reasoning behind correct answer..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none min-h-[44px]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowAddQuestion(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-medium min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creatingQuestion}
+                className="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
+              >
+                {creatingQuestion ? 'Adding...' : 'Add Question'}
+              </button>
+            </div>
+          </form>
+        </ResponsiveModal>
       </div>
     </div>
   );

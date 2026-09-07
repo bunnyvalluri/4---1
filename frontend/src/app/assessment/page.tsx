@@ -245,10 +245,10 @@ export default function AssessmentPage() {
             /* ======================================================== */
             /* QUESTION SCREEN */
             /* ======================================================== */
-            <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-xs space-y-6">
-              {/* Question Navigator Pills */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full">
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-8 sm:p-10 shadow-xs space-y-5 sm:space-y-6">
+              {/* Question Navigator Pills & Category */}
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {questions.map((q, idx) => {
                     const isQAnswered = answers[q.id] !== undefined;
                     const isQCurrent = idx === currentIndex;
@@ -257,7 +257,7 @@ export default function AssessmentPage() {
                         key={q.id}
                         type="button"
                         onClick={() => setCurrentIndex(idx)}
-                        className={`h-7 w-7 rounded-lg text-xs font-bold transition-all flex items-center justify-center shrink-0 ${
+                        className={`h-8 w-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center shrink-0 ${
                           isQCurrent
                             ? 'bg-blue-600 text-white shadow-xs'
                             : isQAnswered
@@ -272,7 +272,7 @@ export default function AssessmentPage() {
                   })}
                 </div>
                 <span
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getCategoryColor(
+                  className={`self-start xs:self-auto text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${getCategoryColor(
                     currentQuestion.category
                   )}`}
                 >
@@ -281,17 +281,17 @@ export default function AssessmentPage() {
               </div>
 
               {/* Question Statement */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-1">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Question {currentIndex + 1} of {totalQuestions}
                 </div>
-                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug break-words">
                   {currentQuestion.question}
                 </h2>
               </div>
 
               {/* Answer Options */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2.5 sm:space-y-3 pt-1">
                 {(currentQuestion.options as string[]).map((optionText, optIdx) => {
                   const isSelected = answers[currentQuestion.id] === optIdx;
                   return (
@@ -299,13 +299,13 @@ export default function AssessmentPage() {
                       key={optIdx}
                       type="button"
                       onClick={() => handleSelectOption(currentQuestion.id, optIdx)}
-                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between ${
+                      className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between min-h-[48px] ${
                         isSelected
                           ? 'border-blue-600 bg-blue-50/70 text-blue-900 font-bold shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3.5">
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
                         <span
                           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-colors ${
                             isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
@@ -313,21 +313,21 @@ export default function AssessmentPage() {
                         >
                           {String.fromCharCode(65 + optIdx)}
                         </span>
-                        <span className="leading-relaxed">{optionText}</span>
+                        <span className="leading-relaxed break-words">{optionText}</span>
                       </div>
-                      {isSelected && <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />}
+                      {isSelected && <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0 ml-2" />}
                     </button>
                   );
                 })}
               </div>
 
               {/* Navigation Controls */}
-              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-5 sm:pt-6 border-t border-slate-100 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={currentIndex === 0}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 disabled:opacity-30 transition-colors"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 disabled:opacity-30 transition-colors min-h-[44px]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>Previous</span>
@@ -338,20 +338,20 @@ export default function AssessmentPage() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitting || !isAnswered}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-40 transition-all hover:-translate-y-0.5 min-h-[44px]"
                   >
                     <span>{submitting ? 'Calculating Diagnostics...' : 'Submit Diagnostic'}</span>
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className="h-4 w-4 shrink-0" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleNext}
                     disabled={!isAnswered}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 sm:px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 transition-all hover:-translate-y-0.5 min-h-[44px]"
                   >
                     <span>Next Question</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 shrink-0" />
                   </button>
                 )}
               </div>

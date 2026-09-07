@@ -18,6 +18,11 @@ import {
   ShieldCheck,
   BrainCircuit,
   Zap,
+  TrendingUp,
+  CheckCircle2,
+  Check,
+  FileCheck,
+  Map,
 } from 'lucide-react';
 import { auth, googleProvider, initFirebaseAuth } from '@/lib/firebase/client';
 import { signInWithPopup } from 'firebase/auth';
@@ -169,7 +174,10 @@ export function AuthCard({ initialMode }: AuthCardProps) {
       setGoogleLoading(true);
       setError(null);
 
-      const activeKey = providedKey || customApiKey || (typeof window !== 'undefined' ? localStorage.getItem('NEXT_PUBLIC_FIREBASE_API_KEY') : null);
+      const activeKey =
+        providedKey ||
+        customApiKey ||
+        (typeof window !== 'undefined' ? localStorage.getItem('NEXT_PUBLIC_FIREBASE_API_KEY') : null);
       let client = initFirebaseAuth(activeKey || undefined);
 
       if (!client.auth || !client.googleProvider) {
@@ -228,141 +236,223 @@ export function AuthCard({ initialMode }: AuthCardProps) {
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 relative selection:bg-blue-600 selection:text-white"
-      style={{
-        backgroundColor: '#F8FAFC',
-        backgroundImage: 'radial-gradient(#E2E8F0 1px, transparent 1px)',
-        backgroundSize: '24px 24px',
-      }}
-    >
-      {/* Decorative ambient gradients */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-72 pointer-events-none blur-3xl opacity-60"
-        style={{
-          background: 'radial-gradient(ellipse at top, rgba(37,99,235,0.15), rgba(99,102,241,0.08), transparent 70%)',
-        }}
-      />
+    <div className="min-h-screen min-h-screen-dvh w-full bg-white flex flex-col lg:grid lg:grid-cols-12 selection:bg-blue-600 selection:text-white">
+      
+      {/* ======================================================== */}
+      {/* LEFT COLUMN: BRAND STORYTELLING & PRODUCT TELEMETRY PREVIEW */}
+      {/* ======================================================== */}
+      <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 bg-slate-50/80 border-r border-slate-200/90 p-8 xl:p-14 flex-col justify-between relative overflow-hidden">
+        
+        {/* Subtle decorative mesh */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl pointer-events-none -z-0" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/30 rounded-full blur-3xl pointer-events-none -z-0" />
 
-      {/* Main Centered Container with Strict Max-Width */}
-      <div className="relative z-10 w-full flex flex-col items-center" style={{ maxWidth: '440px' }}>
-        {/* Brand Header */}
-        <div className="text-center mb-6">
+        <div className="relative z-10 space-y-8">
+          {/* Logo & Platform Tag */}
           <Link href="/" className="inline-flex items-center gap-3 group">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg transition-transform group-hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
-                boxShadow: '0 8px 16px -4px rgba(37,99,235,0.3)',
-              }}
-            >
-              <Compass className="h-6 w-6" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 group-hover:scale-105 transition-transform">
+              <Compass className="h-5 w-5" />
             </div>
-            <div className="text-left">
-              <span className="text-2xl font-black tracking-tight" style={{ color: '#0F172A' }}>
-                Career<span style={{ color: '#2563EB' }}>AI</span>
+            <div>
+              <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
+                Career<span className="text-blue-600">AI</span>
               </span>
-              <span className="block text-[10px] font-bold tracking-wider uppercase" style={{ color: '#64748B' }}>
+              <span className="block text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
                 Talent Intelligence Suite
               </span>
             </div>
           </Link>
+
+          {/* Narrative Headline */}
+          <div className="space-y-3 max-w-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
+              <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+              <span>{mode === 'login' ? 'Candidate Command Center' : 'Adaptive Career Guidance'}</span>
+            </div>
+
+            <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              {mode === 'login'
+                ? 'Welcome Back to Your Career Command Center.'
+                : 'Discover the Career Path That is Right for You.'}
+            </h1>
+
+            <p className="text-sm xl:text-base text-slate-600 leading-relaxed font-normal">
+              {mode === 'login'
+                ? 'Access your explainable career match scores, active 6-month roadmap milestones, and ATS-optimized resume feedback.'
+                : 'Join candidates leveraging transparent multi-criteria recommendations, skill gap telemetry, and structured roadmap milestones.'}
+            </p>
+          </div>
+
+          {/* Realistic Telemetry Preview Card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/50 max-w-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-9 w-9 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                  <img
+                    src="/hero-student.jpg"
+                    alt="Active Candidate"
+                    className="h-full w-full object-cover object-top"
+                  />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Alex Johnson</div>
+                  <div className="text-[10px] text-slate-400">Software Engineer Track • Active</div>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                <TrendingUp className="h-3 w-3" />
+                92% Match
+              </span>
+            </div>
+
+            {/* Quick Metrics Grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Active Milestone</span>
+                <span className="font-semibold text-slate-800">Month 2: Backend APIs</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">ATS Resume Score</span>
+                <span className="font-semibold text-blue-600">88 / 100 • Strong</span>
+              </div>
+            </div>
+
+            {/* Skills & Strengths */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-medium">Verified Skills:</span>
+                <span className="font-semibold text-slate-700">Python, React, SQL, Git</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-medium">Priority Gap:</span>
+                <span className="font-semibold text-amber-700">System Design (Level 2/5)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Value Pillars List */}
+          <div className="space-y-2.5 max-w-lg text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 stroke-[2.5] shrink-0" />
+              <span>Multi-factor utility calculation across skills, education, and aptitude</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 stroke-[2.5] shrink-0" />
+              <span>Actionable 6-month curriculum with production project deliverables</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 stroke-[2.5] shrink-0" />
+              <span>Profile-grounded AI mentor with live system architecture review</span>
+            </div>
+          </div>
         </div>
 
-        {/* Master Auth Card */}
-        <div
-          className="w-full rounded-2xl p-6 sm:p-8"
-          style={{
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 20px 25px -5px rgba(15,23,42,0.06), 0 8px 10px -6px rgba(15,23,42,0.03)',
-          }}
-        >
-          {/* Segmented Mode Switcher */}
-          <div
-            className="grid grid-cols-2 p-1 rounded-xl mb-5"
-            style={{ backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0' }}
+        {/* Left Footer Trust Badges */}
+        <div className="relative z-10 pt-8 border-t border-slate-200/80 flex items-center gap-4 text-xs text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <span className="text-[11px] font-medium text-slate-600">256-Bit SSL Encrypted</span>
+          </div>
+          <span>•</span>
+          <div className="flex items-center gap-1.5">
+            <BrainCircuit className="h-4 w-4 text-blue-600" />
+            <span className="text-[11px] font-medium text-slate-600">Explainable Scoring</span>
+          </div>
+          <span>•</span>
+          <span className="text-[11px] font-medium text-slate-500">Zero Third-Party Ads</span>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* RIGHT COLUMN: AUTHENTICATION FORM */}
+      {/* ======================================================== */}
+      <div className="col-span-12 lg:col-span-6 xl:col-span-5 flex flex-col justify-between p-4 xs:p-6 sm:p-10 lg:p-12 xl:p-16 min-h-screen-dvh">
+        
+        {/* Top bar with back to home */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="lg:hidden flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
+              <Compass className="h-4 w-4" />
+            </div>
+            <span className="text-base font-extrabold text-slate-900">
+              Career<span className="text-blue-600">AI</span>
+            </span>
+          </div>
+          <Link
+            href="/"
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors ml-auto flex items-center gap-1 min-h-[36px]"
           >
+            <span>← Return to Home</span>
+          </Link>
+        </div>
+
+        {/* Main Form Center Box */}
+        <div className="w-full max-w-md mx-auto my-auto space-y-6">
+          
+          {/* Segmented Mode Switcher */}
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className="py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-center"
-              style={{
-                backgroundColor: mode === 'login' ? '#FFFFFF' : 'transparent',
-                color: mode === 'login' ? '#0F172A' : '#64748B',
-                boxShadow: mode === 'login' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              }}
+              className={`py-2.5 min-h-[40px] rounded-lg transition-all text-center cursor-pointer ${
+                mode === 'login'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
               Sign In
             </button>
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className="py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-center"
-              style={{
-                backgroundColor: mode === 'register' ? '#FFFFFF' : 'transparent',
-                color: mode === 'register' ? '#0F172A' : '#64748B',
-                boxShadow: mode === 'register' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              }}
+              className={`py-2.5 min-h-[40px] rounded-lg transition-all text-center cursor-pointer ${
+                mode === 'register'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
               Create Account
             </button>
           </div>
 
           {/* Context Header */}
-          <div className="mb-5 text-left">
-            <h1 className="text-lg font-bold tracking-tight" style={{ color: '#0F172A' }}>
-              {mode === 'login' ? 'Welcome back to CareerAI' : 'Create candidate account'}
-            </h1>
-            <p className="text-xs mt-1" style={{ color: '#64748B' }}>
+          <div className="text-left space-y-1">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+              {mode === 'login' ? 'Sign in to your account' : 'Create your free account'}
+            </h2>
+            <p className="text-xs text-slate-500 leading-relaxed">
               {mode === 'login'
-                ? 'Sign in to access your skills dashboard and recommendations.'
-                : 'Free sandbox account with personalized AI career telemetry.'}
+                ? 'Enter your credentials or use a 1-click sandbox profile below.'
+                : 'Start your comprehensive diagnostic and discover your best-fit career.'}
             </p>
           </div>
 
           {/* Quick 1-Click Sandbox Fast Access (Sign In Mode) */}
           {mode === 'login' && (
-            <div
-              className="p-3 rounded-xl mb-5"
-              style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5"
-                  style={{ color: '#475569' }}
-                >
-                  <Zap className="h-3.5 w-3.5" style={{ color: '#F59E0B' }} />
+            <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-amber-500" />
                   1-Click Instant Sandbox Logins
                 </span>
-                <span
-                  className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                  style={{ backgroundColor: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }}
-                >
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Ready
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickDemoLogin('alex@example.com', 'Password@123')}
                   disabled={loading}
-                  className="flex items-center justify-between p-2.5 rounded-lg text-left transition-all cursor-pointer group"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                  }}
+                  className="flex items-center justify-between p-2.5 min-h-[44px] rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all text-left group cursor-pointer"
                 >
                   <div className="overflow-hidden pr-1">
-                    <div className="text-xs font-bold truncate group-hover:text-blue-600" style={{ color: '#0F172A' }}>
+                    <div className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600">
                       Alex Johnson
                     </div>
-                    <div className="text-[10px] truncate" style={{ color: '#64748B' }}>Candidate</div>
+                    <div className="text-[10px] text-slate-400 truncate">Candidate Account</div>
                   </div>
-                  <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0"
-                    style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}
-                  >
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-600 shrink-0">
                     Enter
                   </span>
                 </button>
@@ -371,22 +461,15 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                   type="button"
                   onClick={() => handleQuickDemoLogin('admin@careerai.dev', 'Admin@123456')}
                   disabled={loading}
-                  className="flex items-center justify-between p-2.5 rounded-lg text-left transition-all cursor-pointer group"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                  }}
+                  className="flex items-center justify-between p-2.5 min-h-[44px] rounded-lg bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-xs transition-all text-left group cursor-pointer"
                 >
                   <div className="overflow-hidden pr-1">
-                    <div className="text-xs font-bold truncate group-hover:text-indigo-600 flex items-center gap-1" style={{ color: '#0F172A' }}>
-                      <Shield className="h-3 w-3" style={{ color: '#4F46E5' }} /> Admin
+                    <div className="text-xs font-bold text-slate-900 truncate group-hover:text-indigo-600 flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-indigo-600" /> Admin
                     </div>
-                    <div className="text-[10px] truncate" style={{ color: '#64748B' }}>System Portal</div>
+                    <div className="text-[10px] text-slate-400 truncate">System Portal</div>
                   </div>
-                  <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0"
-                    style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}
-                  >
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-indigo-50 text-indigo-600 shrink-0">
                     Enter
                   </span>
                 </button>
@@ -396,11 +479,8 @@ export function AuthCard({ initialMode }: AuthCardProps) {
 
           {/* Error Message */}
           {error && (
-            <div
-              className="flex items-start gap-2.5 rounded-xl p-3 text-xs font-medium mb-4"
-              style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C' }}
-            >
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#DC2626' }} />
+            <div className="flex items-start gap-2.5 rounded-xl p-3 text-xs font-medium bg-red-50 border border-red-200 text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
               <span>{error}</span>
             </div>
           )}
@@ -409,11 +489,11 @@ export function AuthCard({ initialMode }: AuthCardProps) {
           <form onSubmit={handleSubmit} className="space-y-4 text-left">
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-bold mb-1.5" style={{ color: '#334155' }} htmlFor="name">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="name">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-3.5 h-4 w-4" style={{ color: '#94A3B8' }} />
+                  <User className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                   <input
                     id="name"
                     type="text"
@@ -422,23 +502,18 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Alex Johnson"
-                    className="w-full rounded-xl pl-10 pr-4 py-2.5 text-sm transition-all focus:outline-none"
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      color: '#0F172A',
-                    }}
+                    className="w-full min-h-[44px] rounded-xl pl-10 pr-4 py-2.5 text-base sm:text-sm bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold mb-1.5" style={{ color: '#334155' }} htmlFor="email">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="email">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 h-4 w-4" style={{ color: '#94A3B8' }} />
+                <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                 <input
                   id="email"
                   type="email"
@@ -447,34 +522,28 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="alex@example.com"
-                  className="w-full rounded-xl pl-10 pr-4 py-2.5 text-sm transition-all focus:outline-none"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                    color: '#0F172A',
-                  }}
+                  className="w-full min-h-[44px] rounded-xl pl-10 pr-4 py-2.5 text-base sm:text-sm bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold" style={{ color: '#334155' }} htmlFor="password">
+                <label className="text-xs font-bold text-slate-700" htmlFor="password">
                   Password
                 </label>
                 {mode === 'login' && (
                   <Link
                     href="/forgot-password"
                     prefetch={true}
-                    className="text-xs font-semibold hover:underline"
-                    style={{ color: '#2563EB' }}
+                    className="text-xs font-semibold text-blue-600 hover:underline min-h-[36px] inline-flex items-center"
                   >
                     Forgot password?
                   </Link>
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 h-4 w-4" style={{ color: '#94A3B8' }} />
+                <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -484,17 +553,12 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full rounded-xl pl-10 pr-11 py-2.5 text-sm transition-all focus:outline-none"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                    color: '#0F172A',
-                  }}
+                  className="w-full min-h-[44px] rounded-xl pl-10 pr-11 py-2.5 text-base sm:text-sm bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -505,7 +569,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
               {/* Password strength meter for registration */}
               {mode === 'register' && password && (
                 <div className="flex items-center gap-2 pt-1.5">
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden flex gap-1" style={{ backgroundColor: '#F1F5F9' }}>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden flex gap-1 bg-slate-100">
                     <div
                       className="h-full flex-1 rounded-full transition-all"
                       style={{ backgroundColor: passwordStrength.score >= 1 ? passwordStrength.color : '#E2E8F0' }}
@@ -519,7 +583,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                       style={{ backgroundColor: passwordStrength.score >= 3 ? passwordStrength.color : '#E2E8F0' }}
                     />
                   </div>
-                  <span className="text-[10px] font-bold" style={{ color: '#64748B' }}>
+                  <span className="text-[10px] font-bold text-slate-500">
                     {passwordStrength.label}
                   </span>
                 </div>
@@ -527,8 +591,8 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             </div>
 
             {mode === 'login' && (
-              <div className="flex items-center justify-between pt-0.5">
-                <label className="flex items-center gap-2 cursor-pointer text-xs select-none" style={{ color: '#475569' }}>
+              <div className="flex items-center justify-between pt-0.5 min-h-[36px]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs select-none text-slate-600">
                   <input
                     type="checkbox"
                     checked={rememberMe}
@@ -544,20 +608,16 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             <button
               type="submit"
               disabled={loading || googleLoading}
-              className="w-full rounded-xl py-3 text-sm font-bold text-white transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              style={{
-                background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
-                boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
-              }}
+              className="w-full min-h-[44px] rounded-xl py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin text-white" />
-                  <span>{mode === 'login' ? 'Authenticating...' : 'Creating Account...'}</span>
+                  <span>{mode === 'login' ? 'Signing in...' : 'Creating account...'}</span>
                 </>
               ) : (
                 <>
-                  <span>{mode === 'login' ? 'Sign In to Dashboard' : 'Create Account & Continue'}</span>
+                  <span>{mode === 'login' ? 'Sign In to Dashboard' : 'Create Free Account'}</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -565,12 +625,9 @@ export function AuthCard({ initialMode }: AuthCardProps) {
           </form>
 
           {/* Social Auth Divider */}
-          <div className="relative my-5 flex items-center justify-center">
-            <div className="w-full" style={{ borderTop: '1px solid #E2E8F0' }} />
-            <span
-              className="px-3 text-[10px] font-extrabold uppercase tracking-wider shrink-0"
-              style={{ backgroundColor: '#FFFFFF', color: '#94A3B8' }}
-            >
+          <div className="relative my-4 flex items-center justify-center">
+            <div className="w-full border-t border-slate-200" />
+            <span className="px-3 text-[10px] font-bold uppercase tracking-wider bg-white text-slate-400 shrink-0">
               Or continue with
             </span>
           </div>
@@ -580,12 +637,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             type="button"
             onClick={() => handleGoogleAuth()}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-2.5 px-4 text-xs font-bold transition-all cursor-pointer"
-            style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              color: '#334155',
-            }}
+            className="w-full min-h-[44px] flex items-center justify-center gap-2.5 rounded-xl py-2.5 px-4 text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-2xs cursor-pointer"
           >
             {googleLoading ? (
               <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
@@ -594,112 +646,100 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             )}
             <span>{googleLoading ? 'Opening Google Sign-In...' : 'Sign in with Google'}</span>
           </button>
+
+          {/* Terms notice */}
+          <p className="text-[11px] text-center text-slate-400 leading-relaxed">
+            By continuing, you agree to CareerAI{' '}
+            <span className="underline cursor-default">Terms of Service</span> and{' '}
+            <span className="underline cursor-default">Privacy Policy</span>.
+          </p>
+
         </div>
 
-        {/* Real Google Account Setup Modal */}
-        {apiKeyModalOpen && (
+        {/* Bottom copyright */}
+        <div className="pt-6 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()} CareerAI. All rights reserved.
+        </div>
+
+      </div>
+
+      {/* Real Google Account Setup Modal */}
+      {apiKeyModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setApiKeyModalOpen(false)}
+        >
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
-            onClick={() => setApiKeyModalOpen(false)}
+            className="relative w-full max-w-md rounded-2xl p-6 bg-white border border-slate-200 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4"
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
-                    <GoogleIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold" style={{ color: '#0F172A' }}>
-                      Connect Real Google Accounts
-                    </h3>
-                    <p className="text-[11px]" style={{ color: '#64748B' }}>
-                      Official OAuth 2.0 via Google & Firebase
-                    </p>
-                  </div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
+                  <GoogleIcon className="h-5 w-5" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setApiKeyModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-700 p-1 text-sm font-bold"
-                >
-                  ✕
-                </button>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Connect Real Google Accounts
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Official OAuth 2.0 via Google & Firebase
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApiKeyModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              To launch the real Google popup (<span className="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">accounts.google.com</span>) allowing users to pick their personal Google profile, enter your Firebase Web API Key:
+            </p>
+
+            <form onSubmit={handleSaveApiKeyAndSignIn} className="space-y-3 text-left">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Firebase Web API Key (AIzaSy...)
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  className="w-full rounded-xl px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:border-blue-600"
+                />
+                <span className="block text-[10px] text-slate-500 mt-1">
+                  Found in Firebase Console → Project Settings → General → Web App.
+                </span>
               </div>
 
-              <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>
-                To launch the real Google popup (<span className="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">accounts.google.com</span>) allowing users to pick their personal Google profile, enter your Firebase Web API Key:
-              </p>
-
-              <form onSubmit={handleSaveApiKeyAndSignIn} className="space-y-3 text-left">
-                <div>
-                  <label className="block text-xs font-bold mb-1" style={{ color: '#334155' }}>
-                    Firebase Web API Key (AIzaSy...)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                    value={customApiKey}
-                    onChange={(e) => setCustomApiKey(e.target.value)}
-                    className="w-full rounded-xl px-3 py-2 text-xs font-mono transition-all focus:outline-none"
-                    style={{
-                      backgroundColor: '#F8FAFC',
-                      border: '1px solid #CBD5E1',
-                      color: '#0F172A',
-                    }}
-                  />
-                  <span className="block text-[10px] mt-1" style={{ color: '#64748B' }}>
-                    Found in Firebase Console → Project Settings → General → Web App.
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <a
-                    href="https://console.firebase.google.com/project/careerai-app-9777b/settings/general"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] font-semibold text-blue-600 hover:underline"
-                  >
-                    Get Key from Console ↗
-                  </a>
-                  <button
-                    type="submit"
-                    disabled={googleLoading || !customApiKey.trim()}
-                    className="px-4 py-2 text-xs font-bold text-white rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
-                    style={{
-                      background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)',
-                    }}
-                  >
-                    {googleLoading ? 'Connecting...' : 'Launch Google Popup →'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Trust Badges Bar */}
-        <div className="w-full flex items-center justify-center gap-4 text-xs py-3 mt-1" style={{ color: '#64748B' }}>
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5" style={{ color: '#10B981' }} />
-            <span className="text-[11px] font-medium">256-Bit Encrypted</span>
-          </div>
-          <span style={{ color: '#CBD5E1' }}>•</span>
-          <div className="flex items-center gap-1.5">
-            <BrainCircuit className="h-3.5 w-3.5" style={{ color: '#2563EB' }} />
-            <span className="text-[11px] font-medium">Explainable AI</span>
-          </div>
-          <span style={{ color: '#CBD5E1' }}>•</span>
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5" style={{ color: '#4F46E5' }} />
-            <span className="text-[11px] font-medium">Python ML Engine</span>
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <a
+                  href="https://console.firebase.google.com/project/careerai-app-9777b/settings/general"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-semibold text-blue-600 hover:underline"
+                >
+                  Get Key from Console ↗
+                </a>
+                <button
+                  type="submit"
+                  disabled={googleLoading || !customApiKey.trim()}
+                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {googleLoading ? 'Connecting...' : 'Launch Google Popup →'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

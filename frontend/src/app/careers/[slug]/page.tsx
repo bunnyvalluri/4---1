@@ -118,42 +118,42 @@ export default function CareerDetailsPage() {
     <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
       <Sidebar userName={profile?.name} userEmail={profile?.email} />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
-        <div className="space-y-6">
+      <main className="flex-1 min-w-0 py-4 sm:py-8 px-3 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+        <div className="space-y-4 sm:space-y-6">
           {/* Breadcrumb Navigation */}
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-            <Link href="/recommendations" className="hover:text-blue-600 flex items-center gap-1">
+            <Link href="/recommendations" className="hover:text-blue-600 flex items-center gap-1 min-h-[36px]">
               <ArrowLeft className="h-3.5 w-3.5" /> Career Matches
             </Link>
             <span>/</span>
-            <span className="text-slate-800">{career.title}</span>
+            <span className="text-slate-800 truncate">{career.title}</span>
           </div>
 
           {/* Hero Header Card */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-xs space-y-6 relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-8 sm:p-10 shadow-xs space-y-5 sm:space-y-6 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 sm:gap-6">
+              <div className="space-y-2 max-w-2xl min-w-0">
                 <span className="rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-xs font-bold border border-blue-200 inline-block">
                   {career.category}
                 </span>
-                <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight break-words">
                   {career.title}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl break-words">
                   {career.description}
                 </p>
               </div>
 
-              <div className="flex flex-col items-start sm:items-end gap-3 shrink-0">
-                <div className="rounded-2xl bg-blue-50/80 border border-blue-200/80 p-4 text-center min-w-[130px]">
-                  <div className="text-3xl font-black text-blue-600 tracking-tight">{matchScore}%</div>
+              <div className="flex flex-col xs:flex-row sm:flex-col items-stretch xs:items-center sm:items-end gap-3 shrink-0 w-full sm:w-auto">
+                <div className="rounded-2xl bg-blue-50/80 border border-blue-200/80 p-3.5 sm:p-4 text-center min-w-[120px]">
+                  <div className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight">{matchScore}%</div>
                   <div className="text-[10px] uppercase font-bold text-blue-800">Match Compatibility</div>
                 </div>
                 <button
                   type="button"
                   onClick={handleChooseCareer}
                   disabled={generatingRoadmap}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 sm:px-6 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 disabled:opacity-50 min-h-[44px]"
                 >
                   <Map className="h-4 w-4" />
                   <span>{generatingRoadmap ? 'Synthesizing...' : 'Adopt & Build Roadmap'}</span>
@@ -162,7 +162,7 @@ export default function CareerDetailsPage() {
             </div>
 
             {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100 pt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-slate-100 pt-5 sm:pt-6">
               <div>
                 <div className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider">Salary Range</div>
                 <div className="text-sm font-black text-slate-900 mt-0.5">{career.salaryRange}</div>
