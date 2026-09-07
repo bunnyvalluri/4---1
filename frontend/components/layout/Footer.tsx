@@ -1,8 +1,21 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Compass, ShieldCheck, Sparkles, BookOpen, Layers, CheckCircle2, Heart } from 'lucide-react';
 
 export function Footer() {
+  const pathname = usePathname();
+  const isAuthPage =
+    pathname?.startsWith('/login') ||
+    pathname?.startsWith('/register') ||
+    pathname?.startsWith('/forgot-password') ||
+    pathname?.startsWith('/reset-password') ||
+    pathname?.startsWith('/onboarding');
+
+  if (isAuthPage) return null;
+
   return (
     <footer className="border-t border-slate-200/80 bg-slate-50/70 text-slate-600">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

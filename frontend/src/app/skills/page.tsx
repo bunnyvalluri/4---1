@@ -189,23 +189,23 @@ export default function SkillGapsPage() {
                     className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:border-slate-300 transition-all space-y-4"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
-                          <h3 className="text-base font-extrabold text-slate-900">{item.skill?.name}</h3>
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-base font-extrabold text-slate-900 break-words">{item.skill?.name}</h3>
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${badgeStyle}`}>
                             {item.gapSeverity || 'Moderate'} Severity
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
                             Priority #{item.priority || 1}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 break-words">
                           Required for: <strong className="text-slate-800">{item.career?.title || 'Target Pathway'}</strong>
                         </p>
                       </div>
 
                       {/* Level Badges */}
-                      <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200/70 text-xs">
+                      <div className="flex items-center justify-between sm:justify-start gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200/70 text-xs w-full sm:w-auto shrink-0">
                         <div>
                           <span className="text-slate-400 text-[10px] block">Current</span>
                           <span className="font-extrabold text-slate-900">Lvl {current} / 5</span>
