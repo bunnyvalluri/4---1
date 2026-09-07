@@ -1,22 +1,31 @@
-# CareerAI Database Schema & Relational Models
+# 📊 Complete Database Schema Reference
 
-## Database Configuration
-- **Database**: PostgreSQL
-- **ORM**: Prisma Client (`@prisma/client`)
-- **Schema File**: `database/schema.prisma`
-- **Seed File**: `database/seed.ts`
+The platform contains **12 Relational Entities** in the persistence layer.
 
-## Relational Models
-1. **User**: Candidate authentication, bcrypt salted password hash, role (`USER` or `ADMIN`).
-2. **Profile**: Degree, branch, college, graduation year, CGPA, experience, target roles, location, bio.
-3. **Skill**: Technical, Soft, Tool, Framework, Database, and Cloud skills.
-4. **UserSkill**: Many-to-many relationship mapping candidate verified skills and proficiency levels (1-5).
-5. **Career**: Active tech career tracks (overview, description, education reqs, salary range, demand level).
-6. **CareerSkill**: Many-to-many relationship mapping required/preferred skills to career tracks with importance weights.
-7. **AptitudeQuestion**: Cognitive diagnostic questions across 5 categories (Logical, Quantitative, Verbal, Analytical, Problem Solving).
-8. **AptitudeAttempt**: Candidate test submissions with category percentage breakdown and overall aptitude score.
-9. **CareerRecommendation**: Hybrid ML recommendations with match score, reasoning, and 7-factor breakdown.
-10. **SkillGap**: Detected skill gaps with severity level and recommended resources.
-11. **Roadmap & RoadmapItem**: Interactive 6-month milestone learning plan with task completion tracking.
-12. **ResumeAnalysis**: ATS compatibility score (0-100), extracted skills, missing skills, and weak bullet-point enhancements.
-13. **ChatSession & ChatMessage**: Persistent conversation history with Aura AI Assistant.
+## 1. Entity Overview
+
+| Table Name | Model Class | Primary Function |
+| :--- | :--- | :--- |
+| `users` | `User` | User accounts, password hashes, roles |
+| `profiles` | `Profile` | Academic history, preferences, LinkedIn/GitHub links |
+| `skills` | `Skill` | Master taxonomy of skills and categories |
+| `user_skills` | `UserSkill` | Candidate self-assessed proficiency ratings (1–5) |
+| `careers` | `Career` | Career profiles, salary data, industry tags |
+| `career_skills` | `CareerSkill` | Skill prerequisites and minimum proficiencies |
+| `aptitude_questions`| `AptitudeQuestion`| Diagnostic question bank across 5 categories |
+| `aptitude_attempts` | `AptitudeAttempt` | Candidate assessment test submissions and scores |
+| `career_recommendations` | `CareerRecommendation` | Computed multi-factor match results |
+| `skill_gaps` | `SkillGap` | Identified skill deficits and severity ratings |
+| `roadmaps` & `roadmap_items` | `Roadmap` / `RoadmapItem` | 6-month customized curricula & checklists |
+| `resume_analyses` | `ResumeAnalysis` | Parsed resume text, ATS score, formatting issues |
+| `chat_sessions` & `chat_messages` | `ChatSession` / `ChatMessage` | AI Assistant consultation history |
+| `notifications` | `Notification` | In-app user notifications and system alerts |
+
+---
+
+## 2. Key Foreign Key Relationships
+- `User.profile` $\leftrightarrow$ `Profile.user_id` (1-to-1, `onDelete: Cascade`)
+- `User.skills` $\leftrightarrow$ `UserSkill.user_id` (1-to-Many)
+- `Career.skills` $\leftrightarrow$ `CareerSkill.career_id` (1-to-Many)
+- `Roadmap.items` $\leftrightarrow$ `RoadmapItem.roadmap_id` (1-to-Many)
+- `ChatSession.messages` $\leftrightarrow$ `ChatMessage.session_id` (1-to-Many)
