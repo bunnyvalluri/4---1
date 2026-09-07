@@ -13,11 +13,13 @@ from app.api.v1 import (
     assistant,
     notifications,
     admin,
+    dashboard,
 )
 
 api_router = APIRouter()
 
 # Register all v1 feature routers
+api_router.include_router(dashboard.router)
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(profiles.router)

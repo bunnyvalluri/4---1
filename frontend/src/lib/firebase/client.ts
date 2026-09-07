@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 function getStoredApiKey(): string {
   if (typeof window !== 'undefined') {
@@ -38,15 +39,15 @@ export function getFirebaseConfig() {
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
+let db: Firestore | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
 
-export function initFirebaseAuth(customApiKey?: string): { auth: Auth | null; googleProvider: GoogleAuthProvider | null } {
-  if (typeof window === 'undefined') return { auth: null, googleProvider: null };
+export function getFirebaseApp(): FirebaseApp | null {
+  if (typeof window === 'undefined') return null;
+  if (app) return app;
 
-  const apiKey = customApiKey || getStoredApiKey();
-  if (!apiKey || apiKey.includes('XXXXX')) {
-    return { auth: null, googleProvider: null };
-  }
+  const apiKey = getStoredApiKey();
+  if (!apiKey || apiKey.includes('XXXXX')) return null;
 
   try {
     const config = {
@@ -54,21 +55,52 @@ export function initFirebaseAuth(customApiKey?: string): { auth: Auth | null; go
       apiKey,
     };
     app = !getApps().length ? initializeApp(config) : getApp();
-    auth = getAuth(app);
+    return app;
+  } catch (err) {
+    console.warn('Failed to initialize Firebase App:', err);
+    return null;
+  }
+}
+
+export function initFirebaseAuth(customApiKey?: string): { auth: Auth | null; googleProvider: GoogleAuthProvider | null } {
+  if (typeof window === 'undefined') return { auth: null, googleProvider: null };
+
+  const fbApp = getFirebaseApp();
+  if (!fbApp) return { auth: null, googleProvider: null };
+
+  try {
+    auth = getAuth(fbApp);
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({
       prompt: 'select_account',
     });
     return { auth, googleProvider };
   } catch (error) {
-    console.warn('Failed to initialize Firebase client:', error);
+    console.warn('Failed to initialize Firebase Auth client:', error);
     return { auth: null, googleProvider: null };
   }
 }
 
-// Auto-initialize if key is available
-if (typeof window !== 'undefined') {
-  initFirebaseAuth();
+export function getFirebaseFirestore(): Firestore | null {
+  if (typeof window === 'undefined') return null;
+  if (db) return db;
+
+  const fbApp = getFirebaseApp();
+  if (!fbApp) return null;
+
+  try {
+    db = getFirestore(fbApp);
+    return db;
+  } catch (err) {
+    console.warn('Failed to initialize Firestore client:', err);
+    return null;
+  }
 }
 
-export { auth, googleProvider };
+// Auto-initialize if running client-side
+if (typeof window !== 'undefined') {
+  initFirebaseAuth();
+  getFirebaseFirestore();
+}
+
+export { auth, db, googleProvider };
