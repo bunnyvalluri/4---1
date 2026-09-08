@@ -142,7 +142,12 @@ export function AuthCard({ initialMode }: AuthCardProps) {
           throw new Error(data.error || 'Invalid email or password.');
         }
 
-        router.push('/dashboard');
+        const role = String(data.user?.role || '').toUpperCase();
+        if (role === 'ADMIN') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
         router.refresh();
       } else {
         const res = await fetch('/api/auth/register', {
@@ -208,7 +213,12 @@ export function AuthCard({ initialMode }: AuthCardProps) {
       }
 
       setApiKeyModalOpen(false);
-      router.push(mode === 'login' ? '/dashboard' : '/onboarding');
+      const role = String(data.user?.role || '').toUpperCase();
+      if (role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push(mode === 'login' ? '/dashboard' : '/onboarding');
+      }
       router.refresh();
     } catch (err: any) {
       console.error('[Firebase Auth Error]', err.code, err.message);

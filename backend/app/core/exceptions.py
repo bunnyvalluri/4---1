@@ -30,6 +30,9 @@ class NotFoundError(DomainException):
         )
 
 
+ResourceNotFoundError = NotFoundError
+
+
 class AuthenticationError(DomainException):
     def __init__(self, detail: str = "Invalid authentication credentials."):
         super().__init__(

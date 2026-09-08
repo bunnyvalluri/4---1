@@ -18,7 +18,9 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.role == 'ADMIN' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'
+        request.auth.token.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
 
@@ -169,12 +171,21 @@ service cloud.firestore {
     }
 
     // ==========================================================
-    // 8. AUDIT LOGS
+    // 8. AUDIT LOGS & ADMIN SETTINGS
     // ==========================================================
 
     match /audit_logs/{logId} {
       allow read: if isAdmin();
       allow write: if isAuthenticated();
+    }
+
+    match /admin_settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /system_metrics/{docId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
   }
 }

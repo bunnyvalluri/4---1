@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+function decodeJwtPayload(token: string): { role?: string; userId?: string } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('career_auth_token')?.value;
   const { pathname } = request.nextUrl;
@@ -31,9 +48,28 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Route Authentication Protection
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
-  const isProtected =
+  const payload = token ? decodeJwtPayload(token) : null;
+  const userRole = payload?.role?.toUpperCase() || '';
+  const isAdmin = userRole === 'ADMIN';
+
+  // 2. Admin Route Protection
+  if (pathname.startsWith('/admin')) {
+    if (!token) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (!isAdmin) {
+      // Candidate attempting to access /admin/* -> Return forbidden and redirect to candidate dashboard
+      const dashboardUrl = new URL('/dashboard', request.url);
+      dashboardUrl.searchParams.set('denied', 'admin_access_forbidden');
+      return NextResponse.redirect(dashboardUrl);
+    }
+    return NextResponse.next();
+  }
+
+  // 3. Candidate Workspace Protection: Prevent Admin from hijacking candidate dashboard
+  const isCandidateRoute =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/assessment') ||
     pathname.startsWith('/recommendations') ||
@@ -41,15 +77,28 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/resume') ||
     pathname.startsWith('/chat') ||
     pathname.startsWith('/profile') ||
-    pathname.startsWith('/admin');
+    pathname.startsWith('/skills') ||
+    pathname.startsWith('/projects');
 
-  if (isProtected && !token) {
-    const url = new URL('/login', request.url);
-    url.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(url);
+  if (isCandidateRoute) {
+    if (!token) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (isAdmin) {
+      // Admin should be directed to the Admin Control Center
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
+    return NextResponse.next();
   }
 
+  // 4. Auth Pages Redirection (/login, /register)
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
   if (isAuthPage && token) {
+    if (isAdmin) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -65,6 +114,8 @@ export const config = {
     '/resume/:path*',
     '/chat/:path*',
     '/profile/:path*',
+    '/skills/:path*',
+    '/projects/:path*',
     '/admin/:path*',
     '/login',
     '/register',

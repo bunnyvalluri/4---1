@@ -57,7 +57,7 @@ async def get_current_user(
             email = decoded_fb.get("email", "")
             name = decoded_fb.get("name", "")
             # Check custom claim role or fetch from Firestore users/{uid}
-            role_claim = decoded_fb.get("role") or decoded_fb.get("claims", {}).get("role")
+            role_claim = str(decoded_fb.get("role") or decoded_fb.get("claims", {}).get("role") or "").strip().upper()
             role = Role.ADMIN if role_claim == "ADMIN" else Role.USER
 
             # Sync/verify against Firestore
@@ -65,7 +65,7 @@ async def get_current_user(
                 users_repo = FirestoreRepository(FirestoreCollections.USERS)
                 user_doc = users_repo.get(uid)
                 if user_doc:
-                    if user_doc.get("role") == "ADMIN":
+                    if str(user_doc.get("role", "")).strip().upper() == "ADMIN":
                         role = Role.ADMIN
                     name = user_doc.get("displayName") or user_doc.get("name") or name
                 else:
@@ -74,7 +74,7 @@ async def get_current_user(
                         "uid": uid,
                         "email": email,
                         "displayName": name or email.split("@")[0],
-                        "role": role.value,
+                        "role": "admin" if role == Role.ADMIN else "candidate",
                         "emailVerified": decoded_fb.get("email_verified", False),
                     })
             except Exception as e:

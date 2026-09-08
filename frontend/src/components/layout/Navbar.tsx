@@ -74,7 +74,8 @@ export function Navbar() {
     pathname.startsWith('/resume') ||
     pathname.startsWith('/projects') ||
     pathname.startsWith('/profile') ||
-    pathname.startsWith('/careers');
+    pathname.startsWith('/careers') ||
+    pathname.startsWith('/admin');
 
   if (isAuthPage || isWorkspacePage) return null;
 
