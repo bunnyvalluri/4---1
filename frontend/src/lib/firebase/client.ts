@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp as _getExistingApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
@@ -19,7 +19,7 @@ let googleProvider: GoogleAuthProvider;
 
 function getFirebaseApp(): FirebaseApp {
   if (!app) {
-    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    app = getApps().length ? _getExistingApp() : initializeApp(firebaseConfig);
   }
   return app;
 }
@@ -50,7 +50,7 @@ function getGoogleProvider(): GoogleAuthProvider {
 export { getFirebaseApp, getFirebaseAuth, getFirebaseFirestore, getGoogleProvider };
 
 // Lazy singleton exports for convenience
-export const getApp = getFirebaseApp;
+export const getFirebaseAppInstance = getFirebaseApp;
 
 // For direct import compatibility
 let _auth: Auth | null = null;
