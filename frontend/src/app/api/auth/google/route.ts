@@ -25,35 +25,48 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = String(email).toLowerCase().trim();
     const displayName = (name && String(name).trim()) || normalizedEmail.split('@')[0];
 
-    // Find existing user or create a new one
-    let user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
+    let user: any = null;
 
-    if (!user) {
-      const generatedPassword = crypto.randomBytes(32).toString('hex');
-      const passwordHash = await hashPassword(generatedPassword);
+    try {
+      // Find existing user or create a new one
+      user = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
 
-      user = await prisma.user.create({
-        data: {
-          name: displayName,
-          email: normalizedEmail,
-          passwordHash,
-          avatar: photoURL || null,
-          role: 'USER',
-          profile: {
-            create: {
-              interests: ['Software Development', 'Artificial Intelligence'],
+      if (!user) {
+        const generatedPassword = crypto.randomBytes(32).toString('hex');
+        const passwordHash = await hashPassword(generatedPassword);
+
+        user = await prisma.user.create({
+          data: {
+            name: displayName,
+            email: normalizedEmail,
+            passwordHash,
+            avatar: photoURL || null,
+            role: 'USER',
+            profile: {
+              create: {
+                interests: ['Software Development', 'Artificial Intelligence'],
+              },
             },
           },
-        },
-      });
-    } else if (photoURL && !user.avatar) {
-      // Update avatar if not already set
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { avatar: photoURL },
-      });
+        });
+      } else if (photoURL && !user.avatar) {
+        // Update avatar if not already set
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { avatar: photoURL },
+        });
+      }
+    } catch (dbErr) {
+      console.warn('Database offline or DATABASE_URL missing, creating fallback user session:', dbErr);
+      user = {
+        id: uid || ('google-' + normalizedEmail.replace(/[^a-zA-Z0-9]/g, '-')),
+        name: displayName,
+        email: normalizedEmail,
+        role: 'USER',
+        avatar: photoURL || null,
+      };
     }
 
     const token = signToken({

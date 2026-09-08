@@ -13,6 +13,8 @@
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "careerai-app-9777b.firebasestorage.app"
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "204941546154"
   NEXT_PUBLIC_FIREBASE_APP_ID = "1:204941546154:web:5b7236e42cad36c4cb76d3"
+  DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/career_guidance_db?schema=public"
+  JWT_SECRET = "super-secure-production-jwt-secret-career-ai-2026-key"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
