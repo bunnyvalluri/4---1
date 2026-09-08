@@ -2,10 +2,11 @@ import React from 'react';
 
 // ── Skeleton primitives ───────────────────────────────────────────────────────
 
-function SkeletonBox({ className = '' }: { className?: string }) {
+function SkeletonBox({ className = '', style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <div
       className={`bg-slate-200 animate-pulse rounded-xl ${className}`}
+      style={style}
       aria-hidden="true"
     />
   );

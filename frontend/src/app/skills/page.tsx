@@ -1,287 +1,188 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import {
-  BarChart2,
-  AlertTriangle,
-  CheckCircle2,
-  Filter,
-  ArrowRight,
-  BookOpen,
-  Map,
-  Compass,
-  TrendingUp,
-  Zap,
-  Clock,
-  Layers,
-  ChevronRight,
-  ExternalLink,
-} from 'lucide-react';
+import React from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { useSkillIntelligence } from '@/lib/hooks/useSkillIntelligence';
+import { SkillsHeader } from '@/components/skills/SkillsHeader';
+import { SkillOverviewMetricsGrid } from '@/components/skills/SkillOverviewMetrics';
+import { CareerTargetBar } from '@/components/skills/CareerTargetBar';
+import { SkillProfileSection } from '@/components/skills/SkillProfileSection';
+import { CareerSkillMatrix } from '@/components/skills/CareerSkillMatrix';
+import { CriticalSkillGaps } from '@/components/skills/CriticalSkillGaps';
+import { NextSkillActionCard } from '@/components/skills/NextSkillAction';
+import { LearningProgress } from '@/components/skills/LearningProgress';
+import { SkillEvidenceSection } from '@/components/skills/SkillEvidenceSection';
+import { SkillTrendSection } from '@/components/skills/SkillTrend';
+import { AISkillInsightsCard } from '@/components/skills/AISkillInsights';
+import { SkillDetailsModal } from '@/components/skills/SkillDetailsModal';
+import { AddEditSkillModal } from '@/components/skills/AddEditSkillModal';
+import { SkillsSkeleton } from '@/components/skills/SkillsSkeleton';
+import { SkillsEmptyState } from '@/components/skills/SkillsEmptyState';
+import { SkillsErrorState } from '@/components/skills/SkillsErrorState';
+import { OfflineIndicator } from '@/components/skills/OfflineIndicator';
 
-export default function SkillGapsPage() {
-  const [skillGaps, setSkillGaps] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filterPriority, setFilterPriority] = useState<string>('ALL');
-  const [userProfile, setUserProfile] = useState<any>(null);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [gapsRes, profRes] = await Promise.all([
-          fetch('/api/skill-gaps'),
-          fetch('/api/profile'),
-        ]);
-
-        const gapsJson = await gapsRes.json();
-        const profJson = await profRes.json();
-
-        if (profJson?.user) setUserProfile(profJson.user);
-        if (gapsJson?.skillGaps) setSkillGaps(gapsJson.skillGaps);
-      } catch (err) {
-        console.error('Failed to load skill gaps:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadData();
-  }, []);
-
-  const filteredGaps = skillGaps.filter((item) => {
-    if (filterPriority === 'ALL') return true;
-    if (filterPriority === 'HIGH') return item.priority <= 2 || item.gapSeverity === 'Critical' || item.gapSeverity === 'High';
-    if (filterPriority === 'MEDIUM') return item.priority === 3 || item.gapSeverity === 'Moderate';
-    if (filterPriority === 'LOW') return item.priority >= 4 || item.gapSeverity === 'Low';
-    return true;
-  });
-
-  const criticalCount = skillGaps.filter(
-    (g) => g.gapSeverity === 'Critical' || g.priority === 1
-  ).length;
-  const highCount = skillGaps.filter(
-    (g) => g.gapSeverity === 'High' || g.priority === 2
-  ).length;
+export default function SkillIntelligenceCenterPage() {
+  const {
+    data,
+    canonicalSkills,
+    loading,
+    refreshing,
+    isAnalyzing,
+    isOnline,
+    error,
+    relativeUpdated,
+    activeCategory,
+    setActiveCategory,
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    changeTargetCareer,
+    filteredSkills,
+    // Mutations
+    addSkill,
+    patchSkill,
+    deleteSkill,
+    recalculateAll,
+    refresh,
+    // Modals
+    isAddEditModalOpen,
+    editingSkill,
+    openAddModal,
+    openEditModal,
+    closeAddEditModal,
+    isDetailModalOpen,
+    selectedSkillDetail,
+    openSkillDetail,
+    closeSkillDetail,
+  } = useSkillIntelligence();
 
   return (
-    <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row">
-      <Sidebar userName={userProfile?.name} userEmail={userProfile?.email} />
+    <div className="min-h-screen bg-slate-50/50 flex flex-col lg:flex-row text-slate-900">
+      {/* Primary Global Navigation */}
+      <Sidebar
+        userName={data?.candidate?.name || 'Alex Johnson'}
+        userEmail={data?.candidate?.email || 'alex@example.com'}
+      />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+      {/* Main Content Workspace */}
+      <main className="flex-1 py-6 sm:py-8 px-3.5 sm:px-6 lg:px-10 overflow-y-auto max-w-7xl mx-auto w-full">
         <div className="space-y-6">
-          {/* Header Card */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-700">
-                  <BarChart2 className="h-3.5 w-3.5 text-blue-600" />
-                  <span>Dynamic Skill Gap Matrix</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  Skill Gap Telemetry & Milestones
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Compares verified competency against market requirements. Prioritize high-ROI learning items to maximize career match fidelity.
-                </p>
-              </div>
+          {/* Offline Banner */}
+          {!isOnline && <OfflineIndicator lastSyncText={relativeUpdated} />}
 
-              {/* Filter Tabs */}
-              <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/70 w-full sm:w-auto overflow-x-auto touch-scroll [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0">
-                {[
-                  { key: 'ALL', label: 'All', count: skillGaps.length },
-                  { key: 'HIGH', label: 'Critical', count: criticalCount + highCount },
-                  { key: 'MEDIUM', label: 'Moderate', count: skillGaps.length - (criticalCount + highCount) },
-                ].map((f) => (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => setFilterPriority(f.key)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 min-h-[36px] ${
-                      filterPriority === f.key
-                        ? 'bg-white text-blue-700 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <span>{f.label}</span>
-                    <span className="ml-1.5 text-[10px] text-slate-400">({f.count})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* 1. Header */}
+          <SkillsHeader
+            onAddSkill={openAddModal}
+            onRecalculate={recalculateAll}
+            isSyncing={refreshing}
+            isAnalyzing={isAnalyzing}
+            lastUpdatedText={relativeUpdated}
+          />
 
-            {/* Quick KPI Bar */}
-            <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 text-red-600 font-bold shrink-0">
-                  {criticalCount}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900">Critical Skill Gaps</div>
-                  <div className="text-[11px] text-slate-500 truncate">Must bridge for shortlisting</div>
-                </div>
-              </div>
+          {/* Error Banner if error occurred */}
+          {error && !data && (
+            <SkillsErrorState error={error} onRetry={refresh} />
+          )}
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600 font-bold shrink-0">
-                  {skillGaps.length}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900">Total Telemetry Items</div>
-                  <div className="text-[11px] text-slate-500 truncate">Tracked against target roles</div>
-                </div>
-              </div>
+          {/* Loading Skeleton */}
+          {loading && !data && <SkillsSkeleton />}
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 font-bold shrink-0">
-                  ~6 wk
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900">Estimated Velocity</div>
-                  <div className="text-[11px] text-slate-500 truncate">Average bridging duration</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* If Data Loaded */}
+          {data && (
+            <>
+              {/* 2. Top Metric Cards */}
+              <SkillOverviewMetricsGrid
+                metrics={data.metrics}
+                targetCareerTitle={data.target_career?.title}
+              />
 
-          {/* Gaps List */}
-          {loading ? (
-            <div className="space-y-4 animate-pulse">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-white rounded-3xl border border-slate-200" />
-              ))}
-            </div>
-          ) : filteredGaps.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 text-center space-y-4 shadow-xs">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-                <CheckCircle2 className="h-7 w-7" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">No skill gaps under this filter</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Generate career recommendations to synchronize target benchmarks and discover skill opportunities.
-              </p>
-              <Link
-                href="/recommendations"
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 min-h-[44px]"
-              >
-                View Career Matches
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredGaps.map((item) => {
-                const current = item.currentProficiency || 0;
-                const required = item.requiredProficiency || 3;
-                const gap = Math.max(0, required - current);
+              {/* 3. Target Career Benchmark Bar */}
+              <CareerTargetBar
+                targetCareer={data.target_career}
+                availableCareers={data.available_careers}
+                onChangeCareer={changeTargetCareer}
+              />
 
-                const isCritical = item.gapSeverity === 'Critical' || item.priority === 1;
-                const isHigh = item.gapSeverity === 'High' || item.priority === 2;
+              {/* If User has no skills whatsoever */}
+              {data.metrics?.total_skills === 0 ? (
+                <SkillsEmptyState onAddSkill={openAddModal} skillCount={0} />
+              ) : (
+                <>
+                  {/* Partial Profile Helper if under 5 skills */}
+                  {data.metrics?.total_skills < 5 && (
+                    <SkillsEmptyState
+                      onAddSkill={openAddModal}
+                      skillCount={data.metrics.total_skills}
+                    />
+                  )}
 
-                const badgeStyle = isCritical
-                  ? 'bg-red-50 text-red-700 border-red-200'
-                  : isHigh
-                  ? 'bg-amber-50 text-amber-800 border-amber-200'
-                  : 'bg-blue-50 text-blue-700 border-blue-200';
+                  {/* 4. Current Skill Profile */}
+                  <SkillProfileSection
+                    skills={filteredSkills}
+                    allCategories={data.categories}
+                    activeCategory={activeCategory}
+                    onSelectCategory={setActiveCategory}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    onSelectSkill={openSkillDetail}
+                    onEditSkill={openEditModal}
+                    onDeleteSkill={deleteSkill}
+                    onAddSkillClick={openAddModal}
+                  />
 
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-xs hover:border-slate-300 transition-all space-y-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-extrabold text-slate-900 break-words">{item.skill?.name}</h3>
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${badgeStyle}`}>
-                            {item.gapSeverity || 'Moderate'} Severity
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
-                            Priority #{item.priority || 1}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 break-words">
-                          Required for: <strong className="text-slate-800">{item.career?.title || 'Target Pathway'}</strong>
-                        </p>
-                      </div>
+                  {/* 5. Critical Skill Gaps ("Skills to Focus On") */}
+                  <CriticalSkillGaps gaps={data.critical_gaps} />
 
-                      {/* Level Badges */}
-                      <div className="flex items-center justify-between sm:justify-start gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200/70 text-xs w-full sm:w-auto shrink-0">
-                        <div>
-                          <span className="text-slate-400 text-[10px] block">Current</span>
-                          <span className="font-extrabold text-slate-900">Lvl {current} / 5</span>
-                        </div>
-                        <div className="h-6 w-px bg-slate-200" />
-                        <div>
-                          <span className="text-slate-400 text-[10px] block">Required</span>
-                          <span className="font-extrabold text-blue-600">Lvl {required} / 5</span>
-                        </div>
-                        <div className="h-6 w-px bg-slate-200" />
-                        <div>
-                          <span className="text-slate-400 text-[10px] block">Gap</span>
-                          <span className={`font-extrabold ${gap > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                            {gap > 0 ? `-${gap} Lvl` : 'Filled'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  {/* 6. Career Target Skill Matrix */}
+                  <CareerSkillMatrix
+                    matrix={data.matrix}
+                    targetCareerTitle={data.target_career?.title}
+                  />
 
-                    {/* Segmented Level Comparison Visualizer */}
-                    <div className="space-y-1.5 pt-1">
-                      <div className="flex justify-between text-[11px] font-semibold text-slate-500">
-                        <span>Proficiency Milestone Progression</span>
-                        <span>
-                          {current >= required ? 'Benchmark Satisfied' : `Needs +${gap} proficiency steps`}
-                        </span>
-                      </div>
+                  {/* 7. Skills in Progress (Learning) */}
+                  <LearningProgress items={data.learning_progress} />
 
-                      {/* 5-Segment Level Bar */}
-                      <div className="grid grid-cols-5 gap-1 sm:gap-1.5">
-                        {[1, 2, 3, 4, 5].map((lvl) => {
-                          const hasCurrent = current >= lvl;
-                          const hasRequired = required >= lvl;
+                  {/* 8. Skill Evidence Matrix */}
+                  <SkillEvidenceSection evidence={data.evidence} />
 
-                          let bgClass = 'bg-slate-100 text-slate-400';
-                          if (hasCurrent) {
-                            bgClass = 'bg-blue-600 text-white shadow-2xs';
-                          } else if (hasRequired) {
-                            bgClass = 'bg-amber-100 text-amber-800 border border-dashed border-amber-300';
-                          }
+                  {/* 9. Skill Trend Over Time */}
+                  <SkillTrendSection trend={data.trend} />
 
-                          return (
-                            <div
-                              key={lvl}
-                              className={`h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all truncate px-0.5 ${bgClass}`}
-                            >
-                              L{lvl} {hasCurrent ? '✓' : hasRequired ? '•' : ''}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                  {/* 10. AI Skill Insights */}
+                  <AISkillInsightsCard insights={data.ai_insights} />
 
-                    {/* Actionable Learning Resource Card */}
-                    {item.suggestedResource && (
-                      <div className="rounded-2xl bg-slate-50/80 p-3 text-xs text-slate-600 flex items-center justify-between gap-3 border border-slate-200/60">
-                        <div className="flex items-center gap-2.5 overflow-hidden">
-                          <BookOpen className="h-4 w-4 text-blue-600 shrink-0" />
-                          <span className="truncate">{item.suggestedResource}</span>
-                        </div>
-                        <Link
-                          href="/roadmap"
-                          className="shrink-0 text-[11px] font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
-                        >
-                          <span>Add to Roadmap</span>
-                          <ChevronRight className="h-3 w-3" />
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  {/* 11. Next Best Skill Action */}
+                  <NextSkillActionCard action={data.next_action} />
+                </>
+              )}
+            </>
           )}
         </div>
       </main>
+
+      {/* Slide-over / Modal: Skill Details Panel */}
+      <SkillDetailsModal
+        isOpen={isDetailModalOpen}
+        onClose={closeSkillDetail}
+        skill={selectedSkillDetail}
+        onEdit={(sk) => {
+          closeSkillDetail();
+          openEditModal(sk);
+        }}
+      />
+
+      {/* Modal: Add / Edit Skill */}
+      <AddEditSkillModal
+        isOpen={isAddEditModalOpen}
+        onClose={closeAddEditModal}
+        editingSkill={editingSkill}
+        canonicalSkills={canonicalSkills}
+        onAddSkill={addSkill}
+        onPatchSkill={patchSkill}
+      />
     </div>
   );
 }
