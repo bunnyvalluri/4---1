@@ -2,105 +2,70 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-function getStoredApiKey(): string {
-  if (typeof window !== 'undefined') {
-    return (
-      process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-      localStorage.getItem('NEXT_PUBLIC_FIREBASE_API_KEY') ||
-      ''
-    );
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'careerai-app-9777b.firebaseapp.com',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'careerai-app-9777b',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'careerai-app-9777b.firebasestorage.app',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '204941546154',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+};
+
+// Initialize Firebase app (singleton)
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let googleProvider: GoogleAuthProvider;
+
+function getFirebaseApp(): FirebaseApp {
+  if (!app) {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   }
-  return process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '';
+  return app;
 }
 
-function getStoredAppId(): string {
-  if (typeof window !== 'undefined') {
-    return (
-      process.env.NEXT_PUBLIC_FIREBASE_APP_ID ||
-      localStorage.getItem('NEXT_PUBLIC_FIREBASE_APP_ID') ||
-      ''
-    );
+function getFirebaseAuth(): Auth {
+  if (!auth) {
+    auth = getAuth(getFirebaseApp());
   }
-  return process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '';
+  return auth;
 }
 
-export function getFirebaseConfig() {
-  const apiKey = getStoredApiKey();
-  const appId = getStoredAppId();
-  return {
-    apiKey,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'careerai-app-9777b.firebaseapp.com',
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'careerai-app-9777b',
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'careerai-app-9777b.firebasestorage.app',
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId,
-  };
-}
-
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let googleProvider: GoogleAuthProvider | null = null;
-
-export function getFirebaseApp(): FirebaseApp | null {
-  if (typeof window === 'undefined') return null;
-  if (app) return app;
-
-  const apiKey = getStoredApiKey();
-  if (!apiKey || apiKey.includes('XXXXX')) return null;
-
-  try {
-    const config = {
-      ...getFirebaseConfig(),
-      apiKey,
-    };
-    app = !getApps().length ? initializeApp(config) : getApp();
-    return app;
-  } catch (err) {
-    console.warn('Failed to initialize Firebase App:', err);
-    return null;
+function getFirebaseFirestore(): Firestore {
+  if (!db) {
+    db = getFirestore(getFirebaseApp());
   }
+  return db;
 }
 
-export function initFirebaseAuth(customApiKey?: string): { auth: Auth | null; googleProvider: GoogleAuthProvider | null } {
-  if (typeof window === 'undefined') return { auth: null, googleProvider: null };
-
-  const fbApp = getFirebaseApp();
-  if (!fbApp) return { auth: null, googleProvider: null };
-
-  try {
-    auth = getAuth(fbApp);
+function getGoogleProvider(): GoogleAuthProvider {
+  if (!googleProvider) {
     googleProvider = new GoogleAuthProvider();
-    googleProvider.setCustomParameters({
-      prompt: 'select_account',
-    });
-    return { auth, googleProvider };
-  } catch (error) {
-    console.warn('Failed to initialize Firebase Auth client:', error);
-    return { auth: null, googleProvider: null };
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
   }
+  return googleProvider;
 }
 
-export function getFirebaseFirestore(): Firestore | null {
-  if (typeof window === 'undefined') return null;
-  if (db) return db;
+// Export lazy getters so SSR doesn't break
+export { getFirebaseApp, getFirebaseAuth, getFirebaseFirestore, getGoogleProvider };
 
-  const fbApp = getFirebaseApp();
-  if (!fbApp) return null;
+// Lazy singleton exports for convenience
+export const getApp = getFirebaseApp;
 
-  try {
-    db = getFirestore(fbApp);
-    return db;
-  } catch (err) {
-    console.warn('Failed to initialize Firestore client:', err);
-    return null;
-  }
-}
+// For direct import compatibility
+let _auth: Auth | null = null;
+let _db: Firestore | null = null;
+let _googleProvider: GoogleAuthProvider | null = null;
 
-// Auto-initialize if running client-side
 if (typeof window !== 'undefined') {
-  initFirebaseAuth();
-  getFirebaseFirestore();
+  try {
+    _auth = getFirebaseAuth();
+    _db = getFirebaseFirestore();
+    _googleProvider = getGoogleProvider();
+  } catch (e) {
+    console.warn('[Firebase] Init error:', e);
+  }
 }
 
-export { auth, db, googleProvider };
+export { _auth as auth, _db as db, _googleProvider as googleProvider };
+export { firebaseConfig };

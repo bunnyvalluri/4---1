@@ -24,7 +24,7 @@ import {
   FileCheck,
   Map,
 } from 'lucide-react';
-import { auth, googleProvider, initFirebaseAuth } from '@/lib/firebase/client';
+import { auth, googleProvider, getFirebaseAuth, getGoogleProvider } from '@/lib/firebase/client';
 import { signInWithPopup } from 'firebase/auth';
 
 function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
@@ -174,19 +174,19 @@ export function AuthCard({ initialMode }: AuthCardProps) {
       setGoogleLoading(true);
       setError(null);
 
-      const activeKey =
-        providedKey ||
-        customApiKey ||
-        (typeof window !== 'undefined' ? localStorage.getItem('NEXT_PUBLIC_FIREBASE_API_KEY') : null);
-      let client = initFirebaseAuth(activeKey || undefined);
+      const firebaseAuth = auth || getFirebaseAuth();
+      const provider = googleProvider || getGoogleProvider();
 
-      if (!client.auth || !client.googleProvider) {
+      if (!firebaseAuth || !provider) {
         setGoogleLoading(false);
-        setApiKeyModalOpen(true);
+        setError('Firebase is not configured. Please contact support.');
         return;
       }
 
-      const result = await signInWithPopup(client.auth, client.googleProvider);
+      // Replace client references below
+      const client = { auth: firebaseAuth, googleProvider: provider };
+
+      const result = await signInWithPopup(client.auth, client.googleProvider!);
       const user = result.user;
       const idToken = await user.getIdToken();
 

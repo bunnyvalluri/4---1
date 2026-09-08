@@ -26,6 +26,11 @@ export function Navbar() {
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -73,13 +78,14 @@ export function Navbar() {
 
   if (isAuthPage || isWorkspacePage) return null;
 
+  // Render a stable shell on SSR; dynamic classes apply after mount
+  const scrolledClass = mounted && isScrolled
+    ? 'border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs'
+    : 'border-b border-slate-100 bg-white/90 backdrop-blur-sm';
+
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
-        isScrolled
-          ? 'border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs'
-          : 'border-b border-slate-100 bg-white/90 backdrop-blur-sm'
-      }`}
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${scrolledClass}`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
@@ -100,7 +106,7 @@ export function Navbar() {
 
         {/* Desktop Nav Links */}
         <nav className="hidden lg:flex items-center gap-1">
-          {!user ? (
+          {!mounted || !user ? (
             <div className="flex items-center gap-7">
               <Link href="/" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                 Home
@@ -219,7 +225,7 @@ export function Navbar() {
 
         {/* Right Actions: Sign In & Get Started */}
         <div className="hidden lg:flex items-center gap-3">
-          {!user ? (
+          {!mounted || !user ? (
             <div className="flex items-center gap-3">
               <Link
                 href="/login"
