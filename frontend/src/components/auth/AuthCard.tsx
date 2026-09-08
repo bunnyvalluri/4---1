@@ -211,13 +211,22 @@ export function AuthCard({ initialMode }: AuthCardProps) {
       router.push(mode === 'login' ? '/dashboard' : '/onboarding');
       router.refresh();
     } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
+      console.error('[Firebase Auth Error]', err.code, err.message);
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
         setGoogleLoading(false);
         return;
       }
       if (err.code === 'auth/invalid-api-key' || err.message?.includes('api-key')) {
         setError('Invalid Firebase API Key. Please verify your Web API Key from Firebase Console.');
         setApiKeyModalOpen(true);
+      } else if (err.code === 'auth/internal-error') {
+        setError(
+          'Firebase internal error: This is usually caused by (1) the current domain not being whitelisted in Firebase Console → Authentication → Settings → Authorized Domains, or (2) a missing/invalid Firebase config. Please add "localhost" (or your deployed domain) to the authorized domains list.'
+        );
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('Google Sign-In is not enabled. Please enable it in Firebase Console → Authentication → Sign-in method.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
       } else {
         setError(err.message || 'Google Sign-In could not be completed.');
       }

@@ -6,6 +6,13 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
+  NEXT_PUBLIC_APP_URL = "https://careerai-platform-202.netlify.app"
+  NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyCQL6Kp4PORCVUfYQiYUNki7Zs0hi-UBRY"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "careerai-app-9777b.firebaseapp.com"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID = "careerai-app-9777b"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "careerai-app-9777b.firebasestorage.app"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "204941546154"
+  NEXT_PUBLIC_FIREBASE_APP_ID = "1:204941546154:web:5b7236e42cad36c4cb76d3"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

@@ -11,6 +11,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// Warn early if critical Firebase env vars are missing
+if (typeof window !== 'undefined') {
+  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    console.error('[Firebase] NEXT_PUBLIC_FIREBASE_API_KEY is not set. Google Sign-In will fail.');
+  }
+  if (!process.env.NEXT_PUBLIC_FIREBASE_APP_ID) {
+    console.error('[Firebase] NEXT_PUBLIC_FIREBASE_APP_ID is not set. Firebase will not initialize correctly.');
+  }
+}
+
 // Initialize Firebase app (singleton)
 let app: FirebaseApp;
 let auth: Auth;
