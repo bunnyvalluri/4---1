@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   title: 'CareerAI | AI-Powered Career Guidance & Skill Roadmap Platform',
   description:
     'Discover the career path that is right for you. AI-powered career guidance analyzing skills, aptitude, and preferences to generate explainable recommendations, skill-gap analysis, and interactive roadmaps.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

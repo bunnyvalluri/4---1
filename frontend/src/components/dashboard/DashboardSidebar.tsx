@@ -15,8 +15,6 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  X,
-  ChevronRight,
 } from 'lucide-react';
 import { ResponsiveDrawer } from '@/components/ui/ResponsiveDrawer';
 

@@ -46,6 +46,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  transpilePackages: ['lucide-react'],
   typescript: {
     ignoreBuildErrors: true,
   },

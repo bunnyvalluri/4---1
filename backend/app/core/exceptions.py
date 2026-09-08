@@ -22,6 +22,14 @@ class EntityNotFoundError(DomainException):
         )
 
 
+class NotFoundError(DomainException):
+    def __init__(self, detail: str = "Resource was not found."):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=detail,
+        )
+
+
 class AuthenticationError(DomainException):
     def __init__(self, detail: str = "Invalid authentication credentials."):
         super().__init__(
@@ -56,9 +64,9 @@ class AIProcessingError(DomainException):
 
 
 class ValidationError(DomainException):
-    def __init__(self, detail: str = "Validation failed for the requested operation."):
+    def __init__(self, detail: str = "Validation failed for the requested operation.", status_code: int = 400):
         super().__init__(
-            status_code=422,
+            status_code=status_code,
             detail=detail,
         )
 

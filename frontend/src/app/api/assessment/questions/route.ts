@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getSanitizedQuestions } from '@/lib/assessmentFallback';
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,14 +15,16 @@ export async function GET(req: NextRequest) {
         question: true,
         options: true,
         difficulty: true,
-        // Do NOT expose correctOption or explanation before test submission!
       },
       orderBy: { id: 'asc' },
     });
 
-    return NextResponse.json({ questions });
+    if (questions && questions.length > 0) {
+      return NextResponse.json({ questions });
+    }
   } catch (error) {
-    console.error('Questions GET error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Database connection error, fallback gracefully
   }
+
+  return NextResponse.json({ questions: getSanitizedQuestions() });
 }

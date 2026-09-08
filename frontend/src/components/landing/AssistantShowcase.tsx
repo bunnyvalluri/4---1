@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Code,
   Terminal,
-  ChevronRight,
 } from 'lucide-react';
 
 export function AssistantShowcase() {

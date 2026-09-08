@@ -16,8 +16,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  ChevronRight,
-  ShieldCheck,
   SlidersHorizontal,
   Compass,
 } from 'lucide-react';

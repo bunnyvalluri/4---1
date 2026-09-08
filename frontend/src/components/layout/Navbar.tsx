@@ -11,15 +11,12 @@ import {
   Map,
   ShieldCheck,
   LogOut,
-  User as UserIcon,
   Menu,
   X,
-  Layers,
   FileCheck,
   MessageSquare,
   BarChart2,
   FolderGit2,
-  ChevronRight,
   ArrowRight,
 } from 'lucide-react';
 
