@@ -33,14 +33,14 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.gstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: https: blob:",
+      "img-src 'self' data: https: blob: https://lh3.googleusercontent.com",
       // Firebase Auth popup requires firebaseapp.com + googleapis.com
       "connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com wss://*.firebaseio.com",
       // Allow Google OAuth popup and Firebase Auth iframe
-      "frame-src https://accounts.google.com https://careerai-app-9777b.firebaseapp.com",
+      "frame-src https://accounts.google.com https://careerai-app-9777b.firebaseapp.com https://*.firebaseapp.com https://apis.google.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
