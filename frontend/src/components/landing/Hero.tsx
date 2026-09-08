@@ -258,8 +258,8 @@ export function Hero() {
                   {/* Student Meta & Next Action */}
                   <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-2 pt-1">
                     <div>
-                      <div className="text-xs font-bold text-slate-900">Ananya Sharma</div>
-                      <div className="text-[11px] text-slate-500">B.Tech CS Candidate • Software Engineer Track</div>
+                      <div className="text-xs font-bold text-slate-900">Alex Morgan</div>
+                      <div className="text-[11px] text-slate-500">CS Graduate • Full-Stack Engineer Track</div>
                     </div>
                     <button
                       type="button"
