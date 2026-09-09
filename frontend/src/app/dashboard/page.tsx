@@ -108,7 +108,7 @@ export default function DashboardPage() {
             label="Career Match"
             value={`${careerMatchScore}%`}
             subtext={targetCareer}
-            badge={metrics?.career_match.badge || 'Top Match'}
+            badge={metrics?.career_match?.badge || (careerMatchScore > 0 ? 'Top Match' : 'Not Selected')}
             badgeVariant="blue"
             icon={Sparkles}
             iconBg="bg-blue-50"
@@ -122,14 +122,18 @@ export default function DashboardPage() {
           {/* Metric 2: Skill Readiness */}
           <MetricCard
             label="Skill Readiness"
-            value={`${metrics?.skill_readiness.score || 74}%`}
-            subtext={`${metrics?.skill_readiness.verified_skills || 18} / ${metrics?.skill_readiness.total_skills || 24} verified`}
-            badge={metrics?.skill_readiness.badge || 'Telemetry'}
+            value={`${metrics?.skill_readiness?.score ?? 0}%`}
+            subtext={
+              metrics?.skill_readiness?.total_skills
+                ? `${metrics.skill_readiness.verified_skills ?? 0} / ${metrics.skill_readiness.total_skills} verified`
+                : 'No skills verified'
+            }
+            badge={metrics?.skill_readiness?.badge || (metrics?.skill_readiness?.verified_skills ? 'Verified' : 'Pending')}
             badgeVariant="emerald"
             icon={Award}
             iconBg="bg-emerald-50"
             iconColor="text-emerald-600"
-            progressPercent={metrics?.skill_readiness.score || 74}
+            progressPercent={metrics?.skill_readiness?.score ?? 0}
             progressColor="bg-emerald-500"
             actionHref="/skills"
             actionText="Verify Skills"
@@ -138,14 +142,18 @@ export default function DashboardPage() {
           {/* Metric 3: Assessment Index */}
           <MetricCard
             label="Assessment Index"
-            value={`${metrics?.assessment_index.score || 82}%`}
-            subtext={`Across ${metrics?.assessment_index.dimensions || 6} dimensions`}
-            badge={metrics?.assessment_index.badge || 'Baseline'}
+            value={`${metrics?.assessment_index?.score ?? 0}%`}
+            subtext={
+              metrics?.assessment_index?.dimensions
+                ? `Across ${metrics.assessment_index.dimensions} dimensions`
+                : 'Diagnostic pending'
+            }
+            badge={metrics?.assessment_index?.badge || (metrics?.assessment_index?.score ? 'Completed' : 'Not Taken')}
             badgeVariant="indigo"
             icon={BrainCircuit}
             iconBg="bg-indigo-50"
             iconColor="text-indigo-600"
-            progressPercent={metrics?.assessment_index.score || 82}
+            progressPercent={metrics?.assessment_index?.score ?? 0}
             progressColor="bg-indigo-600"
             actionHref="/assessment"
             actionText="View Diagnostic"
@@ -154,14 +162,18 @@ export default function DashboardPage() {
           {/* Metric 4: Resume ATS */}
           <MetricCard
             label="Resume ATS"
-            value={`${metrics?.resume_ats.score || 88}/100`}
-            subtext={`${metrics?.resume_ats.skills_detected || 18} skills detected`}
-            badge={metrics?.resume_ats.rating || 'Strong'}
+            value={metrics?.resume_ats?.score ? `${metrics.resume_ats.score}/100` : '0/100'}
+            subtext={
+              metrics?.resume_ats?.skills_detected
+                ? `${metrics.resume_ats.skills_detected} skills detected`
+                : 'No resume uploaded'
+            }
+            badge={metrics?.resume_ats?.rating || (metrics?.resume_ats?.score ? 'Analyzed' : 'Pending')}
             badgeVariant="violet"
             icon={FileCheck}
             iconBg="bg-violet-50"
             iconColor="text-violet-600"
-            progressPercent={metrics?.resume_ats.score || 88}
+            progressPercent={metrics?.resume_ats?.score ?? 0}
             progressColor="bg-violet-600"
             actionHref="/resume"
             actionText="ATS Audit"
@@ -170,14 +182,18 @@ export default function DashboardPage() {
           {/* Metric 5: Roadmap Progress */}
           <MetricCard
             label="Roadmap Progress"
-            value={`${metrics?.roadmap_progress.score || 42}%`}
-            subtext={`Month ${metrics?.roadmap_progress.current_month || 3} of ${metrics?.roadmap_progress.total_months || 6}`}
-            badge={metrics?.roadmap_progress.badge || 'Month 3 of 6'}
+            value={`${metrics?.roadmap_progress?.score ?? 0}%`}
+            subtext={
+              metrics?.roadmap_progress?.total_months
+                ? `Month ${metrics.roadmap_progress.current_month || 1} of ${metrics.roadmap_progress.total_months}`
+                : 'No active roadmap'
+            }
+            badge={metrics?.roadmap_progress?.badge || (metrics?.roadmap_progress?.score ? 'In Progress' : 'Not Started')}
             badgeVariant="amber"
             icon={Map}
             iconBg="bg-amber-50"
             iconColor="text-amber-600"
-            progressPercent={metrics?.roadmap_progress.score || 42}
+            progressPercent={metrics?.roadmap_progress?.score ?? 0}
             progressColor="bg-amber-500"
             actionHref="/roadmap"
             actionText="Full Roadmap"
@@ -188,7 +204,7 @@ export default function DashboardPage() {
             label="Profile Completion"
             value={`${profileCompletion}%`}
             subtext={profileCompletion >= 80 ? 'Optimized profile' : 'Pending prerequisites'}
-            badge={metrics?.profile_completion.badge || 'Complete Profile'}
+            badge={metrics?.profile_completion?.badge || (profileCompletion >= 80 ? 'Complete' : 'Incomplete')}
             badgeVariant="slate"
             icon={UserCheck}
             iconBg="bg-slate-100"

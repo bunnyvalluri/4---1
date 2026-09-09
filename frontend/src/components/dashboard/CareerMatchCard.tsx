@@ -16,27 +16,23 @@ export function CareerMatchCard({
   careerTitle = 'Target Career Not Selected',
   matchScore = 0,
   breakdown = {
-    skills: 94,
-    interests: 91,
-    aptitude: 86,
-    education: 88,
-    experience: 76,
-    preference: 95,
+    skills: 0,
+    interests: 0,
+    aptitude: 0,
+    education: 0,
+    experience: 0,
+    preference: 0,
   },
-  whyFits = [
-    'Strong programming foundation with verified proficiency in modern languages',
-    'High analytical reasoning and systematic problem-solving aptitude',
-    'Direct alignment with candidate web architecture and cloud interests',
-    'Relevant hands-on project experience in full-stack frameworks',
-  ],
+  whyFits = [],
 }: CareerMatchCardProps) {
+  const hasSelectedCareer = matchScore > 0 && careerTitle !== 'Target Career Not Selected';
   const factors = [
-    { label: 'Skills', value: breakdown.skills, color: '#2563EB' },
-    { label: 'Interests', value: breakdown.interests, color: '#10B981' },
-    { label: 'Aptitude', value: breakdown.aptitude, color: '#4F46E5' },
-    { label: 'Education', value: breakdown.education, color: '#F59E0B' },
-    { label: 'Experience', value: breakdown.experience, color: '#8B5CF6' },
-    { label: 'Career Preference', value: breakdown.preference, color: '#06B6D4' },
+    { label: 'Skills', value: breakdown?.skills ?? 0, color: '#2563EB' },
+    { label: 'Interests', value: breakdown?.interests ?? 0, color: '#10B981' },
+    { label: 'Aptitude', value: breakdown?.aptitude ?? 0, color: '#4F46E5' },
+    { label: 'Education', value: breakdown?.education ?? 0, color: '#F59E0B' },
+    { label: 'Experience', value: breakdown?.experience ?? 0, color: '#8B5CF6' },
+    { label: 'Career Preference', value: breakdown?.preference ?? 0, color: '#06B6D4' },
   ];
 
   return (
@@ -97,14 +93,20 @@ export function CareerMatchCard({
           <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
           <span>Why This Career Fits You</span>
         </h3>
-        <ul className="space-y-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
-          {whyFits.map((reason, idx) => (
-            <li key={idx} className="flex items-start gap-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
-              <span>{reason}</span>
-            </li>
-          ))}
-        </ul>
+        {whyFits.length > 0 ? (
+          <ul className="space-y-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
+            {whyFits.map((reason, idx) => (
+              <li key={idx} className="flex items-start gap-2.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-slate-500 italic py-1">
+            Target career compatibility telemetry will generate automatically once you select a career from recommendations or complete your diagnostic assessment.
+          </p>
+        )}
       </div>
 
       {/* Action Footer */}

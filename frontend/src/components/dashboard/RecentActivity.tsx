@@ -16,45 +16,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
-  const defaultActivities: ActivityItem[] = [
-    {
-      id: '1',
-      title: 'Completed Python Skill Assessment',
-      category: 'ASSESSMENT',
-      relative_time: '2 minutes ago',
-      icon: 'CheckCircle2',
-    },
-    {
-      id: '2',
-      title: 'Resume Analysis Completed (ATS Score: 88/100)',
-      category: 'RESUME',
-      relative_time: '18 minutes ago',
-      icon: 'FileCheck',
-    },
-    {
-      id: '3',
-      title: 'Completed Roadmap Milestone: JavaScript & TypeScript',
-      category: 'ROADMAP',
-      relative_time: 'Yesterday',
-      icon: 'Map',
-    },
-    {
-      id: '4',
-      title: 'Updated Technical Skills Matrix (Docker & FastAPI)',
-      category: 'SKILLS',
-      relative_time: 'Yesterday',
-      icon: 'Award',
-    },
-    {
-      id: '5',
-      title: 'Career Recommendations Refreshed (Full Stack Developer 92%)',
-      category: 'RECOMMENDATION',
-      relative_time: '2 days ago',
-      icon: 'Sparkles',
-    },
-  ];
-
-  const items = activities.length > 0 ? activities : defaultActivities;
+  const items = activities;
 
   const renderIcon = (category: string) => {
     switch (category.toUpperCase()) {
@@ -81,32 +43,46 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
         <span className="text-[11px] font-bold text-slate-400">Live Telemetry Feed</span>
       </div>
 
-      <div className="divide-y divide-slate-100">
-        {items.map((act) => (
-          <div
-            key={act.id}
-            className="py-3 sm:py-3.5 flex items-start sm:items-center justify-between gap-3 first:pt-0 last:pb-0 min-w-0"
-          >
-            <div className="flex items-start sm:items-center gap-3 min-w-0">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs mt-0.5 sm:mt-0">
-                {renderIcon(act.category)}
+      {items.length > 0 ? (
+        <div className="divide-y divide-slate-100">
+          {items.map((act) => (
+            <div
+              key={act.id}
+              className="py-3 sm:py-3.5 flex items-start sm:items-center justify-between gap-3 first:pt-0 last:pb-0 min-w-0"
+            >
+              <div className="flex items-start sm:items-center gap-3 min-w-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs mt-0.5 sm:mt-0">
+                  {renderIcon(act.category)}
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-xs sm:text-sm font-bold text-slate-800 break-words line-clamp-2">
+                    {act.title}
+                  </p>
+                  <span className="text-[10px] text-slate-400 font-medium sm:hidden block">
+                    {act.relative_time}
+                  </span>
+                </div>
               </div>
-              <div className="min-w-0 space-y-0.5">
-                <p className="text-xs sm:text-sm font-bold text-slate-800 break-words line-clamp-2">
-                  {act.title}
-                </p>
-                <span className="text-[10px] text-slate-400 font-medium sm:hidden block">
-                  {act.relative_time}
-                </span>
-              </div>
-            </div>
 
-            <span className="text-[11px] text-slate-400 font-medium shrink-0 hidden sm:block">
-              {act.relative_time}
-            </span>
+              <span className="text-[11px] text-slate-400 font-medium shrink-0 hidden sm:block">
+                {act.relative_time}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-8 text-center space-y-2 bg-slate-50/60 rounded-2xl border border-slate-200/60 p-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 mx-auto border border-slate-200">
+            <History className="h-5 w-5" />
           </div>
-        ))}
-      </div>
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-slate-800">No Recent Activity Recorded</h4>
+            <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+              Diagnostic attempts, resume audits, and milestone completions will be logged here in real-time.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

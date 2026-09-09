@@ -145,16 +145,16 @@ async def get_dashboard_summary(
     target_career_title = (
         top_rec.career.title
         if (top_rec and top_rec.career)
-        else (active_roadmap.career.title if (active_roadmap and active_roadmap.career) else "Full Stack Developer")
+        else (active_roadmap.career.title if (active_roadmap and active_roadmap.career) else "Target Career Not Selected")
     )
-    match_score = round(top_rec.match_score) if top_rec else 92
+    match_score = round(top_rec.match_score) if top_rec else 0
 
     total_required_skills = 24
     verified_skills_count = len(user_skills)
-    skill_readiness_pct = min(100, round((verified_skills_count / total_required_skills) * 100)) if verified_skills_count else 74
-    assessment_index = round(latest_apt.score) if latest_apt else 82
-    resume_ats = round(latest_resume.ats_score) if latest_resume else 88
-    resume_rating = "Strong" if resume_ats >= 80 else ("Average" if resume_ats >= 60 else "Needs Work")
+    skill_readiness_pct = min(100, round((verified_skills_count / total_required_skills) * 100)) if (total_required_skills and verified_skills_count) else 0
+    assessment_index = round(latest_apt.score) if latest_apt else 0
+    resume_ats = round(latest_resume.ats_score) if latest_resume else 0
+    resume_rating = ("Strong" if resume_ats >= 80 else ("Average" if resume_ats >= 60 else "Needs Work")) if latest_resume else "Pending"
 
     if active_roadmap and active_roadmap.items:
         completed_items = sum(1 for item in active_roadmap.items if item.is_completed)
@@ -163,9 +163,9 @@ async def get_dashboard_summary(
         current_month = min(total_items, completed_items + 1)
         total_months = active_roadmap.duration_months
     else:
-        roadmap_pct = 42
-        current_month = 3
-        total_months = 6
+        roadmap_pct = 0
+        current_month = 0
+        total_months = 0
 
     # -------------------------------------------------------------
     # Dynamic Next Best Action
@@ -205,21 +205,21 @@ async def get_dashboard_summary(
         }
     else:
         next_action = {
-            "title": "Complete the System Design assessment",
-            "reason": f"Completing this will improve your {target_career_title} match score beyond 92%.",
-            "action_label": "Continue Assessment →",
-            "action_url": "/assessment",
+            "title": "Explore Career Recommendations",
+            "reason": f"Review your real-time matches and skill gap breakdown for {target_career_title}.",
+            "action_label": "View Recommendations →",
+            "action_url": "/recommendations",
             "priority": "HIGH",
         }
 
     return {
         "candidate": {
             "id": current_user.id,
-            "name": current_user.name or "Alex Johnson",
+            "name": current_user.name or "Candidate",
             "email": current_user.email,
             "role": current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role),
-            "branch": profile.branch if profile and profile.branch else "Computer Science and Engineering",
-            "college": profile.college if profile and profile.college else "University Institute of Technology",
+            "branch": profile.branch if profile and profile.branch else "",
+            "college": profile.college if profile and profile.college else "",
             "profile_completion": profile_completion_pct,
             "target_career": target_career_title,
         },
@@ -227,38 +227,38 @@ async def get_dashboard_summary(
             "career_match": {
                 "score": match_score,
                 "title": target_career_title,
-                "badge": "Top Match",
-                "trend": "+4% this month",
+                "badge": "Top Match" if top_rec else "Not Selected",
+                "trend": "+0% this month" if not top_rec else "+4% this month",
             },
             "skill_readiness": {
                 "score": skill_readiness_pct,
-                "verified_skills": verified_skills_count if verified_skills_count else 18,
-                "total_skills": total_required_skills,
-                "advanced_skills": sum(1 for s in user_skills if s.proficiency >= 4) if user_skills else 6,
-                "badge": "Telemetry Verified",
+                "verified_skills": verified_skills_count,
+                "total_skills": total_required_skills if verified_skills_count > 0 else 0,
+                "advanced_skills": sum(1 for s in user_skills if s.proficiency >= 4) if user_skills else 0,
+                "badge": "Telemetry Verified" if verified_skills_count > 0 else "Pending Verification",
             },
             "assessment_index": {
                 "score": assessment_index,
-                "dimensions": 6,
-                "badge": "Psychometric Baseline",
+                "dimensions": len(latest_apt.category_scores) if (latest_apt and latest_apt.category_scores and isinstance(latest_apt.category_scores, dict)) else 0,
+                "badge": "Psychometric Baseline" if latest_apt else "Not Taken",
             },
             "resume_ats": {
                 "score": resume_ats,
                 "rating": resume_rating,
-                "skills_detected": len(latest_resume.extracted_skills) if (latest_resume and latest_resume.extracted_skills) else 18,
-                "missing_keywords": len(latest_resume.missing_keywords) if (latest_resume and latest_resume.missing_keywords) else 4,
-                "badge": "ATS Scan",
+                "skills_detected": len(latest_resume.extracted_skills) if (latest_resume and latest_resume.extracted_skills) else 0,
+                "missing_keywords": len(latest_resume.missing_keywords) if (latest_resume and latest_resume.missing_keywords) else 0,
+                "badge": "ATS Scan" if latest_resume else "No Resume",
             },
             "roadmap_progress": {
                 "score": roadmap_pct,
                 "current_month": current_month,
                 "total_months": total_months,
-                "stage": "Backend Development",
-                "badge": f"Month {current_month} of {total_months}",
+                "stage": active_roadmap.career.title if (active_roadmap and active_roadmap.career) else "Not Started",
+                "badge": f"Month {current_month} of {total_months}" if active_roadmap else "Not Started",
             },
             "profile_completion": {
                 "score": profile_completion_pct,
-                "badge": "Complete Profile",
+                "badge": "Complete Profile" if profile_completion_pct >= 80 else "Incomplete",
             },
         },
         "next_best_action": next_action,
@@ -287,34 +287,35 @@ async def get_dashboard_career_match(
     recs = list((await db.execute(stmt)).scalars().all())
 
     top_rec = recs[0] if recs else None
-    title = top_rec.career.title if (top_rec and top_rec.career) else "Full Stack Developer"
-    score = round(top_rec.match_score) if top_rec else 92
+    title = top_rec.career.title if (top_rec and top_rec.career) else "Target Career Not Selected"
+    score = round(top_rec.match_score) if top_rec else 0
 
     breakdown = {
-        "skills": 94,
-        "interests": 91,
-        "aptitude": 86,
-        "education": 88,
-        "experience": 76,
-        "preference": 95,
+        "skills": 0,
+        "interests": 0,
+        "aptitude": 0,
+        "education": 0,
+        "experience": 0,
+        "preference": 0,
     }
     if top_rec and hasattr(top_rec, "factor_breakdown") and isinstance(top_rec.factor_breakdown, dict):
         fb = top_rec.factor_breakdown
         breakdown = {
-            "skills": round(fb.get("skills", 94)),
-            "interests": round(fb.get("interests", 91)),
-            "aptitude": round(fb.get("aptitude", 86)),
-            "education": round(fb.get("education", 88)),
-            "experience": round(fb.get("experience", 76)),
-            "preference": round(fb.get("preference", 95)),
+            "skills": round(fb.get("skills", 0)),
+            "interests": round(fb.get("interests", 0)),
+            "aptitude": round(fb.get("aptitude", 0)),
+            "education": round(fb.get("education", 0)),
+            "experience": round(fb.get("experience", 0)),
+            "preference": round(fb.get("preference", 0)),
         }
 
-    why_fits = [
-        "Strong programming foundation with verified proficiency in modern languages",
-        "High analytical reasoning and systematic problem-solving aptitude",
-        "Direct alignment with candidate web architecture and cloud interests",
-        "Relevant hands-on project experience in full-stack frameworks",
-    ]
+    why_fits = []
+    if top_rec:
+        why_fits = [
+            "Matches verified engineering competencies and technical profile",
+            "Aligns with cognitive problem-solving benchmarks",
+            "Direct alignment with recorded technical domain interests",
+        ]
 
     top_paths = []
     if recs:
@@ -325,54 +326,18 @@ async def get_dashboard_career_match(
                 "careerId": r.career_id,
                 "title": c.title if c else "Software Engineer",
                 "category": c.category if c else "Software Engineering",
-                "salaryRange": c.salary_range if c else "$85,000 - $145,000 / yr",
+                "salaryRange": c.salary_range if c else "Competitive",
                 "matchScore": round(r.match_score),
-                "strongestFactor": "Skills 94%" if idx == 0 else ("Aptitude 91%" if idx == 1 else "Interest 88%"),
-                "skillGap": f"{len(r.missing_skills) if r.missing_skills else 2} skills missing",
-                "slug": c.slug if (c and c.slug) else "full-stack-developer",
+                "strongestFactor": "Skills Match",
+                "skillGap": f"{len(r.missing_skills) if r.missing_skills else 0} skills missing",
+                "slug": c.slug if (c and c.slug) else "software-engineer",
             })
-    else:
-        top_paths = [
-            {
-                "rank": 1,
-                "careerId": "c1",
-                "title": "Full Stack Developer",
-                "category": "Software Engineering",
-                "salaryRange": "$85,000 - $145,000 / yr",
-                "matchScore": 92,
-                "strongestFactor": "Skills 94%",
-                "skillGap": "2 skills missing",
-                "slug": "full-stack-developer",
-            },
-            {
-                "rank": 2,
-                "careerId": "c2",
-                "title": "Data Engineer",
-                "category": "Artificial Intelligence & Data",
-                "salaryRange": "$95,000 - $160,000 / yr",
-                "matchScore": 86,
-                "strongestFactor": "Aptitude 91%",
-                "skillGap": "3 skills missing",
-                "slug": "data-engineer",
-            },
-            {
-                "rank": 3,
-                "careerId": "c3",
-                "title": "AI / ML Engineer",
-                "category": "Artificial Intelligence & Data",
-                "salaryRange": "$110,000 - $185,000 / yr",
-                "matchScore": 82,
-                "strongestFactor": "Mathematical Logic 89%",
-                "skillGap": "4 skills missing",
-                "slug": "ai-ml-engineer",
-            },
-        ]
 
     return {
         "top_match": {
             "title": title,
             "matchScore": score,
-            "compatibilityText": "Strongest recommendation based on your verified engineering telemetry.",
+            "compatibilityText": "Recommendation grounded in your verified profile and assessment telemetry." if top_rec else "Select or explore target careers to view algorithmic compatibility.",
         },
         "breakdown": breakdown,
         "why_fits": why_fits,
@@ -488,44 +453,9 @@ async def get_dashboard_skill_gaps(
             })
         return result
 
-    return [
-        {
-            "name": "System Design",
-            "currentLevel": "Beginner",
-            "targetLevel": "Intermediate",
-            "currentScore": 40,
-            "targetScore": 80,
-            "priority": "HIGH PRIORITY",
-            "careerTitle": "Full Stack Developer",
-        },
-        {
-            "name": "Cloud Fundamentals (AWS/GCP)",
-            "currentLevel": "Beginner",
-            "targetLevel": "Intermediate",
-            "currentScore": 30,
-            "targetScore": 75,
-            "priority": "HIGH PRIORITY",
-            "careerTitle": "Full Stack Developer",
-        },
-        {
-            "name": "Automated Testing & CI/CD",
-            "currentLevel": "Intermediate",
-            "targetLevel": "Advanced",
-            "currentScore": 60,
-            "targetScore": 90,
-            "priority": "MEDIUM PRIORITY",
-            "careerTitle": "Full Stack Developer",
-        },
-        {
-            "name": "Container Orchestration (Kubernetes)",
-            "currentLevel": "Beginner",
-            "targetLevel": "Intermediate",
-            "currentScore": 25,
-            "targetScore": 70,
-            "priority": "MEDIUM PRIORITY",
-            "careerTitle": "Full Stack Developer",
-        },
-    ]
+        return result
+
+    return []
 
 
 @router.get("/roadmap")
@@ -557,68 +487,19 @@ async def get_dashboard_roadmap(
         completed_count = sum(1 for item in active_roadmap.items if item.is_completed)
         progress = round((completed_count / len(active_roadmap.items)) * 100)
         return {
-            "career": active_roadmap.career.title if active_roadmap.career else "Full Stack Developer",
+            "career": active_roadmap.career.title if active_roadmap.career else "Target Career",
             "progress": progress,
-            "current_stage": "Backend Development" if progress < 50 else "Production Toolchains",
+            "current_stage": active_roadmap.career.title if active_roadmap.career else "Active Milestone",
             "duration_months": active_roadmap.duration_months,
             "items": items,
         }
 
     return {
-        "career": "Full Stack Developer",
-        "progress": 42,
-        "current_stage": "Backend Development",
-        "duration_months": 6,
-        "items": [
-            {
-                "id": "m1",
-                "month": 1,
-                "title": "Programming Foundations",
-                "description": "Clean Code, Algorithmic Complexity, and Modern Software Paradigms",
-                "is_completed": True,
-                "tasks": [{"id": "t1", "title": "Core Algorithmic Foundations", "done": True}],
-            },
-            {
-                "id": "m2",
-                "month": 2,
-                "title": "JavaScript & TypeScript Deep Dive",
-                "description": "Async Patterns, Type Systems, and Modern Frontend Tooling",
-                "is_completed": True,
-                "tasks": [{"id": "t2", "title": "Advanced TypeScript & Design Patterns", "done": True}],
-            },
-            {
-                "id": "m3",
-                "month": 3,
-                "title": "Backend Development",
-                "description": "FastAPI, REST Architectural Standards, and Database Schemas",
-                "is_completed": False,
-                "tasks": [{"id": "t3", "title": "REST API Design & Validation Pipelines", "done": False}],
-            },
-            {
-                "id": "m4",
-                "month": 4,
-                "title": "Databases & ORM Optimization",
-                "description": "PostgreSQL, Indexing, and Query Profiling",
-                "is_completed": False,
-                "tasks": [{"id": "t4", "title": "Schema Migration and Query Indexing", "done": False}],
-            },
-            {
-                "id": "m5",
-                "month": 5,
-                "title": "Cloud & Production Deployments",
-                "description": "Docker Containerization, CI/CD, and Cloud Deployment",
-                "is_completed": False,
-                "tasks": [{"id": "t5", "title": "Containerizing Microservices", "done": False}],
-            },
-            {
-                "id": "m6",
-                "month": 6,
-                "title": "Interview Preparation & Capstone",
-                "description": "System Design Interviews and Capstone Portfolio Delivery",
-                "is_completed": False,
-                "tasks": [{"id": "t6", "title": "Scalable System Architecture Walkthrough", "done": False}],
-            },
-        ],
+        "career": "Not Selected",
+        "progress": 0,
+        "current_stage": "Not Started",
+        "duration_months": 0,
+        "items": [],
     }
 
 
@@ -710,28 +591,33 @@ async def get_dashboard_resume(
 
     if latest:
         score = round(latest.ats_score)
+        match_align = 0
+        if latest.ranked_careers and len(latest.ranked_careers) > 0:
+            first_c = latest.ranked_careers[0]
+            if isinstance(first_c, dict) and "matchScore" in first_c:
+                match_align = round(first_c["matchScore"])
         return {
             "status": "ANALYZED",
             "ats_score": score,
             "rating": "Strong" if score >= 80 else ("Average" if score >= 60 else "Needs Work"),
-            "skills_detected": len(latest.extracted_skills) if latest.extracted_skills else 18,
+            "skills_detected": len(latest.extracted_skills) if latest.extracted_skills else 0,
             "extracted_skills": latest.extracted_skills or [],
-            "missing_keywords": len(latest.missing_keywords) if latest.missing_keywords else 4,
-            "missing_keywords_list": latest.missing_keywords or ["Docker", "Kubernetes", "System Design", "CI/CD Pipelines"],
-            "career_alignment": 91,
+            "missing_keywords": len(latest.missing_keywords) if latest.missing_keywords else 0,
+            "missing_keywords_list": latest.missing_keywords or [],
+            "career_alignment": match_align or score,
             "analyzed_at": latest.created_at.isoformat() if latest.created_at else now_utc_iso(),
         }
 
     return {
-        "status": "ANALYZED",
-        "ats_score": 88,
-        "rating": "Strong",
-        "skills_detected": 18,
-        "extracted_skills": ["Python", "JavaScript", "React", "SQL", "Git", "REST APIs", "FastAPI"],
-        "missing_keywords": 4,
-        "missing_keywords_list": ["Docker", "Kubernetes", "Microservices", "CI/CD"],
-        "career_alignment": 91,
-        "analyzed_at": now_utc_iso(),
+        "status": "UPLOAD_REQUIRED",
+        "ats_score": 0,
+        "rating": "Not Uploaded",
+        "skills_detected": 0,
+        "extracted_skills": [],
+        "missing_keywords": 0,
+        "missing_keywords_list": [],
+        "career_alignment": 0,
+        "analyzed_at": "",
     }
 
 
@@ -749,37 +635,41 @@ async def get_dashboard_assessments(
     attempts = list((await db.execute(stmt)).scalars().all())
     latest = attempts[0] if attempts else None
 
-    scores = {
-        "Logical": 82,
-        "Quantitative": 76,
-        "Verbal": 88,
-        "Analytical": 91,
-        "Problem Solving": 84,
-    }
-
     if latest and latest.category_scores and isinstance(latest.category_scores, dict):
         cat = latest.category_scores
-        scores["Logical"] = round(cat.get("LOGICAL", {}).get("percentage", 82))
-        scores["Quantitative"] = round(cat.get("QUANTITATIVE", {}).get("percentage", 76))
-        scores["Verbal"] = round(cat.get("VERBAL", {}).get("percentage", 88))
-        scores["Analytical"] = round(cat.get("ANALYTICAL", {}).get("percentage", 91))
-        scores["Problem Solving"] = round(cat.get("PROBLEM_SOLVING", {}).get("percentage", 84))
-
-    radar_data = [
-        {"subject": "Logical", "score": scores["Logical"]},
-        {"subject": "Quantitative", "score": scores["Quantitative"]},
-        {"subject": "Verbal", "score": scores["Verbal"]},
-        {"subject": "Analytical", "score": scores["Analytical"]},
-        {"subject": "Problem Solving", "score": scores["Problem Solving"]},
-    ]
+        scores = {
+            "Logical": round(cat.get("LOGICAL", {}).get("percentage", 0)),
+            "Quantitative": round(cat.get("QUANTITATIVE", {}).get("percentage", 0)),
+            "Verbal": round(cat.get("VERBAL", {}).get("percentage", 0)),
+            "Analytical": round(cat.get("ANALYTICAL", {}).get("percentage", 0)),
+            "Problem Solving": round(cat.get("PROBLEM_SOLVING", {}).get("percentage", 0)),
+        }
+        radar_data = [
+            {"subject": "Logical", "score": scores["Logical"]},
+            {"subject": "Quantitative", "score": scores["Quantitative"]},
+            {"subject": "Verbal", "score": scores["Verbal"]},
+            {"subject": "Analytical", "score": scores["Analytical"]},
+            {"subject": "Problem Solving", "score": scores["Problem Solving"]},
+        ]
+        best_subj = max(scores.items(), key=lambda x: x[1])
+        weakest_subj = min(scores.items(), key=lambda x: x[1])
+        overall = round(sum(scores.values()) / max(1, len(scores)))
+        return {
+            "radar_data": radar_data,
+            "top_strength": f"{best_subj[0]} ({best_subj[1]}%)" if best_subj[1] > 0 else "Baseline Verified",
+            "growth_area": f"{weakest_subj[0]} ({weakest_subj[1]}%)" if weakest_subj[1] > 0 else "Practice Recommended",
+            "overall_score": overall,
+            "benchmark": 70,
+            "status": "Diagnostic Completed",
+        }
 
     return {
-        "radar_data": radar_data,
-        "top_strength": "Analytical Reasoning (91%)",
-        "growth_area": "Quantitative Aptitude (76%)",
-        "overall_score": round(sum(scores.values()) / len(scores)),
+        "radar_data": [],
+        "top_strength": "Diagnostic Pending",
+        "growth_area": "Take assessment to diagnose benchmarks",
+        "overall_score": 0,
         "benchmark": 70,
-        "status": "Diagnostic Verified",
+        "status": "NOT_STARTED",
     }
 
 
@@ -788,44 +678,41 @@ async def get_dashboard_activity(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> List[Dict[str, Any]]:
-    """Returns actual recent candidate activities with dynamic relative timestamps."""
-    return [
-        {
-            "id": "act-1",
-            "title": "Completed Python Skill Assessment",
-            "category": "ASSESSMENT",
-            "relative_time": "2 minutes ago",
-            "icon": "CheckCircle2",
-        },
-        {
-            "id": "act-2",
-            "title": "Resume Analysis Completed (ATS Score: 88/100)",
-            "category": "RESUME",
-            "relative_time": "18 minutes ago",
-            "icon": "FileCheck",
-        },
-        {
-            "id": "act-3",
-            "title": "Completed Roadmap Milestone: JavaScript & TypeScript",
-            "category": "ROADMAP",
-            "relative_time": "Yesterday",
-            "icon": "Map",
-        },
-        {
-            "id": "act-4",
-            "title": "Updated Technical Skills Matrix (Docker & FastAPI)",
-            "category": "SKILLS",
-            "relative_time": "Yesterday",
-            "icon": "Award",
-        },
-        {
-            "id": "act-5",
-            "title": "Career Recommendations Refreshed (Full Stack Developer 92%)",
-            "category": "RECOMMENDATION",
-            "relative_time": "2 days ago",
-            "icon": "Sparkles",
-        },
-    ]
+    """Returns actual recent candidate activities derived from events and telemetry."""
+    from app.models.integration import CareerEvent
+    stmt = (
+        select(CareerEvent)
+        .where(CareerEvent.user_id == current_user.id)
+        .order_by(CareerEvent.created_at.desc())
+        .limit(10)
+    )
+    events = list((await db.execute(stmt)).scalars().all())
+    activities = []
+    for evt in events:
+        icon = "Sparkles"
+        cat = "SYSTEM"
+        title = evt.event_type
+        if "resume" in evt.event_type:
+            icon = "FileCheck"
+            cat = "RESUME"
+            title = f"Resume Event: {evt.event_type.replace('resume.', '').replace('_', ' ').title()}"
+        elif "roadmap" in evt.event_type:
+            icon = "Map"
+            cat = "ROADMAP"
+            title = f"Roadmap Event: {evt.event_type.replace('roadmap.', '').replace('_', ' ').title()}"
+        elif "assignment" in evt.event_type:
+            icon = "CheckCircle2"
+            cat = "ASSIGNMENT"
+            title = f"Assignment Event: {evt.event_type.replace('assignments.', '').replace('_', ' ').title()}"
+
+        activities.append({
+            "id": evt.id,
+            "title": title,
+            "category": cat,
+            "relative_time": compute_relative_time(evt.created_at),
+            "icon": icon,
+        })
+    return activities
 
 
 @router.get("/bootstrap")

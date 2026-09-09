@@ -10,22 +10,21 @@ interface ResumeIntelligenceProps {
 }
 
 export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
-  const defaultResume: ResumeData = {
-    status: 'ANALYZED',
-    ats_score: 88,
-    rating: 'Strong',
-    skills_detected: 18,
-    extracted_skills: ['Python', 'JavaScript', 'React', 'SQL', 'FastAPI', 'Git'],
-    missing_keywords: 4,
-    missing_keywords_list: ['Docker', 'Kubernetes', 'Microservices', 'CI/CD'],
-    career_alignment: 91,
-    analyzed_at: new Date().toISOString(),
+  const isUploaded = !!(resume && resume.ats_score && resume.status !== 'UPLOAD_REQUIRED');
+  const isProcessing = resume?.status === 'PROCESSING';
+  const isUploadRequired = !isProcessing && !isUploaded;
+
+  const data: ResumeData = resume || {
+    status: 'UPLOAD_REQUIRED',
+    ats_score: 0,
+    rating: 'Pending',
+    skills_detected: 0,
+    extracted_skills: [],
+    missing_keywords: 0,
+    missing_keywords_list: [],
+    career_alignment: 0,
+    analyzed_at: '',
   };
-
-  const data = resume || defaultResume;
-
-  const isProcessing = data.status === 'PROCESSING';
-  const isUploadRequired = data.status === 'UPLOAD_REQUIRED';
 
   return (
     <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-4 min-w-0 overflow-hidden">

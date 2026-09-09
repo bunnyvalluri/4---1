@@ -11,6 +11,14 @@ async function forwardRequest(req: NextRequest, { params }: { params: Promise<{ 
   const headers = new Headers(req.headers);
   headers.delete('host');
 
+  // Forward authentication from cookie if Authorization header is missing
+  if (!headers.get('authorization')) {
+    const cookieToken = req.cookies.get('career_auth_token')?.value;
+    if (cookieToken) {
+      headers.set('authorization', `Bearer ${cookieToken}`);
+    }
+  }
+
   try {
     const contentType = req.headers.get('content-type') || '';
     let body: any = null;
@@ -35,7 +43,7 @@ async function forwardRequest(req: NextRequest, { params }: { params: Promise<{ 
     // If it's multipart, don't set Content-Type so fetch sets boundary automatically
     if (contentType.includes('multipart/form-data') && body instanceof FormData) {
       const forwardedHeaders = new Headers();
-      const authHeader = req.headers.get('authorization');
+      const authHeader = headers.get('authorization');
       if (authHeader) forwardedHeaders.set('authorization', authHeader);
       fetchOptions.headers = forwardedHeaders;
       fetchOptions.body = body;

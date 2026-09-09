@@ -127,185 +127,237 @@ export function AdminMobileNav({
 
   return (
     <>
-      {/* Floating Pill Mobile Navigation Dock (Hidden on Desktop >= 1024px) */}
+      {/* Floating Liquid Glass Navigation Dock (Available across viewports with executive clearance) */}
       <nav
-        aria-label="Admin mobile navigation dock"
-        className="fixed bottom-3 left-3 right-3 sm:left-6 sm:right-6 max-w-lg mx-auto z-40 lg:hidden pointer-events-auto select-none"
+        aria-label="Admin floating liquid glass navigation dock"
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 lg:left-[calc(50%+9rem)] w-[calc(100%-2rem)] max-w-md sm:max-w-lg z-40 pointer-events-auto select-none transition-all duration-300"
         style={{
-          bottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))',
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
         }}
       >
-        <div className="flex items-center justify-around bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full shadow-[0_10px_35px_-5px_rgba(15,23,42,0.18)] px-2 py-1.5 transition-all">
+        {/* Living Chromatic Liquid Light Perimeter Beam */}
+        <div className="liquid-glass-border-beam" />
+
+        {/* Ultra-Refractive Liquid Glass Hull */}
+        <div className="liquid-glass-container relative flex items-center justify-around rounded-full px-2.5 py-1.5 overflow-hidden shadow-[0_20px_45px_-10px_rgba(15,23,42,0.2),0_8px_25px_-4px_rgba(37,99,235,0.15),inset_0_1.5px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1.5px_2px_0_rgba(148,163,184,0.2)]">
+          {/* Continuous Specular Refractive Shimmer Beam */}
+          <div className="liquid-glass-shimmer" />
+
           {/* 1. Dashboard Tab */}
           <Link
             href="/admin/dashboard"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 touch-target"
+            className="flex flex-col items-center justify-center flex-1 py-0.5 group transition-transform active:scale-95 touch-target relative z-10"
           >
             <div
-              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-7.5 rounded-full transition-all duration-300 ${
                 isDashboardActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                  : 'text-slate-600 group-hover:text-slate-900'
+                  ? 'liquid-active-pill text-white scale-105'
+                  : 'text-slate-600 group-hover:text-slate-900 group-hover:bg-white/60 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]'
               }`}
             >
               <LayoutDashboard
-                className={`h-5 w-5 transition-colors ${
-                  isDashboardActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                className={`h-4.5 w-4.5 transition-all duration-200 ${
+                  isDashboardActive
+                    ? 'text-white stroke-[2.25] drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
+                    : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                 }`}
               />
             </div>
             <span
               className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
                 isDashboardActive
-                  ? 'font-bold text-blue-600'
+                  ? 'font-bold text-blue-600 dark:text-blue-400 drop-shadow-xs'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
               }`}
             >
               Dashboard
             </span>
+            <span
+              className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                isDashboardActive
+                  ? 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.9)] scale-100'
+                  : 'bg-transparent scale-0'
+              }`}
+            />
           </Link>
 
           {/* 2. Users Tab */}
           <Link
             href="/admin/users"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 touch-target"
+            className="flex flex-col items-center justify-center flex-1 py-0.5 group transition-transform active:scale-95 touch-target relative z-10"
           >
             <div
-              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-7.5 rounded-full transition-all duration-300 ${
                 isUsersActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                  : 'text-slate-600 group-hover:text-slate-900'
+                  ? 'liquid-active-pill text-white scale-105'
+                  : 'text-slate-600 group-hover:text-slate-900 group-hover:bg-white/60 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]'
               }`}
             >
               <Users
-                className={`h-5 w-5 transition-colors ${
-                  isUsersActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                className={`h-4.5 w-4.5 transition-all duration-200 ${
+                  isUsersActive
+                    ? 'text-white stroke-[2.25] drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
+                    : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                 }`}
               />
             </div>
             <span
               className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
                 isUsersActive
-                  ? 'font-bold text-blue-600'
+                  ? 'font-bold text-blue-600 dark:text-blue-400 drop-shadow-xs'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
               }`}
             >
               Users
             </span>
+            <span
+              className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                isUsersActive
+                  ? 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.9)] scale-100'
+                  : 'bg-transparent scale-0'
+              }`}
+            />
           </Link>
 
           {/* 3. Analytics Tab */}
           <Link
             href="/admin/analytics"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 touch-target"
+            className="flex flex-col items-center justify-center flex-1 py-0.5 group transition-transform active:scale-95 touch-target relative z-10"
           >
             <div
-              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-7.5 rounded-full transition-all duration-300 ${
                 isAnalyticsActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                  : 'text-slate-600 group-hover:text-slate-900'
+                  ? 'liquid-active-pill text-white scale-105'
+                  : 'text-slate-600 group-hover:text-slate-900 group-hover:bg-white/60 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]'
               }`}
             >
               <BarChart3
-                className={`h-5 w-5 transition-colors ${
-                  isAnalyticsActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                className={`h-4.5 w-4.5 transition-all duration-200 ${
+                  isAnalyticsActive
+                    ? 'text-white stroke-[2.25] drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
+                    : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                 }`}
               />
             </div>
             <span
               className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
                 isAnalyticsActive
-                  ? 'font-bold text-blue-600'
+                  ? 'font-bold text-blue-600 dark:text-blue-400 drop-shadow-xs'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
               }`}
             >
               Analytics
             </span>
+            <span
+              className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                isAnalyticsActive
+                  ? 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.9)] scale-100'
+                  : 'bg-transparent scale-0'
+              }`}
+            />
           </Link>
 
           {/* 4. Activity Tab */}
           <Link
             href="/admin/audit-logs"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 touch-target"
+            className="flex flex-col items-center justify-center flex-1 py-0.5 group transition-transform active:scale-95 touch-target relative z-10"
           >
             <div
-              className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              className={`relative flex items-center justify-center w-12 h-7.5 rounded-full transition-all duration-300 ${
                 isActivityActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                  : 'text-slate-600 group-hover:text-slate-900'
+                  ? 'liquid-active-pill text-white scale-105'
+                  : 'text-slate-600 group-hover:text-slate-900 group-hover:bg-white/60 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]'
               }`}
             >
               <Activity
-                className={`h-5 w-5 transition-colors ${
-                  isActivityActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                className={`h-4.5 w-4.5 transition-all duration-200 ${
+                  isActivityActive
+                    ? 'text-white stroke-[2.25] drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
+                    : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                 }`}
               />
-              <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+              <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white shadow-[0_0_8px_rgba(244,63,94,0.7)] animate-pulse" />
             </div>
             <span
               className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
                 isActivityActive
-                  ? 'font-bold text-blue-600'
+                  ? 'font-bold text-blue-600 dark:text-blue-400 drop-shadow-xs'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
               }`}
             >
               Activity
             </span>
+            <span
+              className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                isActivityActive
+                  ? 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.9)] scale-100'
+                  : 'bg-transparent scale-0'
+              }`}
+            />
           </Link>
 
           {/* 5. More Tab (Admin Control Drawer) */}
           <button
             type="button"
             onClick={() => setMoreSheetOpen(!moreSheetOpen)}
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 focus:outline-hidden touch-target cursor-pointer"
+            className="flex flex-col items-center justify-center flex-1 py-0.5 group transition-transform active:scale-95 focus:outline-hidden touch-target cursor-pointer relative z-10"
             aria-label="More administrative tools"
             aria-expanded={moreSheetOpen}
           >
             <div
-              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-12 h-7.5 rounded-full transition-all duration-300 ${
                 moreSheetOpen
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                  : 'text-slate-600 group-hover:text-slate-900'
+                  ? 'liquid-active-pill text-white scale-105'
+                  : 'text-slate-600 group-hover:text-slate-900 group-hover:bg-white/60 group-hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]'
               }`}
             >
               <MoreHorizontal
-                className={`h-5 w-5 transition-colors ${
-                  moreSheetOpen ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                className={`h-4.5 w-4.5 transition-all duration-200 ${
+                  moreSheetOpen
+                    ? 'text-white stroke-[2.25] drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
+                    : 'text-slate-600 group-hover:text-slate-900 group-hover:scale-110'
                 }`}
               />
             </div>
             <span
               className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
                 moreSheetOpen
-                  ? 'font-bold text-blue-600'
+                  ? 'font-bold text-blue-600 dark:text-blue-400 drop-shadow-xs'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
               }`}
             >
               More
             </span>
+            <span
+              className={`h-1 w-1 rounded-full mt-0.5 transition-all duration-200 ${
+                moreSheetOpen
+                  ? 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.9)] scale-100'
+                  : 'bg-transparent scale-0'
+              }`}
+            />
           </button>
         </div>
       </nav>
 
-      {/* "More" Bottom Sheet Drawer Modal (Mobile/Tablet only) */}
+      {/* "More" Bottom Sheet Drawer Modal */}
       {moreSheetOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Liquid Frosted Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-slate-950/45 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
             onClick={() => setMoreSheetOpen(false)}
           />
 
-          {/* Slide-up Sheet */}
+          {/* Slide-up Liquid Glass Sheet */}
           <div
-            className="relative z-10 w-full max-w-lg mx-auto bg-white rounded-t-3xl border-t border-slate-200 shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-250"
+            className="relative z-10 w-full max-w-lg mx-auto bg-white/95 backdrop-blur-2xl rounded-t-3xl border-t border-white/80 shadow-[0_-25px_60px_-15px_rgba(15,23,42,0.25),inset_0_1.5px_1px_rgba(255,255,255,0.9)] overflow-hidden max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-250"
             style={{
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
             {/* Sheet Handle & Header */}
-            <div className="px-5 pt-3 pb-3 border-b border-slate-100 bg-slate-50/80">
-              <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-3" />
+            <div className="px-5 pt-3 pb-3 border-b border-slate-100/80 bg-slate-50/70 backdrop-blur-md">
+              <div className="w-12 h-1 bg-slate-300/80 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">

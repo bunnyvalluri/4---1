@@ -24,11 +24,11 @@ interface DashboardHeroProps {
 }
 
 export function DashboardHero({
-  userName = 'Alex',
-  branch = 'Computer Science',
-  profileCompletion = 78,
-  targetCareer = 'Full Stack Developer',
-  careerMatchScore = 92,
+  userName = 'Candidate',
+  branch = '',
+  profileCompletion = 0,
+  targetCareer = 'Not Selected',
+  careerMatchScore = 0,
   relativeTime = 'just now',
 }: DashboardHeroProps) {
   const getGreeting = () => {

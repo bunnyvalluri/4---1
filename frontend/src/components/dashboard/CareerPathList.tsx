@@ -10,43 +10,7 @@ interface CareerPathListProps {
 }
 
 export function CareerPathList({ paths = [] }: CareerPathListProps) {
-  const defaultPaths: TopCareerPath[] = [
-    {
-      rank: 1,
-      careerId: 'c1',
-      title: 'Full Stack Developer',
-      category: 'Software Engineering',
-      salaryRange: '$85,000 - $145,000 / yr',
-      matchScore: 92,
-      strongestFactor: 'Skills 94%',
-      skillGap: '2 skills missing',
-      slug: 'full-stack-developer',
-    },
-    {
-      rank: 2,
-      careerId: 'c2',
-      title: 'Data Engineer',
-      category: 'Artificial Intelligence & Data',
-      salaryRange: '$95,000 - $160,000 / yr',
-      matchScore: 86,
-      strongestFactor: 'Aptitude 91%',
-      skillGap: '3 skills missing',
-      slug: 'data-engineer',
-    },
-    {
-      rank: 3,
-      careerId: 'c3',
-      title: 'AI / ML Engineer',
-      category: 'Artificial Intelligence & Data',
-      salaryRange: '$110,000 - $185,000 / yr',
-      matchScore: 82,
-      strongestFactor: 'Math Logic 89%',
-      skillGap: '4 skills missing',
-      slug: 'ai-ml-engineer',
-    },
-  ];
-
-  const items = paths.length > 0 ? paths : defaultPaths;
+  const items = paths;
 
   return (
     <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-4 min-w-0 overflow-hidden">
@@ -61,76 +25,106 @@ export function CareerPathList({ paths = [] }: CareerPathListProps) {
             Ranked by recommendation engine
           </p>
         </div>
-        <Link
-          href="/recommendations"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700 shrink-0 min-h-[44px] flex items-center"
-        >
-          View All ({items.length})
-        </Link>
+        {items.length > 0 && (
+          <Link
+            href="/recommendations"
+            className="text-xs font-bold text-blue-600 hover:text-blue-700 shrink-0 min-h-[44px] flex items-center"
+          >
+            View All ({items.length})
+          </Link>
+        )}
       </div>
 
-      {/* Cards List */}
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div
-            key={item.careerId || item.rank}
-            className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 hover:border-slate-300 hover:bg-white transition-all space-y-3 group min-w-0"
-          >
-            {/* Top Row: Rank, Title, Salary */}
-            <div className="flex items-start justify-between gap-3 min-w-0">
-              <div className="flex items-start gap-3 min-w-0">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 text-xs font-black shrink-0 mt-0.5">
-                  #{item.rank}
-                </span>
-                <div className="min-w-0">
-                  <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors break-words">
-                    {item.title}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                    <span>{item.category}</span>
-                    <span className="hidden sm:inline">•</span>
-                    <span className="font-semibold text-slate-700 block sm:inline">{item.salaryRange}</span>
+      {/* Cards List or Genuine Empty State */}
+      {items.length > 0 ? (
+        <div className="space-y-3">
+          {items.map((item) => (
+            <div
+              key={item.careerId || item.rank}
+              className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 hover:border-slate-300 hover:bg-white transition-all space-y-3 group min-w-0"
+            >
+              {/* Top Row: Rank, Title, Salary */}
+              <div className="flex items-start justify-between gap-3 min-w-0">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 text-xs font-black shrink-0 mt-0.5">
+                    #{item.rank}
+                  </span>
+                  <div className="min-w-0">
+                    <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors break-words">
+                      {item.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                      <span>{item.category}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="font-semibold text-slate-700 block sm:inline">{item.salaryRange}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Match Score Badge */}
+                <div className="text-right shrink-0 bg-white border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
+                  <div className="text-lg font-black text-blue-600 leading-none">
+                    {item.matchScore}%
+                  </div>
+                  <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
+                    Match
                   </div>
                 </div>
               </div>
 
-              {/* Match Score Badge */}
-              <div className="text-right shrink-0 bg-white border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
-                <div className="text-lg font-black text-blue-600 leading-none">
-                  {item.matchScore}%
+              {/* Middle Row: Factors & Missing Skills */}
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 text-slate-600">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <span className="text-slate-400">Driver:</span>
+                  <span className="font-bold text-slate-800">{item.strongestFactor}</span>
                 </div>
-                <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
-                  Match
+                <div className="text-right">
+                  <span className="font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md text-[11px]">
+                    {item.skillGap}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            {/* Middle Row: Factors & Missing Skills */}
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 text-slate-600">
-              <div className="flex items-center gap-1.5 font-medium">
-                <span className="text-slate-400">Driver:</span>
-                <span className="font-bold text-slate-800">{item.strongestFactor}</span>
-              </div>
-              <div className="text-right">
-                <span className="font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md text-[11px]">
-                  {item.skillGap}
-                </span>
+              {/* Bottom Row: Full-width touch friendly action on mobile */}
+              <div className="pt-1">
+                <Link
+                  href={`/careers/${item.slug || 'full-stack-developer'}`}
+                  className="w-full flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs sm:text-sm border border-blue-200/80 transition-all active:scale-[0.98]"
+                >
+                  <span>Deep Dive</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
             </div>
-
-            {/* Bottom Row: Full-width touch friendly action on mobile */}
-            <div className="pt-1">
-              <Link
-                href={`/careers/${item.slug || 'full-stack-developer'}`}
-                className="w-full flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs sm:text-sm border border-blue-200/80 transition-all active:scale-[0.98]"
-              >
-                <span>Deep Dive</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-8 text-center space-y-3 bg-slate-50/60 rounded-2xl border border-slate-200/60 p-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 mx-auto border border-amber-200/80">
+            <Sparkles className="h-6 w-6" />
           </div>
-        ))}
-      </div>
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-slate-800">No Career Recommendations Yet</h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Take the diagnostic cognitive assessment or browse our careers catalog to generate your algorithmically ranked matches.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+            <Link
+              href="/assessment"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors min-h-[38px]"
+            >
+              Start Diagnostic
+            </Link>
+            <Link
+              href="/careers"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 transition-colors min-h-[38px]"
+            >
+              Browse Careers
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
