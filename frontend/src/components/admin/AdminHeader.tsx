@@ -59,12 +59,21 @@ export function AdminHeader({
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900 text-sm hidden sm:inline-block">
-            CareerAI Admin
-          </span>
-          <span className="text-slate-300 hidden sm:inline-block">/</span>
-          <span className="text-xs font-semibold text-slate-500">Control Center</span>
+        <div className="flex items-center gap-2.5">
+          <div className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-200/80 bg-white shrink-0 shadow-2xs">
+            <img
+              src="/logo.png"
+              alt="CareerAI"
+              className="h-full w-full object-contain p-0.5"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-900 text-sm hidden sm:inline-block">
+              CareerAI Admin
+            </span>
+            <span className="text-slate-300 hidden sm:inline-block">/</span>
+            <span className="text-xs font-semibold text-slate-500">Control Center</span>
+          </div>
         </div>
       </div>
 

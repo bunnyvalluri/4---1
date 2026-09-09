@@ -206,17 +206,26 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Top Welcome & Quick Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Platform Overview</h1>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live Synced
-            </span>
+        <div className="flex items-center gap-4">
+          <div className="relative h-13 w-13 shrink-0 rounded-2xl overflow-hidden shadow-xs border border-slate-200/80 bg-white">
+            <img
+              src="/logo.png"
+              alt="CareerAI"
+              className="h-full w-full object-contain p-1"
+            />
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Real-time control center for CareerAI platform analytics, candidates, and AI engines.
-          </p>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Platform Overview</h1>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live Synced
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Real-time control center for CareerAI platform analytics, candidates, and AI engines.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5">
