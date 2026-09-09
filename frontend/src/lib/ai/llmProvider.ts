@@ -34,12 +34,12 @@ export class GeminiProvider implements ILLMProvider {
   }
 
   public isAvailable(): boolean {
-    return Boolean(this.apiKey && this.apiKey.length > 10 && !this.apiKey.startsWith('AQ.Ab8'));
+    return Boolean(this.apiKey && this.apiKey.trim().length > 10);
   }
 
   public async generateCompletion(prompt: string, options?: LLMOptions): Promise<string> {
-    const timeout = options?.timeoutMs || 3000;
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`, {
+    const timeout = options?.timeoutMs || 3500;
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -99,8 +99,8 @@ export class GeminiProvider implements ILLMProvider {
       };
     }
 
-    const timeout = options?.timeoutMs || 3000;
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`, {
+    const timeout = options?.timeoutMs || 3500;
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bodyPayload),
