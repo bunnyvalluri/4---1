@@ -74,12 +74,13 @@ export default function ResumePage() {
     async function loadData() {
       try {
         const [profRes, historyRes, asgnRes] = await Promise.all([
-          fetch('/api/profile'),
-          fetch('/api/resume/history'),
+          fetch('/api/profile').catch(() => null),
+          fetch('/api/resume/history').catch(() => null),
           fetch('/api/v1/assignments').catch(() => null),
         ]);
-        const profData = await profRes.json();
-        const historyData = await historyRes.json();
+
+        const profData = profRes && profRes.ok ? await profRes.json().catch(() => null) : null;
+        const historyData = historyRes && historyRes.ok ? await historyRes.json().catch(() => null) : null;
 
         if (profData?.user) setUserProfile(profData.user);
         if (historyData?.history && historyData.history.length > 0) {
@@ -88,7 +89,7 @@ export default function ResumePage() {
         }
 
         if (asgnRes && asgnRes.ok) {
-          const asgns = await asgnRes.json();
+          const asgns = await asgnRes.json().catch(() => null);
           if (Array.isArray(asgns) && asgns.length > 0 && asgns[0].latestSubmission) {
             setSubmissionResult(asgns[0].latestSubmission);
           }
@@ -173,9 +174,16 @@ export default function ResumePage() {
         body: formData,
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to analyze resume');
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        throw new Error(`Server returned unexpected response (${res.status}). Please try again.`);
+      }
+
+      if (!res.ok || !data) {
+        throw new Error(data?.error || `Analysis failed (${res.status}). Please try again.`);
       }
 
       setLocalCompletedStages(stagePipeline);
@@ -202,8 +210,8 @@ export default function ResumePage() {
         body: JSON.stringify({ repoName: 'careerai-backend-assignment-01', provider: 'GITHUB' }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setActiveRepo(data.repoName || 'careerai-backend-assignment-01');
+        const data = await res.json().catch(() => null);
+        if (data) setActiveRepo(data.repoName || 'careerai-backend-assignment-01');
       }
     } catch (e) {
       console.warn('Starter repo dispatch fallback note:', e);
@@ -225,8 +233,8 @@ export default function ResumePage() {
           commitMessage: 'Implement production REST API & unit test suite',
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
         setSubmissionResult(data);
       }
     } catch (err) {
@@ -249,6 +257,37 @@ export default function ResumePage() {
       : atsScore >= 70
       ? { label: 'Competitive', color: 'text-blue-700 bg-blue-50 border-blue-200' }
       : { label: 'Needs Optimization', color: 'text-amber-800 bg-amber-50 border-amber-200' };
+
+  const fallbackRankedCareers = [
+    {
+      careerId: 'cmtucksve004z5cjgapltalrf',
+      title: 'Backend Developer',
+      category: 'Software Engineering',
+      matchScore: 92,
+      reasoning: 'Strong alignment with detected Python, FastAPI, PostgreSQL, and REST API architectural patterns.',
+    },
+    {
+      careerId: 'cmtucjmt9002y5cjgjanamxn8',
+      title: 'Full Stack Developer',
+      category: 'Software Engineering',
+      matchScore: 88,
+      reasoning: 'Demonstrates end-to-end full stack proficiency spanning modern web frameworks and database schemas.',
+    },
+    {
+      careerId: 'cmtuck1id003p5cjgsphrsct0',
+      title: 'AI / ML Engineer',
+      category: 'Artificial Intelligence & Data',
+      matchScore: 81,
+      reasoning: 'Demonstrated foundation in Python and data structures; candidate is well-positioned for AI specialization.',
+    },
+  ];
+
+  const displayRankedCareers =
+    analysis?.rankedCareers && Array.isArray(analysis.rankedCareers) && analysis.rankedCareers.length > 0
+      ? analysis.rankedCareers
+      : fallbackRankedCareers;
+
+  const topCareer = displayRankedCareers[0];
 
   return (
     <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row overflow-x-hidden w-full font-sans antialiased text-slate-800">
@@ -652,41 +691,56 @@ export default function ResumePage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-5 rounded-2xl border-2 border-blue-500 bg-blue-50/30 space-y-3 relative overflow-hidden">
-                    <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-extrabold uppercase">
-                      Top Match • 92%
-                    </span>
-                    <h4 className="text-base font-black text-slate-900">Backend Developer</h4>
-                    <p className="text-xs text-slate-600">
-                      Strong alignment with detected Python, FastAPI, PostgreSQL, and REST API architectural patterns.
-                    </p>
-                    <div className="text-[11px] font-semibold text-blue-700 flex items-center gap-1 pt-1">
-                      <span>Target Role Alignment</span>
-                      <Check className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                  </div>
+                  {displayRankedCareers.map((c: any, index: number) => {
+                    const isTop = index === 0;
+                    return (
+                      <div
+                        key={c.careerId || c.title || index}
+                        className={`p-5 rounded-2xl space-y-3 relative overflow-hidden transition-all ${
+                          isTop
+                            ? 'border-2 border-blue-500 bg-blue-50/30 shadow-xs'
+                            : 'border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                              isTop
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {index === 0 ? 'Top Match' : index === 1 ? '2nd Match' : '3rd Match'} • {c.matchScore}%
+                          </span>
+                          {c.category && (
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate max-w-[120px]">
+                              {c.category}
+                            </span>
+                          )}
+                        </div>
 
-                  <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase">
-                      2nd Match • 88%
-                    </span>
-                    <h4 className="text-base font-black text-slate-900">Full Stack Developer</h4>
-                    <p className="text-xs text-slate-600">
-                      Demonstrates end-to-end full stack proficiency spanning modern web frameworks and database schemas.
-                    </p>
-                    <div className="text-[11px] font-semibold text-slate-500">Secondary Track</div>
-                  </div>
+                        <h4 className="text-base font-black text-slate-900">{c.title}</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {c.reasoning}
+                        </p>
 
-                  <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-extrabold uppercase">
-                      3rd Match • 81%
-                    </span>
-                    <h4 className="text-base font-black text-slate-900">AI / ML Engineer</h4>
-                    <p className="text-xs text-slate-600">
-                      Demonstrated foundation in Python and data structures; candidate is well-positioned for AI specialization.
-                    </p>
-                    <div className="text-[11px] font-semibold text-slate-500">Specialization Track</div>
-                  </div>
+                        {c.matchingSkills && c.matchingSkills.length > 0 && (
+                          <div className="pt-1 flex flex-wrap gap-1">
+                            {c.matchingSkills.slice(0, 4).map((sk: string) => (
+                              <span key={sk} className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-slate-200/90 font-semibold text-slate-700">
+                                {sk}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="text-[11px] font-semibold text-blue-700 flex items-center gap-1 pt-1">
+                          <span>{isTop ? 'Target Role Alignment' : index === 1 ? 'Secondary Track' : 'Specialization Track'}</span>
+                          {isTop && <Check className="h-3.5 w-3.5 text-blue-600" />}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -695,7 +749,7 @@ export default function ResumePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <span className="text-xs font-extrabold text-blue-600 uppercase tracking-wider block">
-                      Target Career: Backend Developer
+                      Target Career: {topCareer?.title || 'Backend Developer'}
                     </span>
                     <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
                       Skill Gap Matrix & Recommendations

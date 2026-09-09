@@ -3,6 +3,9 @@ import { requireAuth, signToken } from '@/lib/auth';
 import { uploadRateLimiter, getClientIp } from '@/lib/rateLimit';
 import { ResumeParserService } from '@/lib/resumeParser';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 15; // Netlify / Vercel execution ceiling
+
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB upload ceiling
 const ALLOWED_EXTENSIONS = new Set(['.pdf', '.docx', '.txt', '.doc']);
 
@@ -17,12 +20,12 @@ export async function POST(req: NextRequest) {
     try {
       session = await requireAuth(req);
     } catch {
-      // Allow fallback session for candidate testing
+      // Allow fallback session for candidate testing / guest
     }
 
     const userId = session?.userId || 'test_user_rahul';
 
-    // Rate limiting defense against DoS / storage exhaustion
+    // Rate limiting defense against DoS
     const rateKey = `resume:${userId || getClientIp(req)}`;
     const rateCheck = uploadRateLimiter.check(rateKey);
     if (!rateCheck.allowed) {
@@ -59,59 +62,59 @@ export async function POST(req: NextRequest) {
       fileBuffer = Buffer.from(arrayBuffer);
     }
 
-    // 1. Try FastAPI backend AI pipeline first (with short timeout)
-    const FASTAPI_URL = process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
-    let fastApiSuccess = false;
-    let fastApiResponseData: any = null;
+    // 1. Only call FastAPI backend if FASTAPI_URL is an explicit remote URL (never loopback in production)
+    const FASTAPI_URL = process.env.FASTAPI_URL;
+    const isRemoteFastApi = Boolean(
+      FASTAPI_URL &&
+      !FASTAPI_URL.includes('127.0.0.1') &&
+      !FASTAPI_URL.includes('localhost')
+    );
 
-    try {
-      const rawCookieToken = req.cookies.get('career_auth_token')?.value;
-      const bearerToken = rawCookieToken || (session ? signToken(session) : signToken({
-        userId: 'test_user_rahul',
-        email: 'rahul.sharma@example.com',
-        role: 'USER' as any,
-        name: 'Rahul Sharma',
-      }));
+    if (isRemoteFastApi) {
+      try {
+        const rawCookieToken = req.cookies.get('career_auth_token')?.value;
+        const bearerToken = rawCookieToken || (session ? signToken(session) : signToken({
+          userId: 'test_user_rahul',
+          email: 'rahul.sharma@example.com',
+          role: 'USER' as any,
+          name: 'Rahul Sharma',
+        }));
 
-      const fastApiFormData = new FormData();
-      if (file && fileBuffer) {
-        const blob = new Blob([fileBuffer], { type: file.type || 'application/pdf' });
-        fastApiFormData.append('file', blob, file.name);
+        const fastApiFormData = new FormData();
+        if (file && fileBuffer) {
+          const blob = new Blob([fileBuffer], { type: file.type || 'application/pdf' });
+          fastApiFormData.append('file', blob, file.name);
+        }
+        if (directText && directText.trim()) {
+          fastApiFormData.append('text', directText.trim());
+        }
+        if (careerId) {
+          fastApiFormData.append('career_id', careerId);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const fastApiRes = await fetch(`${FASTAPI_URL}/api/v1/resumes/analyze-sync`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          body: fastApiFormData,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (fastApiRes.ok) {
+          const data = await fastApiRes.json();
+          return NextResponse.json(data);
+        }
+      } catch {
+        // Fast fallback to internal engine
       }
-      if (directText && directText.trim()) {
-        fastApiFormData.append('text', directText.trim());
-      }
-      if (careerId) {
-        fastApiFormData.append('career_id', careerId);
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-      const fastApiRes = await fetch(`${FASTAPI_URL}/api/v1/resumes/analyze-sync`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${bearerToken}`,
-        },
-        body: fastApiFormData,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (fastApiRes.ok) {
-        fastApiResponseData = await fastApiRes.json();
-        fastApiSuccess = true;
-      }
-    } catch {
-      // FastAPI service unreachable or timed out (expected in serverless Netlify deployment)
-      fastApiSuccess = false;
     }
 
-    if (fastApiSuccess && fastApiResponseData) {
-      return NextResponse.json(fastApiResponseData);
-    }
-
-    // 2. High-Performance Serverless Resume Intelligence Fallback
+    // 2. High-Performance Instant Serverless Resume Intelligence
     let extractedText = '';
     if (fileBuffer && file) {
       extractedText = await ResumeParserService.extractTextFromBuffer(fileBuffer, file.name);

@@ -114,28 +114,43 @@ const WEAK_ACTION_VERBS = [
 export class ResumeParserService {
   public static async extractTextFromBuffer(buffer: Buffer, fileType: string): Promise<string> {
     const mime = fileType.toLowerCase();
+    let text = '';
+
     if (mime.includes('pdf') || mime.endsWith('.pdf')) {
+      // 1. Attempt PDFParse with strict 1.8s timeout
       try {
-        const parser = new PDFParse({ data: new Uint8Array(buffer) });
-        const textResult = await parser.getText();
-        await parser.destroy();
-        if (textResult?.text && textResult.text.trim().length > 0) {
-          return textResult.text;
-        }
+        const parsePromise = (async () => {
+          const parser = new PDFParse({ data: new Uint8Array(buffer) });
+          const textResult = await parser.getText();
+          await parser.destroy();
+          return textResult?.text || '';
+        })();
+
+        const timeoutPromise = new Promise<string>((resolve) =>
+          setTimeout(() => resolve(''), 1800)
+        );
+
+        text = await Promise.race([parsePromise, timeoutPromise]);
       } catch (err) {
-        console.warn('PDF parsing error, attempting string extraction fallback:', err);
+        console.warn('[ResumeParser] PDFParse error, using fallback:', err);
       }
 
-      // Regex stream extraction fallback for compressed or unconventional PDF streams
-      try {
-        const raw = buffer.toString('latin1');
-        const textMatches = raw.match(/\(([^()]{2,})\)Tj/g) || [];
-        if (textMatches.length > 5) {
-          return textMatches.map((m) => m.slice(1, -3)).join(' ');
+      // 2. High-speed binary stream token extraction fallback
+      if (!text || text.trim().length < 40) {
+        try {
+          const rawLatin = buffer.toString('latin1');
+          const textMatches = rawLatin.match(/\(([^()]{2,})\)Tj/g) || [];
+          if (textMatches.length > 5) {
+            text = textMatches.map((m) => m.slice(1, -3)).join(' ');
+          } else {
+            const words = rawLatin.match(/[a-zA-Z0-9+#.-]{2,}/g) || [];
+            if (words.length > 20) {
+              text = words.join(' ');
+            }
+          }
+        } catch {
+          // ignore
         }
-        return buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ');
-      } catch {
-        return '';
       }
     } else if (
       mime.includes('docx') ||
@@ -144,15 +159,21 @@ export class ResumeParserService {
     ) {
       try {
         const result = await mammoth.extractRawText({ buffer });
-        return result.value || '';
+        text = result.value || '';
       } catch (err) {
         console.warn('DOCX parsing error, falling back to string extraction:', err);
-        return buffer.toString('utf-8');
       }
-    } else {
-      // Plain text
-      return buffer.toString('utf-8');
     }
+
+    if (!text || text.trim().length === 0) {
+      try {
+        text = buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ');
+      } catch {
+        text = '';
+      }
+    }
+
+    return text.trim();
   }
 
   public static extractPersonalInfo(text: string): {
@@ -216,26 +237,18 @@ export class ResumeParserService {
     // 1. Personal Information
     const personalInfo = this.extractPersonalInfo(text);
 
-    // 2. Fetch Skill database and match catalog
-    let dbSkills: { name: string }[] = [];
-    try {
-      dbSkills = await prisma.skill.findMany({ select: { name: true } });
-    } catch (e) {
-      console.warn('[ResumeParserService] Failed to query Prisma Skill table, using static catalog:', e);
-    }
-
-    const catalogSet = new Set([
+    // 2. High-speed in-memory Skill matching (zero latency)
+    const catalogList = [
       ...COMMON_LANGUAGES,
       ...COMMON_FRAMEWORKS,
       ...COMMON_DATABASES,
       ...COMMON_CLOUD,
       ...COMMON_DEVOPS,
       ...COMMON_TOOLS,
-      ...dbSkills.map((s) => s.name),
-    ]);
+    ];
 
     const extractedSkillsSet = new Set<string>();
-    for (const skill of catalogSet) {
+    for (const skill of catalogList) {
       const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(^|[^a-zA-Z0-9_#+])${escaped}([^a-zA-Z0-9_#+]|$)`, 'i');
       if (regex.test(text)) {
@@ -384,39 +397,92 @@ export class ResumeParserService {
       },
     ];
 
-    // 10. Ranked Careers
-    const rankedCareers = [
+    // 10. Dynamic Ranked Careers Matching Engine (Tailored specifically to detected resume skills)
+    const CAREER_DEFINITIONS = [
       {
-        careerId: 'career_backend',
+        careerId: 'cmtucksve004z5cjgapltalrf',
+        slug: 'backend-developer',
         title: 'Backend Developer',
         category: 'Software Engineering',
-        matchScore: 92,
-        reasoning: 'Strong alignment with detected Python, FastAPI, PostgreSQL, and REST API architectural patterns.',
-        matchingSkills: extractedSkills.filter((s) => ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'REST APIs', 'SQL', 'Git', 'Redis'].includes(s)),
-        missingSkills: missingSkills.slice(0, 2),
-        slug: 'backend-developer',
+        coreSkills: ['Python', 'FastAPI', 'Django', 'Flask', 'PostgreSQL', 'Redis', 'SQL', 'Docker', 'REST APIs', 'Node.js', 'Express.js', 'Go', 'Golang', 'Java', 'Microservices'],
+        reasoningTemplate: 'Strong alignment with detected Python, FastAPI, PostgreSQL, and REST API architectural patterns.',
       },
       {
-        careerId: 'career_fullstack',
+        careerId: 'cmtucjmt9002y5cjgjanamxn8',
+        slug: 'full-stack-developer',
         title: 'Full Stack Developer',
         category: 'Software Engineering',
-        matchScore: 88,
-        reasoning: 'Demonstrates end-to-end full stack proficiency spanning modern web frameworks, React/Next.js, and database schemas.',
-        matchingSkills: extractedSkills.filter((s) => ['JavaScript', 'TypeScript', 'React', 'React.js', 'Next.js', 'Node.js', 'PostgreSQL', 'Git'].includes(s)),
-        missingSkills: ['Tailwind CSS'],
-        slug: 'full-stack-developer',
+        coreSkills: ['JavaScript', 'TypeScript', 'React', 'React.js', 'Next.js', 'Node.js', 'PostgreSQL', 'MongoDB', 'HTML5', 'CSS3', 'Tailwind CSS', 'Git', 'REST APIs'],
+        reasoningTemplate: 'Demonstrates end-to-end full stack proficiency spanning modern web frameworks, React/Next.js, and database schemas.',
       },
       {
-        careerId: 'career_ai',
+        careerId: 'cmtuck1id003p5cjgsphrsct0',
+        slug: 'ai-ml-engineer',
         title: 'AI / ML Engineer',
-        category: 'Artificial Intelligence',
-        matchScore: 81,
-        reasoning: 'Demonstrated foundation in Python and backend data structures; well positioned for AI/ML specialized pipelines.',
-        matchingSkills: extractedSkills.filter((s) => ['Python', 'SQL', 'FastAPI', 'Git', 'Docker'].includes(s)),
-        missingSkills: ['PyTorch', 'TensorFlow', 'Scikit-Learn'],
-        slug: 'ai-engineer',
+        category: 'Artificial Intelligence & Data',
+        coreSkills: ['Python', 'PyTorch', 'TensorFlow', 'Scikit-Learn', 'Keras', 'LangChain', 'FastAPI', 'SQL', 'Docker', 'Git'],
+        reasoningTemplate: 'Demonstrated foundation in Python and backend data structures; well positioned for AI/ML specialized pipelines.',
+      },
+      {
+        careerId: 'cmtuclr1i006m5cjgrkwqo7zw',
+        slug: 'cloud-devops-engineer',
+        title: 'Cloud & DevOps Engineer',
+        category: 'Cloud & Infrastructure',
+        coreSkills: ['Docker', 'Kubernetes', 'CI/CD', 'GitHub Actions', 'GitLab CI', 'AWS', 'Google Cloud', 'GCP', 'Linux', 'Bash', 'Terraform', 'Nginx', 'Prometheus'],
+        reasoningTemplate: 'Practical competency with Linux environments, containerization, and modern deployment automation.',
+      },
+      {
+        careerId: 'cmtucnhnh009i5cjgjrfcxpxa',
+        slug: 'data-engineer',
+        title: 'Data Engineer',
+        category: 'Artificial Intelligence & Data',
+        coreSkills: ['Python', 'SQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Docker', 'Linux', 'Bash', 'Git'],
+        reasoningTemplate: 'High-affinity data transformation foundation with relational SQL and distributed storage systems.',
+      },
+      {
+        careerId: 'cmtuckf7w004e5cjg3rkkjacu',
+        slug: 'frontend-developer',
+        title: 'Frontend Developer',
+        category: 'Software Engineering',
+        coreSkills: ['JavaScript', 'TypeScript', 'React', 'React.js', 'Next.js', 'Vue.js', 'HTML5', 'CSS3', 'Tailwind CSS', 'Figma', 'Git'],
+        reasoningTemplate: 'Solid front-of-screen engineering foundation with component-driven web frameworks.',
+      },
+      {
+        careerId: 'cmtucmd8p007o5cjgtre93shq',
+        slug: 'mobile-app-developer',
+        title: 'Mobile App Developer',
+        category: 'Software Engineering',
+        coreSkills: ['React', 'JavaScript', 'TypeScript', 'Swift', 'Kotlin', 'REST APIs', 'Git'],
+        reasoningTemplate: 'Transferable mobile runtime and client architecture capabilities.',
       },
     ];
+
+    const presentSkillsSet = new Set(extractedSkills.map((s) => s.toLowerCase()));
+    const rankedCareers = CAREER_DEFINITIONS.map((def) => {
+      const matchingSkills = def.coreSkills.filter((cs) => presentSkillsSet.has(cs.toLowerCase()));
+      const careerMissingSkills = def.coreSkills.filter((cs) => !presentSkillsSet.has(cs.toLowerCase()));
+
+      const ratio = matchingSkills.length / Math.min(5, def.coreSkills.length);
+      const matchScore = Math.min(97, Math.max(52, Math.round(58 + ratio * 38)));
+
+      let reasoning = def.reasoningTemplate;
+      if (matchingSkills.length > 0) {
+        reasoning = `Strong alignment grounded in detected proficiency with ${matchingSkills.slice(0, 4).join(', ')}. Candidate demonstrates practical competencies in core ${def.title.toLowerCase()} responsibilities.`;
+      }
+
+      return {
+        careerId: def.careerId,
+        title: def.title,
+        category: def.category,
+        matchScore,
+        reasoning,
+        matchingSkills,
+        missingSkills: careerMissingSkills.slice(0, 4),
+        slug: def.slug,
+      };
+    })
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 3);
 
     // 11. Career Signals
     const careerSignals = {
@@ -427,65 +493,65 @@ export class ResumeParserService {
       skillsCount: extractedSkills.length,
     };
 
-    // 12. Persist to Neon PostgreSQL safely
-    let savedId = `res_${Math.random().toString(36).slice(2, 14)}`;
-    try {
-      // Ensure userId exists to satisfy foreign key constraint
-      let targetUserId = userId;
-      const userExists = await prisma.user.findUnique({ where: { id: userId } });
-      if (!userExists) {
-        const defaultUser = await prisma.user.findFirst();
-        if (defaultUser) {
-          targetUserId = defaultUser.id;
-        } else {
-          const newUser = await prisma.user.create({
-            data: {
-              id: userId || 'test_user_rahul',
-              email: `${userId || 'test_user_rahul'}@careerai.dev`,
-              name: personalInfo.name || 'Candidate',
-              passwordHash: 'seeded_hash',
-            },
-          });
-          targetUserId = newUser.id;
+    const savedId = `res_${Math.random().toString(36).slice(2, 14)}`;
+
+    // 12. Asynchronous Neon PostgreSQL persistence (non-blocking so API responds in < 30ms)
+    (async () => {
+      try {
+        let targetUserId = userId;
+        const userExists = await prisma.user.findUnique({ where: { id: userId } });
+        if (!userExists) {
+          const defaultUser = await prisma.user.findFirst();
+          if (defaultUser) {
+            targetUserId = defaultUser.id;
+          } else {
+            const newUser = await prisma.user.create({
+              data: {
+                id: userId || 'test_user_rahul',
+                email: `${userId || 'test_user_rahul'}@careerai.dev`,
+                name: personalInfo.name || 'Candidate',
+                passwordHash: 'seeded_hash',
+              },
+            });
+            targetUserId = newUser.id;
+          }
         }
-      }
 
-      // Verify careerId if provided
-      let validCareerId: string | null = null;
-      if (careerId) {
-        const c = await prisma.career.findUnique({ where: { id: careerId } });
-        if (c) validCareerId = c.id;
-      }
+        let validCareerId: string | null = null;
+        if (careerId) {
+          const c = await prisma.career.findUnique({ where: { id: careerId } });
+          if (c) validCareerId = c.id;
+        }
 
-      const createdRecord = await prisma.resumeAnalysis.create({
-        data: {
-          id: savedId,
-          userId: targetUserId,
-          careerId: validCareerId,
-          fileName,
-          atsScore,
-          extractedSkills,
-          missingSkills,
-          formattingIssues,
-          weakBulletPoints,
-          suggestedKeywords,
-          recommendations,
-          summary,
-          rawText: text.slice(0, 8000),
-          personalInfo,
-          education,
-          experience,
-          projects,
-          certifications: extractedSkills.some((s) => s.toLowerCase().includes('aws')) ? ['AWS Certified Cloud Practitioner'] : [],
-          careerSignals,
-          rankedCareers,
-          subScores,
-        },
-      });
-      savedId = createdRecord.id;
-    } catch (dbErr) {
-      console.warn('[ResumeParserService] Could not persist to database, returning in-memory result:', dbErr);
-    }
+        await prisma.resumeAnalysis.create({
+          data: {
+            id: savedId,
+            userId: targetUserId,
+            careerId: validCareerId,
+            fileName,
+            atsScore,
+            extractedSkills,
+            missingSkills,
+            formattingIssues,
+            weakBulletPoints,
+            suggestedKeywords,
+            recommendations,
+            summary,
+            rawText: text.slice(0, 8000),
+            personalInfo,
+            education,
+            experience,
+            projects,
+            certifications: extractedSkills.some((s) => s.toLowerCase().includes('aws')) ? ['AWS Certified Cloud Practitioner'] : [],
+            careerSignals,
+            rankedCareers,
+            subScores,
+          },
+        });
+      } catch (dbErr) {
+        console.warn('[ResumeParserService] Background DB persist warning:', dbErr);
+      }
+    })().catch(() => {});
 
     return {
       id: savedId,
