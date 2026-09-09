@@ -235,3 +235,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   -webkit-overflow-scrolling: touch;
   border-radius: 0.75rem;
 }
+
+/* Hide scrollbar for metric strip */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
