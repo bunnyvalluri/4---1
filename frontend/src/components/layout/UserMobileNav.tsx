@@ -210,189 +210,162 @@ export function UserMobileNav() {
 
   return (
     <>
-      {/* Fixed Floating Bottom Navigation Dock (Apple Liquid Glass Experience) */}
+      {/* Floating Pill Mobile Navigation Dock (Hidden on Desktop >= 1024px) */}
       <nav
-        aria-label="Candidate mobile navigation bar"
-        className="fixed bottom-3.5 inset-x-2.5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-auto sm:w-[420px] max-w-[420px] mx-auto z-40 lg:hidden pointer-events-auto select-none transition-all duration-300"
+        aria-label="Mobile workspace bottom navigation"
+        className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-6 max-w-md mx-auto z-40 lg:hidden pointer-events-auto select-none"
         style={{
-          bottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))',
+          bottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
         }}
       >
-        <div className="relative group/dock">
-          {/* Ambient liquid neon underglow */}
-          <div className="absolute -inset-1 -z-10 rounded-full bg-gradient-to-r from-blue-600/25 via-indigo-500/20 to-sky-500/25 blur-xl opacity-75 group-hover/dock:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-          {/* Liquid Glass Capsule */}
-          <div className="relative flex items-center justify-around apple-liquid-glass rounded-full px-2 py-1.5 overflow-hidden transition-all duration-300">
-            {/* Specular ridge reflection line */}
-            <div className="absolute inset-x-8 top-0 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent pointer-events-none" />
-
-            {/* Shimmer light sweep */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full animate-[apple-shimmer_7s_infinite_ease-in-out] pointer-events-none" />
-
-            {/* 1. Dashboard Tab */}
-            <Link
-              href="/dashboard"
-              className="relative flex flex-col items-center justify-center flex-1 py-1 group transition-all duration-300 active:scale-90"
+        <div className="flex items-center justify-around bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full shadow-[0_10px_35px_-5px_rgba(15,23,42,0.16)] px-3 py-1.5 transition-all">
+          {/* 1. Dashboard Tab */}
+          <Link
+            href="/dashboard"
+            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+          >
+            <div
+              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                isDashboardActive
+                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  : 'text-slate-600 group-hover:text-slate-900'
+              }`}
             >
-              <div
-                className={`relative flex items-center justify-center w-11 h-8 rounded-full transition-all duration-300 ${
-                  isDashboardActive
-                    ? 'apple-liquid-active text-white scale-105 shadow-md ring-1 ring-white/40'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+              <LayoutDashboard
+                className={`h-5 w-5 transition-colors ${
+                  isDashboardActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
                 }`}
-              >
-                <LayoutDashboard
-                  className={`h-4.5 w-4.5 transition-all duration-300 ${
-                    isDashboardActive ? 'text-white stroke-[2.4] scale-105' : 'text-slate-600'
-                  }`}
-                />
-              </div>
-              <span
-                className={`text-[10px] mt-0.5 tracking-tight transition-all duration-300 ${
-                  isDashboardActive
-                    ? 'font-black text-blue-600'
-                    : 'font-semibold text-slate-500 group-hover:text-slate-800'
-                }`}
-              >
-                Dashboard
-              </span>
-              {isDashboardActive && (
-                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-              )}
-            </Link>
-
-            {/* 2. Recommendations Tab */}
-            <Link
-              href="/recommendations"
-              className="relative flex flex-col items-center justify-center flex-1 py-1 group transition-all duration-300 active:scale-90"
+              />
+            </div>
+            <span
+              className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
+                isDashboardActive
+                  ? 'font-bold text-blue-600'
+                  : 'font-medium text-slate-500 group-hover:text-slate-800'
+              }`}
             >
-              <div
-                className={`relative flex items-center justify-center w-11 h-8 rounded-full transition-all duration-300 ${
-                  isRecommendationsActive
-                    ? 'apple-liquid-active text-white scale-105 shadow-md ring-1 ring-white/40'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
-                }`}
-              >
-                <Sparkles
-                  className={`h-4.5 w-4.5 transition-all duration-300 ${
-                    isRecommendationsActive ? 'text-white stroke-[2.4] scale-105' : 'text-slate-600'
-                  }`}
-                />
-              </div>
-              <span
-                className={`text-[10px] mt-0.5 tracking-tight transition-all duration-300 truncate max-w-[70px] ${
-                  isRecommendationsActive
-                    ? 'font-black text-blue-600'
-                    : 'font-semibold text-slate-500 group-hover:text-slate-800'
-                }`}
-              >
-                Matches
-              </span>
-              {isRecommendationsActive && (
-                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-              )}
-            </Link>
+              Dashboard
+            </span>
+          </Link>
 
-            {/* 3. Skills Tab */}
-            <Link
-              href="/skills"
-              className="relative flex flex-col items-center justify-center flex-1 py-1 group transition-all duration-300 active:scale-90"
+          {/* 2. Recommendations Tab */}
+          <Link
+            href="/recommendations"
+            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+          >
+            <div
+              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                isRecommendationsActive
+                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  : 'text-slate-600 group-hover:text-slate-900'
+              }`}
             >
-              <div
-                className={`relative flex items-center justify-center w-11 h-8 rounded-full transition-all duration-300 ${
-                  isSkillsActive
-                    ? 'apple-liquid-active text-white scale-105 shadow-md ring-1 ring-white/40'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+              <Sparkles
+                className={`h-5 w-5 transition-colors ${
+                  isRecommendationsActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
                 }`}
-              >
-                <BarChart2
-                  className={`h-4.5 w-4.5 transition-all duration-300 ${
-                    isSkillsActive ? 'text-white stroke-[2.4] scale-105' : 'text-slate-600'
-                  }`}
-                />
-              </div>
-              <span
-                className={`text-[10px] mt-0.5 tracking-tight transition-all duration-300 ${
-                  isSkillsActive
-                    ? 'font-black text-blue-600'
-                    : 'font-semibold text-slate-500 group-hover:text-slate-800'
-                }`}
-              >
-                Skills
-              </span>
-              {isSkillsActive && (
-                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-              )}
-            </Link>
+              />
+            </div>
+            <span
+              className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors truncate max-w-[70px] ${
+                isRecommendationsActive
+                  ? 'font-bold text-blue-600'
+                  : 'font-medium text-slate-500 group-hover:text-slate-800'
+              }`}
+            >
+              Matches
+            </span>
+          </Link>
 
-            {/* 4. Roadmap Tab */}
-            <Link
-              href="/roadmap"
-              className="relative flex flex-col items-center justify-center flex-1 py-1 group transition-all duration-300 active:scale-90"
+          {/* 3. Skills Tab */}
+          <Link
+            href="/skills"
+            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+          >
+            <div
+              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                isSkillsActive
+                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  : 'text-slate-600 group-hover:text-slate-900'
+              }`}
             >
-              <div
-                className={`relative flex items-center justify-center w-11 h-8 rounded-full transition-all duration-300 ${
-                  isRoadmapActive
-                    ? 'apple-liquid-active text-white scale-105 shadow-md ring-1 ring-white/40'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+              <BarChart2
+                className={`h-5 w-5 transition-colors ${
+                  isSkillsActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
                 }`}
-              >
-                <Map
-                  className={`h-4.5 w-4.5 transition-all duration-300 ${
-                    isRoadmapActive ? 'text-white stroke-[2.4] scale-105' : 'text-slate-600'
-                  }`}
-                />
-              </div>
-              <span
-                className={`text-[10px] mt-0.5 tracking-tight transition-all duration-300 ${
-                  isRoadmapActive
-                    ? 'font-black text-blue-600'
-                    : 'font-semibold text-slate-500 group-hover:text-slate-800'
-                }`}
-              >
-                Roadmap
-              </span>
-              {isRoadmapActive && (
-                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-              )}
-            </Link>
+              />
+            </div>
+            <span
+              className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
+                isSkillsActive
+                  ? 'font-bold text-blue-600'
+                  : 'font-medium text-slate-500 group-hover:text-slate-800'
+              }`}
+            >
+              Skills
+            </span>
+          </Link>
 
-            {/* 5. More Tab (Drawer Trigger) */}
-            <button
-              type="button"
-              onClick={() => setMoreSheetOpen(!moreSheetOpen)}
-              className="relative flex flex-col items-center justify-center flex-1 py-1 group transition-all duration-300 active:scale-90 focus:outline-hidden touch-target"
-              aria-label="More candidate tools and settings"
-              aria-expanded={moreSheetOpen}
+          {/* 4. Roadmap Tab */}
+          <Link
+            href="/roadmap"
+            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+          >
+            <div
+              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                isRoadmapActive
+                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  : 'text-slate-600 group-hover:text-slate-900'
+              }`}
             >
-              <div
-                className={`relative flex items-center justify-center w-11 h-8 rounded-full transition-all duration-300 ${
-                  moreSheetOpen
-                    ? 'apple-liquid-active text-white scale-105 shadow-md ring-1 ring-white/40'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+              <Map
+                className={`h-5 w-5 transition-colors ${
+                  isRoadmapActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
                 }`}
-              >
-                <MoreHorizontal
-                  className={`h-4.5 w-4.5 transition-all duration-300 ${
-                    moreSheetOpen ? 'text-white stroke-[2.4] scale-105' : 'text-slate-600'
-                  }`}
-                />
-              </div>
-              <span
-                className={`text-[10px] mt-0.5 tracking-tight transition-all duration-300 ${
-                  moreSheetOpen
-                    ? 'font-black text-blue-600'
-                    : 'font-semibold text-slate-500 group-hover:text-slate-800'
+              />
+            </div>
+            <span
+              className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
+                isRoadmapActive
+                  ? 'font-bold text-blue-600'
+                  : 'font-medium text-slate-500 group-hover:text-slate-800'
+              }`}
+            >
+              Roadmap
+            </span>
+          </Link>
+
+          {/* 5. More Tab (Drawer Trigger) */}
+          <button
+            type="button"
+            onClick={() => setMoreSheetOpen(!moreSheetOpen)}
+            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 focus:outline-hidden touch-target"
+            aria-label="More candidate tools and settings"
+            aria-expanded={moreSheetOpen}
+          >
+            <div
+              className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                moreSheetOpen
+                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  : 'text-slate-600 group-hover:text-slate-900'
+              }`}
+            >
+              <MoreHorizontal
+                className={`h-5 w-5 transition-colors ${
+                  moreSheetOpen ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
                 }`}
-              >
-                More
-              </span>
-              {moreSheetOpen && (
-                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-              )}
-            </button>
-          </div>
+              />
+            </div>
+            <span
+              className={`text-[10px] sm:text-[11px] mt-0.5 tracking-tight transition-colors ${
+                moreSheetOpen
+                  ? 'font-bold text-blue-600'
+                  : 'font-medium text-slate-500 group-hover:text-slate-800'
+              }`}
+            >
+              More
+            </span>
+          </button>
         </div>
       </nav>
 
