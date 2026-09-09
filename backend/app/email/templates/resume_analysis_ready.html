@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0F172A; line-height: 28px;">
+  Your Resume Analysis Is Complete
+</h1>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Hi {{ first_name | default("there") }},
+</p>
+
+<p style="margin: 0 0 20px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Your resume has been parsed and scored using our PyMuPDF ATS engine and semantic keyword benchmarks.
+</p>
+
+{% if ats_score is defined and ats_score is not none %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 8px; padding: 18px; margin-bottom: 24px;">
+  <tr>
+    <td style="font-size: 14px; color: #6B21A8; line-height: 22px;">
+      <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9333EA;">ATS Compatibility Score</span><br />
+      <strong style="font-size: 24px; color: #581C87;">{{ ats_score }} / 100</strong><br />
+      Review keyword density, detected skills, and recommended bullet improvements.
+    </td>
+  </tr>
+</table>
+{% endif %}
+
+<table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+  <tr>
+    <td align="center" style="border-radius: 8px; background-color: #2563EB;">
+      <a href="{{ app_url }}/resume" target="_blank" style="font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; padding: 12px 28px; border-radius: 8px; display: inline-block;">
+        View Resume ATS Report &rarr;
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 20px 0 0 0; font-size: 14px; color: #64748B;">
+  Warm regards,<br />
+  <strong style="color: #0F172A;">The CareerAI Team</strong>
+</p>
+{% endblock %}

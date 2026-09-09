@@ -37,6 +37,17 @@ class AuthService:
         self.session.add(profile)
         await self.session.flush()
 
+        # Trigger Welcome Email asynchronously
+        from app.email.service import email_service
+        first_name = user.name.split()[0] if user.name else "there"
+        try:
+            import asyncio
+            asyncio.create_task(
+                email_service.send_welcome_email(user_id=user.id, email=user.email, first_name=first_name)
+            )
+        except Exception as e:
+            pass
+
         token_str = create_access_token(subject=user.id, role=user.role.value)
         return Token(
             access_token=token_str,

@@ -90,49 +90,84 @@ export default function AdminUsersPage() {
             <p className="text-xs text-slate-500">Run the backend claim utility to provision an administrator.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-3.5">Administrator</th>
-                  <th className="px-4 py-3.5">Claim Role</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Registered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {users.map((adm) => (
-                  <tr key={adm.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
-                          {(adm.name || adm.email || 'A').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900">{adm.name || 'Admin User'}</p>
-                          <p className="text-[11px] text-slate-500">{adm.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">
-                        {adm.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        ACTIVE
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right text-slate-500 text-[11px]">
-                      {adm.createdAt ? new Date(adm.createdAt).toLocaleDateString() : 'N/A'}
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3.5">Administrator</th>
+                    <th className="px-4 py-3.5">Claim Role</th>
+                    <th className="px-4 py-3.5">Status</th>
+                    <th className="px-6 py-3.5 text-right">Registered</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {users.map((adm) => (
+                    <tr key={adm.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                            {(adm.name || adm.email || 'A').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900">{adm.name || 'Admin User'}</p>
+                            <p className="text-[11px] text-slate-500">{adm.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                          {adm.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                          ACTIVE
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right text-slate-500 text-[11px]">
+                        {adm.createdAt ? new Date(adm.createdAt).toLocaleDateString() : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {users.map((adm) => (
+                <div key={adm.id} className="p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                        {(adm.name || adm.email || 'A').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 text-sm truncate">{adm.name || 'Admin User'}</p>
+                        <p className="text-xs text-slate-500 truncate">{adm.email}</p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                      ACTIVE
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                      {adm.role}
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Registered: {adm.createdAt ? new Date(adm.createdAt).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

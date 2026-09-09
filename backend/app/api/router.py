@@ -15,6 +15,7 @@ from app.api.v1 import (
     admin,
     dashboard,
     public_config,
+    email,
 )
 
 api_router = APIRouter()
@@ -39,3 +40,4 @@ api_router.include_router(resumes.router)
 api_router.include_router(assistant.router)
 api_router.include_router(notifications.router)
 api_router.include_router(admin.router)
+api_router.include_router(email.router)

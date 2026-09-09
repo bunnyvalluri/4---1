@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0F172A; line-height: 28px;">
+  New Sign-In to Your CareerAI Account
+</h1>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Hi {{ first_name | default("there") }},
+</p>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  We detected a new sign-in to your CareerAI account from a new browser or device session:
+</p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+  <tr>
+    <td style="font-size: 13px; color: #334155; line-height: 22px;">
+      <strong>Time:</strong> {{ sign_in_time | default("Just now") }}<br />
+      <strong>Device / Browser:</strong> {{ user_agent | default("Web Browser") }}<br />
+      <strong>IP Location:</strong> {{ ip_address | default("Verified IP") }}
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 0 0 16px 0; font-size: 14px; color: #64748B; line-height: 22px;">
+  If this was you, you can safely ignore this notification. If you did not sign in at this time, please reset your password immediately.
+</p>
+
+<table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+  <tr>
+    <td align="center" style="border-radius: 8px; background-color: #2563EB;">
+      <a href="{{ app_url }}/forgot-password" target="_blank" style="font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+        Review Security Settings &rarr;
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 20px 0 0 0; font-size: 14px; color: #64748B;">
+  Warm regards,<br />
+  <strong style="color: #0F172A;">The CareerAI Security Team</strong>
+</p>
+{% endblock %}

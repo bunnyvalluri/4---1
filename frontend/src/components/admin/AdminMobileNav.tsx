@@ -125,27 +125,27 @@ export function AdminMobileNav({
           bottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
         }}
       >
-        <div className="flex items-center justify-around bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full shadow-[0_10px_35px_-5px_rgba(15,23,42,0.16)] px-3 py-1.5 transition-all">
+        <div className="flex items-center justify-around bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full shadow-[0_10px_35px_-5px_rgba(15,23,42,0.16)] px-2 py-2 transition-all">
           {/* 1. Dashboard Tab */}
           <Link
             href="/admin/dashboard"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+            className="flex flex-col items-center justify-center flex-1 group transition-transform active:scale-95"
           >
             <div
-              className={`flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 ${
                 isDashboardActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 group-hover:text-slate-900'
               }`}
             >
               <Home
                 className={`h-5 w-5 transition-colors ${
-                  isDashboardActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                  isDashboardActive ? 'text-blue-600 stroke-[2.4]' : 'text-slate-600 stroke-[1.8]'
                 }`}
               />
             </div>
             <span
-              className={`text-[11px] mt-0.5 tracking-tight transition-colors ${
+              className={`text-[11px] tracking-tight transition-colors ${
                 isDashboardActive
                   ? 'font-bold text-blue-600'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
@@ -155,26 +155,26 @@ export function AdminMobileNav({
             </span>
           </Link>
 
-          {/* 2. Users Tab */}
+          {/* 2. Users Tab (Active Example Match) */}
           <Link
-            href="/admin/candidates"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+            href="/admin/users"
+            className="flex flex-col items-center justify-center flex-1 group transition-transform active:scale-95"
           >
             <div
-              className={`flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 ${
                 isUsersActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  ? 'bg-blue-100/70 text-blue-600'
                   : 'text-slate-600 group-hover:text-slate-900'
               }`}
             >
               <Users
                 className={`h-5 w-5 transition-colors ${
-                  isUsersActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                  isUsersActive ? 'text-blue-600 stroke-[2.4]' : 'text-slate-600 stroke-[1.8]'
                 }`}
               />
             </div>
             <span
-              className={`text-[11px] mt-0.5 tracking-tight transition-colors ${
+              className={`text-[11px] tracking-tight transition-colors ${
                 isUsersActive
                   ? 'font-bold text-blue-600'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
@@ -187,23 +187,23 @@ export function AdminMobileNav({
           {/* 3. Analytics Tab */}
           <Link
             href="/admin/analytics"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+            className="flex flex-col items-center justify-center flex-1 group transition-transform active:scale-95"
           >
             <div
-              className={`flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 ${
                 isAnalyticsActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 group-hover:text-slate-900'
               }`}
             >
               <BarChart3
                 className={`h-5 w-5 transition-colors ${
-                  isAnalyticsActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                  isAnalyticsActive ? 'text-blue-600 stroke-[2.4]' : 'text-slate-600 stroke-[1.8]'
                 }`}
               />
             </div>
             <span
-              className={`text-[11px] mt-0.5 tracking-tight transition-colors ${
+              className={`text-[11px] tracking-tight transition-colors ${
                 isAnalyticsActive
                   ? 'font-bold text-blue-600'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
@@ -216,30 +216,27 @@ export function AdminMobileNav({
           {/* 4. Activity Tab (with red indicator badge) */}
           <Link
             href="/admin/audit-logs"
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
+            className="flex flex-col items-center justify-center flex-1 group transition-transform active:scale-95"
           >
             <div
-              className={`relative flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+              className={`relative flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 ${
                 isActivityActive
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 group-hover:text-slate-900'
               }`}
             >
               <Bell
                 className={`h-5 w-5 transition-colors ${
-                  isActivityActive ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                  isActivityActive ? 'text-blue-600 stroke-[2.4]' : 'text-slate-600 stroke-[1.8]'
                 }`}
               />
-              {/* Red Notification Indicator Dot */}
+              {/* Red Notification Dot matching image */}
               {showActivityBadge && (
-                <span className="absolute top-1 right-2.5 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 ring-2 ring-white"></span>
-                </span>
+                <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
               )}
             </div>
             <span
-              className={`text-[11px] mt-0.5 tracking-tight transition-colors ${
+              className={`text-[11px] tracking-tight transition-colors ${
                 isActivityActive
                   ? 'font-bold text-blue-600'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'
@@ -253,25 +250,25 @@ export function AdminMobileNav({
           <button
             type="button"
             onClick={() => setMoreSheetOpen(!moreSheetOpen)}
-            className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95 focus:outline-hidden"
+            className="flex flex-col items-center justify-center flex-1 group transition-transform active:scale-95 focus:outline-hidden cursor-pointer"
             aria-label="More navigation options"
             aria-expanded={moreSheetOpen}
           >
             <div
-              className={`flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200 ${
                 moreSheetOpen
-                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 group-hover:text-slate-900'
               }`}
             >
               <MoreHorizontal
                 className={`h-5 w-5 transition-colors ${
-                  moreSheetOpen ? 'text-blue-600 stroke-[2.25]' : 'text-slate-600'
+                  moreSheetOpen ? 'text-blue-600 stroke-[2.4]' : 'text-slate-600 stroke-[1.8]'
                 }`}
               />
             </div>
             <span
-              className={`text-[11px] mt-0.5 tracking-tight transition-colors ${
+              className={`text-[11px] tracking-tight transition-colors ${
                 moreSheetOpen
                   ? 'font-bold text-blue-600'
                   : 'font-medium text-slate-500 group-hover:text-slate-800'

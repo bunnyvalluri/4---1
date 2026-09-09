@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0F172A; line-height: 28px;">
+  Your Skill Gap Analysis Is Ready
+</h1>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Hi {{ first_name | default("there") }},
+</p>
+
+<p style="margin: 0 0 20px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  We analyzed your current verified engineering skills against the benchmarks required for your target pathway.
+</p>
+
+{% if top_gap %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 18px; margin-bottom: 24px;">
+  <tr>
+    <td style="font-size: 14px; color: #92400E; line-height: 22px;">
+      <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #D97706;">Highest-Leverage Skill Gap</span><br />
+      <strong style="font-size: 16px; color: #78350F;">{{ top_gap }}</strong><br />
+      Closing this gap significantly accelerates your career readiness and interview success.
+    </td>
+  </tr>
+</table>
+{% endif %}
+
+<table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+  <tr>
+    <td align="center" style="border-radius: 8px; background-color: #2563EB;">
+      <a href="{{ app_url }}/skills" target="_blank" style="font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; padding: 12px 28px; border-radius: 8px; display: inline-block;">
+        Review Skill Gaps &rarr;
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 20px 0 0 0; font-size: 14px; color: #64748B;">
+  Warm regards,<br />
+  <strong style="color: #0F172A;">The CareerAI Team</strong>
+</p>
+{% endblock %}

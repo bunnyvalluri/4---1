@@ -428,11 +428,57 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 text-left">
-            {mode === 'register' && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="name">
+            {mode === 'login' && (
+              <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span>Quick Demo Logins</span>
+                  <span className="text-[10px] text-blue-600 font-semibold">1-Click Fill</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('admin@careerai.dev');
+                      setPassword('Admin@123456');
+                      setError(null);
+                    }}
+                    className="flex flex-col items-start p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100/70 text-left transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 group-hover:text-indigo-950">
+                      <ShieldCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                      <span>Admin Portal</span>
+                    </div>
+                    <span className="text-[10px] text-indigo-600/90 font-mono mt-0.5 truncate w-full">
+                      admin@careerai.dev
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('alex@example.com');
+                      setPassword('Password@123');
+                      setError(null);
+                    }}
+                    className="flex flex-col items-start p-2.5 rounded-lg border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-left transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 group-hover:text-blue-950">
+                      <User className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                      <span>Candidate</span>
+                    </div>
+                    <span className="text-[10px] text-blue-600/90 font-mono mt-0.5 truncate w-full">
+                      alex@example.com
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4 text-left">
+              {mode === 'register' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5" htmlFor="name">
                   Full Name
                 </label>
                 <div className="relative">

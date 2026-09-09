@@ -99,6 +99,27 @@ class FirebaseResumeService:
 
         record_audit_log(user_id, "RESUME_ANALYZED", f"resumes/{resume_id}")
 
+        # Dispatch Resume Analysis Email
+        try:
+            from app.email.service import email_service
+            import asyncio
+            users_repo = FirestoreRepository(FirestoreCollections.USERS)
+            user_doc = users_repo.get(user_id)
+            if user_doc and user_doc.get("email"):
+                display_name = user_doc.get("displayName") or ""
+                first_name = display_name.split()[0] if display_name else "there"
+                ats_score = int(round(analysis_doc.get("atsScore", 0)))
+                asyncio.create_task(
+                    email_service.send_resume_analysis_email(
+                        user_id=user_id,
+                        email=user_doc["email"],
+                        ats_score=ats_score,
+                        first_name=first_name,
+                    )
+                )
+        except Exception:
+            pass
+
         return {
             "resume": resume_doc,
             "analysis": analysis_doc,

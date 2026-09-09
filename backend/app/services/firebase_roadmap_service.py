@@ -110,9 +110,33 @@ class FirebaseRoadmapService:
         if not found:
             raise ValidationError(f"Task {task_id} not found in milestone.")
 
+        was_already_completed = item.get("isCompleted", False)
         updated_item = self.items_repo.update(item_id, {
             "tasks": updated_tasks,
             "isCompleted": all_completed,
         })
         record_audit_log(user_id, "ROADMAP_TASK_UPDATED", f"roadmap_items/{item_id}")
+
+        # Dispatch Milestone Completed Email if newly completed
+        if all_completed and not was_already_completed:
+            try:
+                from app.email.service import email_service
+                import asyncio
+                users_repo = FirestoreRepository(FirestoreCollections.USERS)
+                user_doc = users_repo.get(user_id)
+                if user_doc and user_doc.get("email"):
+                    display_name = user_doc.get("displayName") or ""
+                    first_name = display_name.split()[0] if display_name else "there"
+                    asyncio.create_task(
+                        email_service.send_milestone_completed_email(
+                            user_id=user_id,
+                            email=user_doc["email"],
+                            milestone_title=item.get("title", "Roadmap Milestone"),
+                            progress_pct=None,
+                            first_name=first_name,
+                        )
+                    )
+            except Exception:
+                pass
+
         return updated_item

@@ -44,6 +44,17 @@ class FirebaseAuthService:
                 "updatedAt": now_utc_iso(),
             })
             record_audit_log(uid, "USER_REGISTERED", "users")
+
+            # Dispatch Welcome Email exactly once for first-time registration
+            first_name = display_name.split()[0] if display_name else "there"
+            import asyncio
+            from app.email.service import email_service
+            try:
+                asyncio.create_task(
+                    email_service.send_welcome_email(user_id=uid, email=email, first_name=first_name)
+                )
+            except Exception as e:
+                logger.warning(f"Failed to queue welcome email: {e}")
         else:
             record_audit_log(uid, "USER_LOGIN_SYNC", "users")
 

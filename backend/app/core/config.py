@@ -71,6 +71,19 @@ class Settings(BaseSettings):
     LINKEDIN_URL: str = os.getenv("LINKEDIN_URL", "")
     GITHUB_URL: str = os.getenv("GITHUB_URL", "https://github.com/bunnyvalluri/4---1")
 
+    # Transactional Email Infrastructure
+    EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "smtp")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "no-reply@careerai.dev")
+    EMAIL_FROM_NAME: str = os.getenv("EMAIL_FROM_NAME", "CareerAI Team")
+    EMAIL_REPLY_TO: str = os.getenv("EMAIL_REPLY_TO", "support@careerai.dev")
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "True").lower() in ["true", "1", "yes"]
+    SMTP_USE_SSL: bool = os.getenv("SMTP_USE_SSL", "False").lower() in ["true", "1", "yes"]
+    APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://localhost:3000")
+
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

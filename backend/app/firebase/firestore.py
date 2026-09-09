@@ -41,6 +41,7 @@ class FirestoreCollections:
     CHAT_MESSAGES = "chat_messages"
     NOTIFICATIONS = "notifications"
     AUDIT_LOGS = "audit_logs"
+    EMAIL_EVENTS = "email_events"
 
 
 def get_firestore_client() -> FirestoreClient:

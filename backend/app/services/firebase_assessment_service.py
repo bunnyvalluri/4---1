@@ -81,6 +81,27 @@ class FirebaseAssessmentService:
 
         attempt = self.attempts_repo.create(attempt_data)
         record_audit_log(user_id, "ASSESSMENT_SUBMITTED", f"assessment_attempts/{attempt['id']}")
+
+        # Dispatch assessment completed email
+        try:
+            from app.email.service import email_service
+            import asyncio
+            users_repo = FirestoreRepository(FirestoreCollections.USERS)
+            user_doc = users_repo.get(user_id)
+            if user_doc and user_doc.get("email"):
+                display_name = user_doc.get("displayName") or ""
+                first_name = display_name.split()[0] if display_name else "there"
+                asyncio.create_task(
+                    email_service.send_assessment_completed_email(
+                        user_id=user_id,
+                        email=user_doc["email"],
+                        score=int(round(overall_score)),
+                        first_name=first_name,
+                    )
+                )
+        except Exception:
+            pass
+
         return attempt
 
     def get_latest_user_scores(self, user_id: str) -> Dict[str, float]:

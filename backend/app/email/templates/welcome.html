@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 800; color: #0F172A; line-height: 28px;">
+  Welcome to CareerAI!
+</h1>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Hi {{ first_name | default("there") }},
+</p>
+
+<p style="margin: 0 0 16px 0; font-size: 15px; color: #334155; line-height: 24px;">
+  Your account has been successfully created, and you're ready to begin your personalized career development journey.
+</p>
+
+<p style="margin: 0 0 12px 0; font-size: 15px; font-weight: 700; color: #0F172A;">
+  CareerAI helps you:
+</p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Discover career paths</strong> that match your skills and interests
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Identify important skill gaps</strong> based on real market requirements
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Complete personalized career assessments</strong> to evaluate cognitive strengths
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Build a structured learning roadmap</strong> tailored to your goals
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Analyze and improve your resume</strong> with ATS scoring and keyword insights
+    </td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0 6px 0; font-size: 14px; color: #334155; line-height: 20px;">
+      <span style="color: #2563EB; font-weight: bold; margin-right: 8px;">•</span> <strong>Get AI-powered career guidance</strong> with our real-time mentor Aura
+    </td>
+  </tr>
+</table>
+
+<!-- Call to Action Box -->
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+  <tr>
+    <td style="padding-bottom: 16px;">
+      <p style="margin: 0; font-size: 14px; font-weight: 700; color: #0F172A;">Your Next Step:</p>
+      <p style="margin: 4px 0 0 0; font-size: 13px; color: #475569; line-height: 20px;">
+        Complete your profile and career assessment so CareerAI can generate personalized career recommendations for you.
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="border-radius: 8px; background-color: #2563EB;">
+            <a href="{{ app_url }}/profile" target="_blank" style="font-size: 14px; font-weight: 700; color: #FFFFFF; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+              Complete My Career Profile &rarr;
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 0 0 8px 0; font-size: 14px; color: #334155; line-height: 22px;">
+  We're excited to help you move from where you are today to where you want your career to be.
+</p>
+
+<p style="margin: 16px 0 0 0; font-size: 14px; color: #64748B;">
+  Warm regards,<br />
+  <strong style="color: #0F172A;">The CareerAI Team</strong><br />
+  <span style="font-size: 12px;">AI-powered career development platform</span>
+</p>
+{% endblock %}
