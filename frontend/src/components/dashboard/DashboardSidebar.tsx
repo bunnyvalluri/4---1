@@ -131,7 +131,7 @@ export function DashboardSidebar({
       {/* ======================================================== */}
       {/* DESKTOP PERSISTENT SIDEBAR (>=1024px) */}
       {/* ======================================================== */}
-      <aside className="w-64 shrink-0 border-r border-slate-200/80 bg-slate-50/70 h-[calc(100vh-4rem)] sticky top-16 flex-col justify-between p-4 hidden lg:flex overflow-y-auto">
+      <aside className="w-56 shrink-0 border-r border-slate-200/80 bg-slate-50/70 h-[calc(100vh-4rem)] sticky top-16 flex-col justify-between p-3 hidden lg:flex overflow-y-auto">
         <div className="space-y-5">
           {/* Brand Header */}
           <div className="px-1">

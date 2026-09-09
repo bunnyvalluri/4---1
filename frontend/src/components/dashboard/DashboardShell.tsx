@@ -55,7 +55,7 @@ export function DashboardShell({
 
         {/* Primary Content Canvas */}
         <div className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto">
-          <main className="flex-1 w-full max-w-7xl mx-auto py-4 sm:py-7 lg:py-8 px-3.5 sm:px-6 lg:px-8 xl:px-10 pb-32 lg:pb-10 space-y-6 min-w-0 overflow-x-hidden">
+          <main className="flex-1 w-full max-w-screen-2xl mx-auto py-4 sm:py-6 px-3 sm:px-5 lg:px-6 pb-32 lg:pb-10 space-y-5 min-w-0 overflow-x-hidden">
             {children}
           </main>
 

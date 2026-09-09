@@ -97,7 +97,7 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 2. PRIMARY CAREER INTELLIGENCE METRIC GRID (6 CARDS) */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2.5 items-stretch">
           {/* Metric 1: Career Match */}
           <MetricCard
             label="Career Match"
