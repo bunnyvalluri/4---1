@@ -62,7 +62,7 @@ export function AdminHeader({
         <div className="flex items-center gap-2.5">
           <div className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-200/80 bg-white shrink-0 shadow-2xs">
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="CareerAI"
               className="h-full w-full object-contain p-0.5"
             />

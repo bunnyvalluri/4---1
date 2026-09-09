@@ -30,6 +30,7 @@ export default function ResumePage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedKeyword, setCopiedKeyword] = useState<string | null>(null);
+  const [analysisStep, setAnalysisStep] = useState<'Uploading' | 'Processing' | 'Analyzing' | 'Almost Complete' | 'Completed'>('Uploading');
 
   useEffect(() => {
     async function loadData() {
@@ -62,6 +63,11 @@ export default function ResumePage() {
 
     setAnalyzing(true);
     setError(null);
+    setAnalysisStep('Uploading');
+
+    const stepTimer1 = setTimeout(() => setAnalysisStep('Processing'), 700);
+    const stepTimer2 = setTimeout(() => setAnalysisStep('Analyzing'), 1500);
+    const stepTimer3 = setTimeout(() => setAnalysisStep('Almost Complete'), 2600);
 
     try {
       const formData = new FormData();
@@ -78,6 +84,7 @@ export default function ResumePage() {
         throw new Error(data.error || 'Failed to analyze resume');
       }
 
+      setAnalysisStep('Completed');
       if (data.analysis) {
         setAnalysis(data.analysis);
         setHistory((prev) => [data.analysis, ...prev]);
@@ -85,6 +92,9 @@ export default function ResumePage() {
     } catch (err: any) {
       setError(err.message || 'Analysis failed');
     } finally {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
       setAnalyzing(false);
     }
   };
@@ -139,6 +149,54 @@ export default function ResumePage() {
               <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-2.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
                 <span>{error}</span>
+              </div>
+            )}
+
+            {analyzing && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <RotateCw className="h-4 w-4 animate-spin text-blue-600 shrink-0" />
+                    <span className="text-xs font-bold text-blue-900">
+                      {analysisStep === 'Uploading' && 'Uploading document to secure storage...'}
+                      {analysisStep === 'Processing' && 'Extracting text and structural sections...'}
+                      {analysisStep === 'Analyzing' && 'Auditing ATS score and keyword density...'}
+                      {analysisStep === 'Almost Complete' && 'Synthesizing recommendations...'}
+                      {analysisStep === 'Completed' && 'Analysis complete!'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-700">
+                    {analysisStep === 'Uploading' && '25%'}
+                    {analysisStep === 'Processing' && '55%'}
+                    {analysisStep === 'Analyzing' && '80%'}
+                    {analysisStep === 'Almost Complete' && '95%'}
+                    {analysisStep === 'Completed' && '100%'}
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200/80 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                    style={{
+                      width:
+                        analysisStep === 'Uploading'
+                          ? '25%'
+                          : analysisStep === 'Processing'
+                          ? '55%'
+                          : analysisStep === 'Analyzing'
+                          ? '80%'
+                          : analysisStep === 'Almost Complete'
+                          ? '95%'
+                          : '100%',
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] font-semibold text-slate-500 pt-0.5">
+                  <span className={analysisStep === 'Uploading' ? 'text-blue-700 font-bold' : ''}>Uploading</span>
+                  <span className={analysisStep === 'Processing' ? 'text-blue-700 font-bold' : ''}>Processing</span>
+                  <span className={analysisStep === 'Analyzing' ? 'text-blue-700 font-bold' : ''}>Analyzing</span>
+                  <span className={analysisStep === 'Almost Complete' ? 'text-blue-700 font-bold' : ''}>Almost Complete</span>
+                  <span className={analysisStep === 'Completed' ? 'text-blue-700 font-bold' : ''}>Completed</span>
+                </div>
               </div>
             )}
 

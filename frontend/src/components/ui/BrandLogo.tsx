@@ -31,7 +31,7 @@ export function BrandLogo({
     xl: { px: 64, class: 'h-16 w-16' },
   };
 
-  const imageSrc = variant === 'emblem' ? '/logo-emblem.png' : '/logo.png';
+  const imageSrc = variant === 'emblem' ? '/logo-emblem.webp' : '/logo.webp';
   const currentSize = sizeMap[size] || sizeMap.md;
 
   const content = (

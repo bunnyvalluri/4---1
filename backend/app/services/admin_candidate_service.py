@@ -38,13 +38,7 @@ class AdminCandidateService:
                 query = (
                     select(User)
                     .where(User.role == Role.USER)
-                    .options(
-                        selectinload(User.profile),
-                        selectinload(User.aptitude_attempts),
-                        selectinload(User.recommendations),
-                        selectinload(User.resume_analyses),
-                        selectinload(User.roadmaps),
-                    )
+                    .options(selectinload(User.profile))
                 )
 
                 if search:
@@ -61,7 +55,43 @@ class AdminCandidateService:
                 total = (await self.db.execute(count_query)).scalar() or 0
 
                 query = query.order_by(desc(User.created_at)).offset(offset).limit(limit)
-                users = (await self.db.execute(query)).scalars().all()
+                users = list((await self.db.execute(query)).scalars().all())
+
+                # Collect candidate IDs for lightweight batch stats query
+                user_ids = [u.id for u in users]
+                stats_map: Dict[str, Dict[str, Any]] = {uid: {} for uid in user_ids}
+
+                if user_ids:
+                    # Batch fetch latest aptitude score
+                    apt_stmt = (
+                        select(AptitudeAttempt.user_id, func.max(AptitudeAttempt.score))
+                        .where(AptitudeAttempt.user_id.in_(user_ids))
+                        .group_by(AptitudeAttempt.user_id)
+                    )
+                    apt_rows = (await self.db.execute(apt_stmt)).all()
+                    for uid, max_score in apt_rows:
+                        stats_map[uid]["best_score"] = round(max_score) if max_score is not None else None
+
+                    # Batch fetch roadmap presence
+                    road_stmt = (
+                        select(Roadmap.user_id)
+                        .where(Roadmap.user_id.in_(user_ids))
+                        .distinct()
+                    )
+                    road_users = set((await self.db.execute(road_stmt)).scalars().all())
+                    for uid in user_ids:
+                        stats_map[uid]["has_roadmap"] = uid in road_users
+
+                    # Batch fetch latest resume ats
+                    res_stmt = (
+                        select(ResumeAnalysis.user_id, ResumeAnalysis.ats_score)
+                        .where(ResumeAnalysis.user_id.in_(user_ids))
+                        .order_by(ResumeAnalysis.created_at.desc())
+                    )
+                    res_rows = (await self.db.execute(res_stmt)).all()
+                    for uid, ats in res_rows:
+                        if "resume_status" not in stats_map[uid]:
+                            stats_map[uid]["resume_status"] = f"{round(ats)}% ATS" if ats else "Analyzed"
 
                 for u in users:
                     # Calculate profile completion
@@ -76,19 +106,11 @@ class AdminCandidateService:
                     filled = sum(1 for f in fields_checked if f)
                     completion_pct = int((filled / max(len(fields_checked), 1)) * 100)
 
-                    # Top assessment score
-                    scores = [att.score for att in u.aptitude_attempts if att.score is not None]
-                    best_score = max(scores) if scores else None
-
-                    # Top recommended career
-                    top_rec = None
-                    if u.recommendations:
-                        sorted_recs = sorted(u.recommendations, key=lambda r: r.match_score or 0, reverse=True)
-                        top_rec = f"{int(sorted_recs[0].match_score)}% Match" if sorted_recs[0].match_score else "Evaluated"
-
-                    # Resume status
-                    has_resume = len(u.resume_analyses) > 0
-                    resume_status = f"{int(u.resume_analyses[0].ats_score)}% ATS" if has_resume and u.resume_analyses[0].ats_score else ("Analyzed" if has_resume else "Missing")
+                    # Candidate aggregated stats from batch map
+                    cand_stats = stats_map.get(u.id, {})
+                    best_score = cand_stats.get("best_score")
+                    has_roadmap = cand_stats.get("has_roadmap", False)
+                    resume_status = cand_stats.get("resume_status", "Missing")
 
                     # Target career
                     target_career = (u.profile.target_career if u.profile and u.profile.target_career else "Undecided")
@@ -101,8 +123,8 @@ class AdminCandidateService:
                         "target_career": target_career,
                         "profile_completion": completion_pct,
                         "assessment_score": best_score,
-                        "top_match": top_rec,
-                        "has_roadmap": len(u.roadmaps) > 0,
+                        "top_match": "Evaluated" if best_score else "Pending Diagnostic",
+                        "has_roadmap": has_roadmap,
                         "resume_status": resume_status,
                         "last_active": u.updated_at.isoformat() if u.updated_at else u.created_at.isoformat(),
                         "created_at": u.created_at.isoformat() if u.created_at else datetime.now(timezone.utc).isoformat(),

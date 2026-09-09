@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-4">
           <div className="relative h-13 w-13 shrink-0 rounded-2xl overflow-hidden shadow-xs border border-slate-200/80 bg-white">
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="CareerAI"
               className="h-full w-full object-contain p-1"
             />

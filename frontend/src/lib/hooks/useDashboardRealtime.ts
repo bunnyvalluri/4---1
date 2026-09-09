@@ -227,7 +227,47 @@ export function useDashboardRealtime() {
     setTelemetryStatus('Syncing...');
     try {
       const token = await getAuthToken();
-      // 1. Fetch unified endpoints from FastAPI backend
+      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // 1. Attempt High-Speed Progressive Bootstrap Endpoint (Single Roundtrip)
+      try {
+        const bootstrapRes = await fetch(`${BACKEND_URL}/api/v1/dashboard/bootstrap`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader,
+          },
+          cache: 'no-store',
+        });
+
+        if (bootstrapRes.ok) {
+          const boot = await bootstrapRes.json();
+          if (boot.summary) {
+            const s = boot.summary;
+            if (s.candidate) setCandidate(s.candidate);
+            if (s.metrics) setMetrics(s.metrics);
+            if (s.next_best_action) setNextAction(s.next_best_action);
+          }
+          if (boot.career_match) setCareerMatch(boot.career_match);
+          if (boot.skills) setSkills(boot.skills);
+          if (boot.skill_gaps && Array.isArray(boot.skill_gaps)) setSkillGaps(boot.skill_gaps);
+          if (boot.roadmap) setRoadmap(boot.roadmap);
+          if (boot.resume) setResume(boot.resume);
+          if (boot.assessments) setAssessments(boot.assessments);
+          if (boot.activity && Array.isArray(boot.activity)) setActivities(boot.activity);
+
+          setTelemetryStatus('Live');
+          setLastUpdated(new Date());
+          setRelativeTime('just now');
+          setError(null);
+          setLoading(false);
+          return;
+        }
+      } catch (bootErr) {
+        // Fallback gracefully to individual endpoint calls
+        console.debug('[DashboardRealtime] Bootstrap fallback:', bootErr);
+      }
+
+      // 2. Resilient Concurrent Fallback
       const endpoints = [
         `${BACKEND_URL}/api/v1/dashboard/summary`,
         `${BACKEND_URL}/api/v1/dashboard/career-match`,
@@ -245,7 +285,7 @@ export function useDashboardRealtime() {
           fetch(url, {
             headers: {
               'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              ...authHeader,
             },
           }).then(async (res) => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -318,45 +358,53 @@ export function useDashboardRealtime() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getAuthToken]);
 
-  // Setup client-side Firestore listeners when available
+  // Setup client-side Firestore scoped listener with proper cleanup
   useEffect(() => {
     fetchDashboardData();
 
     // Check for Firebase Firestore Client
     const db = getFirebaseFirestore();
-    if (db) {
+    const fbApp = getFirebaseApp();
+    if (db && fbApp) {
       try {
-        // Attach snapshot listeners to user's Firestore state if available
-        const notifCol = collection(db, 'notifications');
-        const unsubNotif = onSnapshot(
-          notifCol,
-          (snapshot) => {
-            if (!snapshot.empty) {
-              const liveNotifs: NotificationItem[] = [];
-              snapshot.forEach((doc) => {
-                const data = doc.data();
-                liveNotifs.push({
-                  id: doc.id,
-                  title: data.title || 'Notification',
-                  message: data.message || '',
-                  type: data.type || 'INFO',
-                  is_read: !!data.isRead,
-                  link: data.link,
-                  created_at: data.createdAt || new Date().toISOString(),
+        const auth = getAuth(fbApp);
+        const currentUid = auth.currentUser?.uid;
+        if (currentUid) {
+          // Strictly scoped query by userId — prevents downloading the entire database collection
+          const notifQuery = query(
+            collection(db, 'notifications'),
+            where('userId', '==', currentUid)
+          );
+          const unsubNotif = onSnapshot(
+            notifQuery,
+            (snapshot) => {
+              if (!snapshot.empty) {
+                const liveNotifs: NotificationItem[] = [];
+                snapshot.forEach((doc) => {
+                  const data = doc.data();
+                  liveNotifs.push({
+                    id: doc.id,
+                    title: data.title || 'Notification',
+                    message: data.message || '',
+                    type: data.type || 'INFO',
+                    is_read: !!data.isRead,
+                    link: data.link,
+                    created_at: data.createdAt || new Date().toISOString(),
+                  });
                 });
-              });
-              setNotifications(liveNotifs);
-              setLastUpdated(new Date());
-              setTelemetryStatus('Live');
+                setNotifications(liveNotifs);
+                setLastUpdated(new Date());
+                setTelemetryStatus('Live');
+              }
+            },
+            (err) => {
+              console.warn('[Firestore] Scoped notification listener note:', err.message);
             }
-          },
-          (err) => {
-            console.warn('[Firestore] Notification listener pass-through:', err.message);
-          }
-        );
-        unsubscribersRef.current.push(unsubNotif);
+          );
+          unsubscribersRef.current.push(unsubNotif);
+        }
       } catch (e) {
         console.warn('[Firestore] Listener registration pass-through:', e);
       }

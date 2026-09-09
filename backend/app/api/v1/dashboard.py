@@ -826,3 +826,37 @@ async def get_dashboard_activity(
             "icon": "Sparkles",
         },
     ]
+
+
+@router.get("/bootstrap")
+async def get_dashboard_bootstrap(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Dict[str, Any]:
+    """
+    High-performance consolidated bootstrap endpoint for candidate dashboard.
+    Combines core summary telemetry, career match, skill matrix, roadmap milestones,
+    resume ATS status, and assessment analytics into a single progressive payload.
+    Eliminates client-side network waterfalls and redundant connection overhead.
+    """
+    summary = await get_dashboard_summary(current_user, db)
+    career_match = await get_dashboard_career_match(current_user, db)
+    skills = await get_dashboard_skills(current_user, db)
+    skill_gaps = await get_dashboard_skill_gaps(current_user, db)
+    roadmap = await get_dashboard_roadmap(current_user, db)
+    resume = await get_dashboard_resume(current_user, db)
+    assessments = await get_dashboard_assessments(current_user, db)
+    activity = await get_dashboard_activity(current_user, db)
+
+    return {
+        "summary": summary,
+        "career_match": career_match,
+        "skills": skills,
+        "skill_gaps": skill_gaps,
+        "roadmap": roadmap,
+        "resume": resume,
+        "assessments": assessments,
+        "activity": activity,
+        "server_time": now_utc_iso(),
+    }
+

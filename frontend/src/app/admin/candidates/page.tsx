@@ -68,8 +68,11 @@ export default function CandidatesManagementPage() {
   };
 
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchCandidates(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -43,6 +43,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def performance_telemetry_middleware(request: Request, call_next):
+    import time
+    import uuid
+
+    request_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    start_time = time.perf_counter()
+
+    # Process request
+    response = await call_next(request)
+
+    duration_ms = (time.perf_counter() - start_time) * 1000
+    duration_rounded = round(duration_ms, 2)
+
+    # Attach performance telemetry headers
+    response.headers["X-Response-Time-Ms"] = str(duration_rounded)
+    response.headers["X-Request-Id"] = request_id
+
+    # Structured performance logging (never logs sensitive payload or headers)
+    logger.info(
+        f"[PERF] request_id={request_id} endpoint={request.url.path} "
+        f"method={request.method} status={response.status_code} duration_ms={duration_rounded}"
+    )
+
+    return response
+
 # Global Domain Exception Handler
 @app.exception_handler(DomainException)
 async def domain_exception_handler(request: Request, exc: DomainException):

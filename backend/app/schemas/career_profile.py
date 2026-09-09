@@ -58,6 +58,10 @@ class PersonalInfoUpdate(BaseModel):
     location: Optional[str] = Field(None, max_length=120)
     headline: Optional[str] = Field(None, max_length=160)
     bio: Optional[str] = Field(None, max_length=1000)
+    degree: Optional[str] = None
+    cgpa: Optional[float] = None
+    interests: Optional[List[str]] = None
+    work_experience_years: Optional[float] = None
     avatar_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None

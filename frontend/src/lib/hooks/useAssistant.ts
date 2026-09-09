@@ -360,6 +360,38 @@ export function useAssistant() {
     let streamedContent = '';
     let parsedActions: StructuredAction[] = [];
     let parsedSources: string[] = [];
+    let lastFlushTime = 0;
+
+    const flushStreamToState = (force = false) => {
+      const now = performance.now();
+      if (!force && now - lastFlushTime < 40) return; // Throttle to 25 updates/sec max for 60fps responsiveness
+      lastFlushTime = now;
+
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === assistantMsgId);
+        if (exists) {
+          return prev.map((m) =>
+            m.id === assistantMsgId
+              ? { ...m, content: streamedContent, status: 'STREAMING', actions: parsedActions, sources: parsedSources }
+              : m
+          );
+        } else {
+          return [
+            ...prev,
+            {
+              id: assistantMsgId,
+              session_id: targetSessionId || '',
+              role: 'assistant',
+              content: streamedContent,
+              status: 'STREAMING',
+              actions: parsedActions,
+              sources: parsedSources,
+              created_at: new Date().toISOString(),
+            },
+          ];
+        }
+      });
+    };
 
     try {
       const token = await getAuthToken();
@@ -411,70 +443,24 @@ export function useAssistant() {
               if (payload.token) {
                 setThinkingState(null);
                 streamedContent += payload.token;
-
-                // Update assistant placeholder message in state
-                setMessages((prev) => {
-                  const exists = prev.some((m) => m.id === assistantMsgId);
-                  if (exists) {
-                    return prev.map((m) =>
-                      m.id === assistantMsgId
-                        ? { ...m, content: streamedContent, status: 'STREAMING' }
-                        : m
-                    );
-                  } else {
-                    return [
-                      ...prev,
-                      {
-                        id: assistantMsgId,
-                        session_id: targetSessionId || '',
-                        role: 'assistant',
-                        content: streamedContent,
-                        status: 'STREAMING',
-                        created_at: new Date().toISOString(),
-                      },
-                    ];
-                  }
-                });
+                flushStreamToState(false);
               } else if (payload.actions || payload.sources) {
                 if (payload.actions) parsedActions = payload.actions;
                 if (payload.sources) parsedSources = payload.sources;
-
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantMsgId
-                      ? { ...m, actions: parsedActions, sources: parsedSources }
-                      : m
-                  )
-                );
+                flushStreamToState(true);
               }
             } catch {
               // Raw text chunk fallback
               setThinkingState(null);
               streamedContent += dataStr;
-              setMessages((prev) => {
-                const exists = prev.some((m) => m.id === assistantMsgId);
-                if (exists) {
-                  return prev.map((m) =>
-                    m.id === assistantMsgId ? { ...m, content: streamedContent } : m
-                  );
-                } else {
-                  return [
-                    ...prev,
-                    {
-                      id: assistantMsgId,
-                      session_id: targetSessionId || '',
-                      role: 'assistant',
-                      content: streamedContent,
-                      status: 'STREAMING',
-                      created_at: new Date().toISOString(),
-                    },
-                  ];
-                }
-              });
+              flushStreamToState(false);
             }
           }
         }
       }
+
+      // Final synchronous flush ensuring 100% of generated content is in state
+      flushStreamToState(true);
 
       // Mark final assistant message as completed
       setMessages((prev) =>
