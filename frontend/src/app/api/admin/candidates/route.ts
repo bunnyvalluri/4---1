@@ -61,8 +61,22 @@ export async function GET(req: NextRequest) {
           ? `${Math.round(u.resumeAnalyses[0].atsScore)}% ATS`
           : 'Not Uploaded';
 
-        const targetCareer = u.profile?.careerGoals || u.profile?.preferredRoles?.[0] || 'Undecided';
-        const hasProfileData = Boolean(u.profile?.careerGoals || u.profile?.degree || u.profile?.branch);
+        const targetCareer = u.profile?.preferredRoles?.[0] || u.profile?.careerGoals || 'Undecided';
+        
+        // Calculate profile completion dynamically from real fields
+        const profileFields = [
+          u.name,
+          u.email,
+          u.profile?.degree,
+          u.profile?.branch,
+          u.profile?.college,
+          u.profile?.gradYear,
+          u.profile?.location,
+          u.profile?.bio,
+          u.profile?.careerGoals,
+        ];
+        const filled = profileFields.filter(Boolean).length;
+        const profileCompletion = Math.min(100, Math.round((filled / profileFields.length) * 100));
 
         return {
           id: u.id,
@@ -70,7 +84,7 @@ export async function GET(req: NextRequest) {
           email: u.email,
           avatar: u.avatar,
           target_career: targetCareer,
-          profile_completion: hasProfileData ? 80 : 25,
+          profile_completion: profileCompletion || 20,
           assessment_score: bestScore,
           top_match: topMatch,
           has_roadmap: u.roadmaps.length > 0,
@@ -83,97 +97,8 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({ candidates, total: candidates.length });
     } catch (dbErr) {
-      console.warn('Database offline in candidates API, serving authentic platform candidate roster:', dbErr);
-
-      // Resilient authentic candidate roster for serverless / cloud deployments
-      const realCloudCandidates = [
-        {
-          id: 'cmttz0ho800005cnc7znm4xuq',
-          name: 'Rahul Valluri',
-          email: 'rahul.valluri@careerai.dev',
-          avatar: null,
-          target_career: 'Architect enterprise-grade cloud native platforms and lead scalable AI product engineering.',
-          profile_completion: 80,
-          assessment_score: 92,
-          top_match: '95% Match',
-          has_roadmap: true,
-          resume_status: '94% ATS',
-          last_active: new Date().toISOString(),
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-          status: 'ACTIVE',
-        },
-        {
-          id: 'cmttz16wu00085czk5btt37un',
-          name: 'Sarah Chen',
-          email: 'sarah.chen@careerai.dev',
-          avatar: null,
-          target_career: 'Build high-impact multi-agent AI systems and deploy resilient generative models at scale.',
-          profile_completion: 80,
-          assessment_score: 96,
-          top_match: '98% Match',
-          has_roadmap: true,
-          resume_status: '91% ATS',
-          last_active: new Date().toISOString(),
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-          status: 'ACTIVE',
-        },
-        {
-          id: 'cmttz16xl000h5czk5tesi6ag',
-          name: 'Priya Sharma',
-          email: 'priya.sharma@careerai.dev',
-          avatar: null,
-          target_career: 'Design multi-region disaster-resilient cloud topologies with automated observability.',
-          profile_completion: 80,
-          assessment_score: 88,
-          top_match: '92% Match',
-          has_roadmap: true,
-          resume_status: '86% ATS',
-          last_active: new Date().toISOString(),
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-          status: 'ACTIVE',
-        },
-        {
-          id: 'cmttz16y9000q5czkqcy730ri',
-          name: 'Marcus Vance',
-          email: 'marcus.vance@careerai.dev',
-          avatar: null,
-          target_career: 'Lead SOC engineering and automate threat detection for next-generation distributed systems.',
-          profile_completion: 80,
-          assessment_score: 85,
-          top_match: '89% Match',
-          has_roadmap: true,
-          resume_status: '82% ATS',
-          last_active: new Date().toISOString(),
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
-          status: 'ACTIVE',
-        },
-        {
-          id: 'cmtpbu7wk00015cq4kp8j1w5q',
-          name: 'Alex Johnson',
-          email: 'alex@example.com',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-          target_career: 'To build high-scale cloud-native distributed backends and deploy machine learning models to production.',
-          profile_completion: 80,
-          assessment_score: 84,
-          top_match: '70% Match',
-          has_roadmap: true,
-          resume_status: '56% ATS',
-          last_active: new Date().toISOString(),
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
-          status: 'ACTIVE',
-        },
-      ];
-
-      const filtered = search
-        ? realCloudCandidates.filter(
-            (c) =>
-              c.name.toLowerCase().includes(search.toLowerCase()) ||
-              c.email.toLowerCase().includes(search.toLowerCase()) ||
-              c.target_career.toLowerCase().includes(search.toLowerCase())
-          )
-        : realCloudCandidates;
-
-      return NextResponse.json({ candidates: filtered, total: filtered.length });
+      console.warn('Database error in candidates API:', dbErr);
+      return NextResponse.json({ candidates: [], total: 0 });
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
@@ -182,5 +107,73 @@ export async function GET(req: NextRequest) {
     }
     console.error('Admin candidates API error:', error);
     return NextResponse.json({ error: 'Failed to retrieve candidates.' }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    await requireAuth(req, 'ADMIN');
+
+    const body = await req.json();
+    const { name, email, password, targetCareer, degree, college, location, phone } = body;
+
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: 'Name, email, and password are required.' }, { status: 400 });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existing) {
+      return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
+    }
+
+    const { hashPassword } = await import('@/lib/auth');
+    const passwordHash = await hashPassword(password);
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash,
+        role: 'USER',
+        profile: {
+          create: {
+            preferredRoles: targetCareer ? [targetCareer.trim()] : ['Software Engineer'],
+            degree: degree?.trim() || null,
+            college: college?.trim() || null,
+            location: location?.trim() || null,
+            phone: phone?.trim() || null,
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      candidate: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        target_career: newUser.profile?.preferredRoles?.[0] || 'Software Engineer',
+        profile_completion: 40,
+        assessment_score: null,
+        top_match: 'No Match',
+        resume_status: 'Not Uploaded',
+        has_roadmap: false,
+        created_at: newUser.createdAt.toISOString(),
+        status: 'ACTIVE',
+      },
+    });
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    if (err?.message === 'UNAUTHORIZED' || err?.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden: Administrator privileges required.' }, { status: 403 });
+    }
+    console.error('Admin create candidate error:', error);
+    return NextResponse.json({ error: 'Failed to create candidate.' }, { status: 500 });
   }
 }
