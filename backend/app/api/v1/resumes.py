@@ -7,70 +7,64 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.services.resume_service import ResumeService
 from app.services.job_service import job_manager, JobStatus
-from app.ai.resume_analyzer import resume_analyzer
 from app.utils.file_utils import sanitize_filename
-from app.schemas.resume import (
-    ResumeAnalysisResponse,
-    ResumeUploadResponse,
-    BulletOptimizationRequest,
-)
 from app.utils.validators import is_allowed_file_extension
 from app.core.logging import logger
 
-router = APIRouter(prefix="/resume", tags=["Resume"])
+router = APIRouter(prefix="/resumes", tags=["Resume"])
+# Also support legacy /resume router prefix
+legacy_router = APIRouter(prefix="/resume", tags=["Resume Legacy"])
 
 
-async def run_resume_analysis_job(
+async def run_resume_analysis_pipeline(
     job_id: str,
     user_id: str,
     file_name: str,
     file_bytes: bytes,
     career_id: Optional[str] = None,
 ):
-    """Background processor for resume parsing and ATS auditing without blocking the API."""
+    """Background processor for multi-stage resume parsing, career matching, and roadmap generation."""
     try:
-        job_manager.update_job(job_id, JobStatus.PROCESSING, 25, "Extracting text from resume")
-        safe_name = sanitize_filename(file_name)
-        text = resume_analyzer.parse_document(safe_name, file_bytes)
-
-        job_manager.update_job(job_id, JobStatus.ANALYZING, 60, "Auditing ATS score and keyword matching")
-        audit_results = resume_analyzer.audit_resume(text)
-
-        job_manager.update_job(job_id, JobStatus.ALMOST_COMPLETE, 85, "Saving intelligence profile")
-
+        job_manager.update_job(job_id, JobStatus.PROCESSING, 15, "Extracting text and identifying structure")
         async with AsyncSessionLocal() as session:
             service = ResumeService(session)
             saved = await service.analyze_and_save_resume(
                 user_id=user_id,
-                file_name=safe_name,
+                file_name=file_name,
                 file_bytes=file_bytes,
                 career_id=career_id,
             )
-            await session.commit()
-            result_payload = {
-                "id": saved.id,
-                "user_id": saved.user_id,
-                "career_id": saved.career_id,
-                "file_name": saved.file_name,
-                "ats_score": saved.ats_score,
-                "extracted_skills": saved.extracted_skills,
-                "missing_skills": saved.missing_skills,
-                "formatting_issues": saved.formatting_issues,
-                "weak_bullet_points": saved.weak_bullet_points,
-                "suggested_keywords": saved.suggested_keywords,
-                "recommendations": saved.recommendations,
-                "summary": saved.summary,
-            }
 
         job_manager.update_job(
             job_id,
             JobStatus.COMPLETED,
             100,
-            "Analysis complete",
-            result=result_payload,
+            "Complete career intelligence pipeline executed successfully",
+            result={
+                "id": saved.id,
+                "userId": saved.user_id,
+                "careerId": saved.career_id,
+                "fileName": saved.file_name,
+                "atsScore": saved.ats_score,
+                "extractedSkills": saved.extracted_skills,
+                "missingSkills": saved.missing_skills,
+                "formattingIssues": saved.formatting_issues,
+                "weakBulletPoints": saved.weak_bullet_points,
+                "suggestedKeywords": saved.suggested_keywords,
+                "recommendations": saved.recommendations,
+                "summary": saved.summary,
+                "personalInfo": saved.personal_info,
+                "education": saved.education,
+                "experience": saved.experience,
+                "projects": saved.projects,
+                "certifications": saved.certifications,
+                "careerSignals": saved.career_signals,
+                "rankedCareers": saved.ranked_careers,
+                "subScores": saved.sub_scores,
+            },
         )
     except Exception as e:
-        logger.error(f"[Job {job_id}] Resume background processing failed: {e}")
+        logger.error(f"[Job {job_id}] Resume pipeline failed: {e}")
         job_manager.update_job(
             job_id,
             JobStatus.FAILED,
@@ -80,39 +74,60 @@ async def run_resume_analysis_job(
         )
 
 
+@router.post("")
 @router.post("/upload-async")
-async def upload_resume_async(
+@legacy_router.post("/upload-async")
+async def upload_resume_endpoint(
     background_tasks: BackgroundTasks,
     current_user: Annotated[User, Depends(get_current_user)],
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None),
     career_id: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """
-    Non-blocking asynchronous resume ingestion endpoint.
-    Accepts resume payload, immediately registers background task,
-    and returns a unique job_id in < 50ms without freezing the UI.
+    Ingests resume payload (File or Direct Paste) and immediately queues background analysis.
+    Returns job_id < 50ms.
     """
-    if not is_allowed_file_extension(file.filename):
+    file_bytes: bytes = b""
+    file_name: str = "Pasted_Resume.txt"
+
+    if file and file.filename:
+        safe_ext = file.filename.lower()
+        if not (safe_ext.endswith(".pdf") or safe_ext.endswith(".docx") or safe_ext.endswith(".txt") or safe_ext.endswith(".doc")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported file format. Please upload a PDF, DOCX, or TXT file.",
+            )
+        file_bytes = await file.read()
+        file_name = file.filename
+    elif text and text.strip():
+        if len(text.strip()) < 50:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Pasted resume text is too short. Please provide comprehensive resume content.",
+            )
+        file_bytes = text.encode("utf-8")
+        file_name = "Direct_Input_Resume.txt"
+    else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported file format. Please upload a PDF or DOCX file.",
+            detail="Please provide either a resume document file or pasted resume text.",
         )
 
-    file_bytes = await file.read()
-    if len(file_bytes) > 10 * 1024 * 1024:  # 10MB limit
+    if len(file_bytes) > 10 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File size exceeds maximum allowed 10MB.",
+            detail="Resume payload exceeds maximum allowable 10MB limit.",
         )
 
     job_id = f"job-{uuid.uuid4().hex[:12]}"
-    job_manager.create_job(job_id=job_id, user_id=current_user.id, job_type="RESUME_ANALYSIS")
+    job_manager.create_job(job_id=job_id, user_id=current_user.id, job_type="RESUME_CAREER_ENGINE")
 
     background_tasks.add_task(
-        run_resume_analysis_job,
+        run_resume_analysis_pipeline,
         job_id=job_id,
         user_id=current_user.id,
-        file_name=file.filename,
+        file_name=file_name,
         file_bytes=file_bytes,
         career_id=career_id,
     )
@@ -121,69 +136,155 @@ async def upload_resume_async(
         "job_id": job_id,
         "status": JobStatus.QUEUED,
         "progress": 5,
-        "step_message": "Resume uploaded successfully. Analysis scheduled in background.",
+        "step_message": "Resume received. Asynchronous AI career analysis pipeline queued.",
     }
 
 
-@router.get("/jobs/{job_id}")
-async def get_resume_job_status(
-    job_id: str,
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> Dict[str, Any]:
-    """Checks progress status of an asynchronous resume processing job."""
-    job = job_manager.get_job(job_id)
-    if not job or job.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job not found or unauthorized.",
-        )
-    return job.to_dict()
-
-
-@router.post("/upload", response_model=ResumeAnalysisResponse)
-async def upload_resume(
+@router.post("/analyze-sync")
+@legacy_router.post("/analyze-sync")
+async def analyze_resume_sync_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None),
     career_id: Optional[str] = Form(None),
-):
-    if not is_allowed_file_extension(file.filename):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported file format. Please upload a PDF or DOCX file.",
-        )
+) -> Dict[str, Any]:
+    """
+    Synchronously executes end-to-end resume intelligence pipeline, emitting real-time
+    lifecycle events over SSE, and returning full ATS and roadmap analytics immediately.
+    """
+    file_bytes: bytes = b""
+    file_name: str = "Direct_Resume.txt"
 
-    file_bytes = await file.read()
-    if len(file_bytes) > 10 * 1024 * 1024:  # 10MB limit
+    if file and file.filename:
+        file_bytes = await file.read()
+        file_name = file.filename
+    elif text and text.strip():
+        file_bytes = text.encode("utf-8")
+        file_name = "Direct_Input_Resume.txt"
+    else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File size exceeds maximum allowed 10MB.",
+            detail="Please provide either a resume document file or pasted resume text.",
         )
 
     service = ResumeService(db)
-    return await service.analyze_and_save_resume(
+    saved = await service.analyze_and_save_resume(
         user_id=current_user.id,
-        file_name=file.filename,
+        file_name=file_name,
         file_bytes=file_bytes,
         career_id=career_id,
     )
 
+    return {
+        "success": True,
+        "analysis": {
+            "id": saved.id,
+            "userId": saved.user_id,
+            "careerId": saved.career_id,
+            "fileName": saved.file_name,
+            "atsScore": saved.ats_score,
+            "extractedSkills": saved.extracted_skills,
+            "missingSkills": saved.missing_skills,
+            "formattingIssues": saved.formatting_issues,
+            "weakBulletPoints": saved.weak_bullet_points,
+            "suggestedKeywords": saved.suggested_keywords,
+            "recommendations": saved.recommendations,
+            "summary": saved.summary,
+            "personalInfo": saved.personal_info,
+            "education": saved.education,
+            "experience": saved.experience,
+            "projects": saved.projects,
+            "certifications": saved.certifications,
+            "careerSignals": saved.career_signals,
+            "rankedCareers": saved.ranked_careers,
+            "subScores": saved.sub_scores,
+        },
+    }
 
-@router.get("/history", response_model=List[ResumeAnalysisResponse])
-async def get_resume_history(
+
+@router.get("/jobs/{job_id}")
+@legacy_router.get("/jobs/{job_id}")
+async def get_job_status_endpoint(
+    job_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Dict[str, Any]:
+    job = job_manager.get_job(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job identifier not found.",
+        )
+    return job.to_dict()
+
+
+@router.get("/history")
+@legacy_router.get("/history")
+async def get_user_history_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-):
+) -> List[Dict[str, Any]]:
     service = ResumeService(db)
-    return await service.get_user_resumes(current_user.id)
+    items = await service.get_user_resumes(current_user.id)
+    return [
+        {
+            "id": r.id,
+            "userId": r.user_id,
+            "careerId": r.career_id,
+            "fileName": r.file_name,
+            "atsScore": r.ats_score,
+            "extractedSkills": r.extracted_skills,
+            "missingSkills": r.missing_skills,
+            "formattingIssues": r.formatting_issues,
+            "weakBulletPoints": r.weak_bullet_points,
+            "suggestedKeywords": r.suggested_keywords,
+            "recommendations": r.recommendations,
+            "summary": r.summary,
+            "personalInfo": r.personal_info,
+            "education": r.education,
+            "experience": r.experience,
+            "projects": r.projects,
+            "certifications": r.certifications,
+            "careerSignals": r.career_signals,
+            "rankedCareers": r.ranked_careers,
+            "subScores": r.sub_scores,
+            "createdAt": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in items
+    ]
 
 
-@router.get("/{analysis_id}", response_model=ResumeAnalysisResponse)
-async def get_resume_analysis(
+@router.get("/{analysis_id}")
+@router.get("/{analysis_id}/analysis")
+@legacy_router.get("/{analysis_id}")
+@legacy_router.get("/{analysis_id}/analysis")
+async def get_resume_analysis_endpoint(
     analysis_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-):
+) -> Dict[str, Any]:
     service = ResumeService(db)
-    return await service.get_resume_by_id(analysis_id)
-
+    r = await service.get_resume_by_id(analysis_id)
+    return {
+        "id": r.id,
+        "userId": r.user_id,
+        "careerId": r.career_id,
+        "fileName": r.file_name,
+        "atsScore": r.ats_score,
+        "extractedSkills": r.extracted_skills,
+        "missingSkills": r.missing_skills,
+        "formattingIssues": r.formatting_issues,
+        "weakBulletPoints": r.weak_bullet_points,
+        "suggestedKeywords": r.suggested_keywords,
+        "recommendations": r.recommendations,
+        "summary": r.summary,
+        "personalInfo": r.personal_info,
+        "education": r.education,
+        "experience": r.experience,
+        "projects": r.projects,
+        "certifications": r.certifications,
+        "careerSignals": r.career_signals,
+        "rankedCareers": r.ranked_careers,
+        "subScores": r.sub_scores,
+        "createdAt": r.created_at.isoformat() if r.created_at else None,
+    }

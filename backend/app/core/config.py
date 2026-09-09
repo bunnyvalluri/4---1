@@ -90,16 +90,28 @@ class Settings(BaseSettings):
     def assemble_db_connection(cls, v: str) -> str:
         if not v:
             return "sqlite+aiosqlite:///./career_guidance.db"
-        # Strip prisma-specific query params like schema=public
-        if "?" in v:
-            base, query = v.split("?", 1)
-            params = [p for p in query.split("&") if not p.startswith("schema=")]
-            v = f"{base}?{'&'.join(params)}" if params else base
-        # If postgres:// is given without +asyncpg, upgrade it
+        # If postgres:// or postgresql:// is given without +asyncpg, upgrade it
         if v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql+asyncpg://", 1)
-        if v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
-            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # Sanitize query parameters for asyncpg
+        if "asyncpg" in v and "?" in v:
+            base, query = v.split("?", 1)
+            allowed_asyncpg_keys = {"ssl", "timeout", "command_timeout", "server_settings"}
+            sanitized = []
+            for item in query.split("&"):
+                if not item:
+                    continue
+                k, *rest = item.split("=", 1)
+                val = rest[0] if rest else ""
+                if k == "sslmode":
+                    sanitized.append(f"ssl={val}")
+                elif k in allowed_asyncpg_keys:
+                    sanitized.append(f"{k}={val}")
+            v = f"{base}?{'&'.join(sanitized)}" if sanitized else base
+
         return v
 
 

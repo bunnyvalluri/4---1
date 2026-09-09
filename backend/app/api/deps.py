@@ -73,29 +73,48 @@ async def get_current_user(
     except Exception as e:
         logger.debug(f"Firebase token verification pass-through: {e}")
 
-    # 2. Fallback to local JWT token (for offline pytest suite & local testing)
+    # 2. Fallback to local JWT token (for offline pytest suite, Next.js proxy & local testing)
     try:
         payload = decode_token(token)
-        user_id: str = payload.get("sub")
+        user_id: str = payload.get("sub") or payload.get("userId") or payload.get("uid")
         if not user_id:
             raise AuthenticationError("Could not validate credentials.")
+
+        role_str = str(payload.get("role", "USER")).upper()
+        email = payload.get("email", "")
+        name = payload.get("name", email.split("@")[0] if email else "User")
 
         if db is not None:
             user_repo = UserRepository(db)
             user = await user_repo.get_by_id(user_id)
+            if not user and email:
+                user = await user_repo.get_by_email(email)
+            if not user:
+                try:
+                    user = User(
+                        id=user_id,
+                        name=name,
+                        email=email or f"{user_id}@careerai.dev",
+                        password_hash="managed_account",
+                        role=Role.ADMIN if role_str == "ADMIN" else Role.USER,
+                    )
+                    db.add(user)
+                    await db.commit()
+                    await db.refresh(user)
+                except Exception as e:
+                    await db.rollback()
+                    logger.warning(f"Could not auto-provision user in DB: {e}")
             if user:
                 return user
 
-        role_str = payload.get("role", "USER")
-        email = payload.get("email", "")
-        name = payload.get("name", email.split("@")[0] if email else "User")
         return FirebaseUserWrapper(
             uid=user_id,
             email=email,
             name=name,
             role=Role.ADMIN if role_str == "ADMIN" else Role.USER,
         )
-    except Exception:
+    except Exception as e:
+        logger.warning(f"JWT decode error: {e}")
         raise AuthenticationError("Invalid or expired authentication credentials.")
 
 

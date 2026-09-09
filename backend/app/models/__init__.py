@@ -10,6 +10,8 @@ from app.models.project import ProjectRecommendation
 from app.models.resume import ResumeAnalysis
 from app.models.chat import ChatSession, ChatMessage
 from app.models.notification import Notification
+from app.models.assignment import Assignment, AssignmentSubmission
+from app.models.integration import GitHubConnection, GitLabConnection, WebhookEvent, CareerEvent
 
 __all__ = [
     "User",
@@ -33,4 +35,10 @@ __all__ = [
     "ChatSession",
     "ChatMessage",
     "Notification",
+    "Assignment",
+    "AssignmentSubmission",
+    "GitHubConnection",
+    "GitLabConnection",
+    "WebhookEvent",
+    "CareerEvent",
 ]

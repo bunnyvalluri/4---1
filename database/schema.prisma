@@ -48,6 +48,10 @@ model User {
   resumeAnalyses        ResumeAnalysis[]
   chatSessions          ChatSession[]
   notifications         Notification[]
+  assignmentSubmissions AssignmentSubmission[]
+  gitHubConnection      GitHubConnection?
+  gitLabConnection      GitLabConnection?
+  careerEvents          CareerEvent[]
 }
 
 model Profile {
@@ -122,6 +126,7 @@ model Career {
   roadmaps            Roadmap[]
   projectSuggestions  ProjectRecommendation[]
   resumeAnalyses      ResumeAnalysis[]
+  assignments         Assignment[]
 }
 
 model CareerSkill {
@@ -262,6 +267,16 @@ model ResumeAnalysis {
   suggestedKeywords  String[] @default([])
   recommendations    String[] @default([])
   summary            String?
+  rawText            String?
+  storagePath        String?
+  personalInfo       Json?    // { name, email, phone, links, location }
+  education          Json?    // array of { degree, institution, year, gpa }
+  experience         Json?    // array of { company, role, duration, highlights, technologies }
+  projects           Json?    // array of { title, description, techStack, url }
+  certifications     Json?    // array of strings
+  careerSignals      Json?    // { yearsOfExperience, domain, seniorityLevel }
+  rankedCareers      Json?    // array of { careerId, title, matchScore, reasoning }
+  subScores          Json?    // { keywordCoverage, technicalSkillCoverage, roleAlignment, structureQuality, actionVerbs, quantification }
   createdAt          DateTime @default(now())
 }
 
@@ -297,3 +312,106 @@ model Notification {
   link      String?
   createdAt DateTime @default(now())
 }
+
+model Assignment {
+  id                 String                 @id @default(cuid())
+  roadmapItemId      String?
+  careerId           String
+  career             Career                 @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  title              String
+  description        String
+  difficulty         String                 @default("Intermediate") // Beginner, Intermediate, Advanced
+  estimatedHours     Float                  @default(4.0)
+  skills             String[]               @default([])
+  prerequisites      String[]               @default([])
+  instructions       String
+  requirements       Json                   // array of requirement strings
+  acceptanceCriteria Json                   // array of checklist strings
+  submissionType     String                 @default("GITHUB") // GITHUB, GITLAB, URL, TEXT, FILE
+  starterRepoUrl     String?
+  automatedTests     Json?                  // rules for lint, tests, build, security
+  resources          Json?                  // resource links
+  status             String                 @default("AVAILABLE") // LOCKED, AVAILABLE, IN_PROGRESS, COMPLETED
+  score              Float                  @default(0.0)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  submissions        AssignmentSubmission[]
+
+  @@index([careerId])
+}
+
+model AssignmentSubmission {
+  id               String      @id @default(cuid())
+  assignmentId     String
+  assignment       Assignment  @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissionType   String      @default("GITHUB")
+  repoUrl          String?
+  branch           String?
+  commitSha        String?
+  commitMessage    String?
+  prUrl            String?
+  status           String      @default("WAITING") // WAITING, IN_PROGRESS, RUNNING, PASSED, FAILED
+  score            Float       @default(0.0)
+  testsPassed      Int         @default(0)
+  testsTotal       Int         @default(0)
+  coveragePercent  Float       @default(0.0)
+  lintStatus       String      @default("PENDING") // PENDING, PASSED, FAILED
+  buildStatus      String      @default("PENDING") // PENDING, PASSED, FAILED
+  securityStatus   String      @default("PENDING") // PENDING, PASSED, FAILED
+  aiReview         Json?       // { strengths, problems, suggestions, qualityScore, architectureScore, securityScore }
+  rawCiOutput      String?
+  submittedAt      DateTime    @default(now())
+  evaluatedAt      DateTime?
+
+  @@index([assignmentId, userId])
+}
+
+model GitHubConnection {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubUsername       String
+  accessTokenEncrypted String
+  scopes               String[] @default([])
+  profileData          Json?
+  connectedAt          DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model GitLabConnection {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gitlabUsername       String
+  accessTokenEncrypted String
+  scopes               String[] @default([])
+  profileData          Json?
+  connectedAt          DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  source      String    // GITHUB, GITLAB
+  eventType   String    // push, workflow_run, check_run, pipeline
+  deliveryId  String?   @unique
+  payload     Json
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model CareerEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType String   // e.g. RESUME_UPLOADED, RESUME_PARSED, etc.
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+

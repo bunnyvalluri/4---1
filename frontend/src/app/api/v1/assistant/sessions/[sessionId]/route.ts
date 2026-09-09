@@ -11,7 +11,7 @@ export async function GET(
     const session = await getSessionUser(req);
     const userId = session?.userId || 'candidate_user_default';
 
-    let messages = [];
+    let messages: any[] = [];
     let chatSession = null;
 
     try {

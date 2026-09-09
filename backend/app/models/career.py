@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.models.roadmap import Roadmap
     from app.models.project import ProjectRecommendation
     from app.models.resume import ResumeAnalysis
+    from app.models.assignment import Assignment
 
 
 class Career(Base, TimestampMixin):
@@ -50,6 +51,9 @@ class Career(Base, TimestampMixin):
     )
     resume_analyses: Mapped[List["ResumeAnalysis"]] = relationship(
         "ResumeAnalysis", back_populates="career"
+    )
+    assignments: Mapped[List["Assignment"]] = relationship(
+        "Assignment", back_populates="career", cascade="all, delete-orphan"
     )
 
 

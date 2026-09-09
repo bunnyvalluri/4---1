@@ -16,6 +16,10 @@ from app.api.v1 import (
     dashboard,
     public_config,
     email,
+    events,
+    assignments,
+    integrations,
+    webhooks,
 )
 
 api_router = APIRouter()
@@ -37,6 +41,11 @@ api_router.include_router(roadmap.router, prefix="/roadmaps")
 api_router.include_router(roadmap.router, prefix="/roadmap")
 api_router.include_router(projects.router)
 api_router.include_router(resumes.router)
+api_router.include_router(resumes.legacy_router)
+api_router.include_router(events.router)
+api_router.include_router(assignments.router)
+api_router.include_router(integrations.router)
+api_router.include_router(webhooks.router)
 api_router.include_router(assistant.router)
 api_router.include_router(notifications.router)
 api_router.include_router(admin.router)

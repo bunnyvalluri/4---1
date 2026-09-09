@@ -227,7 +227,7 @@ export function useDashboardRealtime() {
     setTelemetryStatus('Syncing...');
     try {
       const token = await getAuthToken();
-      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+      const authHeader: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
       // 1. Attempt High-Speed Progressive Bootstrap Endpoint (Single Roundtrip)
       try {

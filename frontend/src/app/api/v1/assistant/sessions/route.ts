@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase();
 
-    let sessions = [];
+    let sessions: any[] = [];
     try {
       sessions = await prisma.chatSession.findMany({
         where: { userId },

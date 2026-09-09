@@ -1,9 +1,10 @@
 import uuid
 from enum import Enum
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import String, Enum as SQLEnum
+from sqlalchemy import String, Enum as SQLEnum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base, TimestampMixin
+from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.profile import Profile
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
     from app.models.resume import ResumeAnalysis
     from app.models.chat import ChatSession
     from app.models.notification import Notification
+    from app.models.assignment import AssignmentSubmission
+    from app.models.integration import GitHubConnection, GitLabConnection, CareerEvent
 
 
 class Role(str, Enum):
@@ -22,7 +25,7 @@ class Role(str, Enum):
     ADMIN = "ADMIN"
 
 
-class User(Base, TimestampMixin):
+class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(
@@ -32,13 +35,28 @@ class User(Base, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str] = mapped_column("passwordHash", String(255), nullable=False)
     role: Mapped[Role] = mapped_column(
         SQLEnum(Role, native_enum=False),
         default=Role.USER,
         nullable=False,
     )
     avatar: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        "created_at",
+        DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        "updated_at",
+        DateTime,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        server_default=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     profile: Mapped[Optional["Profile"]] = relationship(
@@ -70,4 +88,16 @@ class User(Base, TimestampMixin):
     )
     notifications: Mapped[List["Notification"]] = relationship(
         "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
+    assignment_submissions: Mapped[List["AssignmentSubmission"]] = relationship(
+        "AssignmentSubmission", back_populates="user", cascade="all, delete-orphan"
+    )
+    github_connection: Mapped[Optional["GitHubConnection"]] = relationship(
+        "GitHubConnection", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    gitlab_connection: Mapped[Optional["GitLabConnection"]] = relationship(
+        "GitLabConnection", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    career_events: Mapped[List["CareerEvent"]] = relationship(
+        "CareerEvent", back_populates="user", cascade="all, delete-orphan"
     )
