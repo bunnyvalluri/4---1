@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function AdminAssessmentsRoot() {
-  redirect('/admin/questions');
+  redirect('/admin/assessments/analytics');
 }
