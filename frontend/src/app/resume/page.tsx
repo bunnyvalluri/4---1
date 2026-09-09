@@ -107,7 +107,7 @@ export default function ResumePage() {
     <div className="min-h-screen bg-slate-50/40 flex flex-col lg:flex-row overflow-x-hidden w-full">
       <Sidebar userName={userProfile?.name} userEmail={userProfile?.email} />
 
-      <main className="flex-1 min-w-0 py-4 sm:py-8 px-3 sm:px-6 lg:px-10 overflow-y-auto max-w-5xl mx-auto w-full">
+      <main className="flex-1 min-w-0 py-4 sm:py-8 px-3.5 sm:px-6 lg:px-10 pb-32 lg:pb-10 overflow-y-auto overflow-x-hidden max-w-5xl mx-auto w-full">
         <div className="space-y-4 sm:space-y-6">
           {/* Header Card */}
           <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-8 shadow-xs relative overflow-hidden">

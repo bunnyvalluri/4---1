@@ -128,9 +128,10 @@ export default function CandidatesManagementPage() {
         </form>
       </div>
 
-      {/* Candidates Data Table */}
+      {/* Candidates Data Table & Mobile Cards */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View (>= lg: screens) */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
               <tr>
@@ -162,7 +163,6 @@ export default function CandidatesManagementPage() {
               ) : (
                 candidates.map((cand) => (
                   <tr key={cand.id} className="hover:bg-slate-50/70 transition-colors">
-                    {/* Candidate Name & Email */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">
@@ -174,13 +174,9 @@ export default function CandidatesManagementPage() {
                         </div>
                       </div>
                     </td>
-
-                    {/* Target Career */}
                     <td className="px-4 py-4">
                       <span className="font-medium text-slate-800">{cand.target_career}</span>
                     </td>
-
-                    {/* Profile Completion */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
@@ -194,8 +190,6 @@ export default function CandidatesManagementPage() {
                         </span>
                       </div>
                     </td>
-
-                    {/* Assessment */}
                     <td className="px-4 py-4">
                       {cand.assessment_score !== null ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -205,20 +199,14 @@ export default function CandidatesManagementPage() {
                         <span className="text-slate-400 text-[11px]">Not Taken</span>
                       )}
                     </td>
-
-                    {/* Top Match */}
                     <td className="px-4 py-4">
                       <span className="font-semibold text-slate-700">{cand.top_match}</span>
                     </td>
-
-                    {/* Resume */}
                     <td className="px-4 py-4">
                       <span className="text-[11px] font-medium text-slate-600">
                         {cand.resume_status}
                       </span>
                     </td>
-
-                    {/* Status Badge */}
                     <td className="px-4 py-4">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
@@ -230,8 +218,6 @@ export default function CandidatesManagementPage() {
                         {cand.status}
                       </span>
                     </td>
-
-                    {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
@@ -263,6 +249,87 @@ export default function CandidatesManagementPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile / Tablet Cards View (< lg: screens) */}
+        <div className="block lg:hidden divide-y divide-slate-100">
+          {loading ? (
+            <div className="p-8 text-center text-slate-400">Loading candidates...</div>
+          ) : candidates.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs">No candidates found.</div>
+          ) : (
+            candidates.map((cand) => (
+              <div key={cand.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                      {cand.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 text-sm truncate">{cand.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{cand.email}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
+                      cand.status === 'ACTIVE'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
+                  >
+                    {cand.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Target</span>
+                    <p className="font-semibold text-slate-800 truncate">{cand.target_career}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Match</span>
+                    <p className="font-semibold text-blue-700 truncate">{cand.top_match}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Profile</span>
+                    <p className="font-semibold text-slate-700">{cand.profile_completion}%</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Assessment</span>
+                    <p className="font-semibold text-slate-700">
+                      {cand.assessment_score !== null ? `${cand.assessment_score}%` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <Link
+                    href={`/admin/candidates/${cand.id}`}
+                    className="touch-target flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 text-blue-700 font-semibold text-xs rounded-xl border border-blue-200 hover:bg-blue-100 transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View Profile</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusToggle(cand.id, cand.status)}
+                    className={`touch-target flex items-center justify-center p-2.5 rounded-xl border transition-colors ${
+                      cand.status === 'ACTIVE'
+                        ? 'text-slate-500 hover:text-rose-600 bg-white border-slate-200'
+                        : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    }`}
+                    title={cand.status === 'ACTIVE' ? 'Suspend Candidate' : 'Activate Candidate'}
+                  >
+                    {cand.status === 'ACTIVE' ? (
+                      <UserX className="h-4 w-4" />
+                    ) : (
+                      <UserCheck className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

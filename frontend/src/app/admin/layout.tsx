@@ -92,7 +92,7 @@ export default function AdminLayout({
           adminEmail={adminUser?.email || ''}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-32 lg:pb-10 max-w-7xl w-full mx-auto space-y-6 overflow-x-hidden min-w-0">
           {children}
         </main>
       </div>

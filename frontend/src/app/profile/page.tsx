@@ -439,7 +439,7 @@ export default function ProfilePage() {
       <Sidebar />
 
       {/* Main Container: 2-Column Responsive Workspace */}
-      <div className="flex-1 flex flex-col lg:flex-row min-w-0 p-4 sm:p-6 lg:p-8 gap-6 max-w-[1680px] mx-auto w-full">
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0 p-3.5 sm:p-6 lg:p-8 pb-32 lg:pb-8 gap-6 max-w-[1680px] mx-auto w-full overflow-x-hidden">
         
         {/* ==================================================================== */}
         {/* 2. CENTER: MAIN PROFILE WORKSPACE */}

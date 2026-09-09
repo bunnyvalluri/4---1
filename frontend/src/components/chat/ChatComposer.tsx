@@ -45,7 +45,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
   const isSendDisabled = !input.trim() || isStreaming;
 
   return (
-    <div className="p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
+    <div className="p-3 md:p-4 pb-20 lg:pb-4 bg-white border-t border-slate-200 shrink-0" style={{ paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem))' }}>
       <div className="max-w-4xl mx-auto">
         {/* Active Mode Pill */}
         {mode !== 'standard' && (
@@ -75,7 +75,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
             placeholder={placeholder}
             disabled={isStreaming}
             maxLength={2000}
-            className="flex-1 max-h-[140px] px-3 py-2 text-xs md:text-sm text-slate-800 placeholder-slate-400 bg-transparent resize-none focus:outline-none leading-relaxed disabled:opacity-50"
+            className="flex-1 max-h-[140px] px-3 py-2 text-base sm:text-xs md:text-sm text-slate-800 placeholder-slate-400 bg-transparent resize-none focus:outline-none leading-relaxed disabled:opacity-50"
           />
 
           <div className="flex items-center gap-2 pr-1 pb-1 shrink-0">

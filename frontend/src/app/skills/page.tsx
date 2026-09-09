@@ -66,7 +66,7 @@ export default function SkillIntelligenceCenterPage() {
       />
 
       {/* Main Content Workspace */}
-      <main className="flex-1 py-6 sm:py-8 px-3.5 sm:px-6 lg:px-10 overflow-y-auto max-w-7xl mx-auto w-full">
+      <main className="flex-1 py-6 sm:py-8 px-3.5 sm:px-6 lg:px-10 pb-32 lg:pb-10 overflow-y-auto overflow-x-hidden min-w-0 max-w-7xl mx-auto w-full">
         <div className="space-y-6">
           {/* Offline Banner */}
           {!isOnline && <OfflineIndicator lastSyncText={relativeUpdated} />}

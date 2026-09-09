@@ -117,7 +117,7 @@ export default function RoadmapPage() {
       <div className="flex-1 min-w-0 flex flex-col">
         <OfflineBanner isOffline={isOffline} />
 
-        <main className="flex-1 min-w-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-6">
+        <main className="flex-1 min-w-0 py-6 sm:py-8 px-4 sm:px-6 lg:px-8 pb-32 lg:pb-12 max-w-7xl mx-auto w-full space-y-6 overflow-x-hidden">
           {/* Header */}
           <RoadmapHeader
             roadmap={roadmap}

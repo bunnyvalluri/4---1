@@ -25,7 +25,7 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xs">
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">Platform Analytics & Intelligence</h1>
         <p className="text-xs text-slate-500 mt-1">
           Historical growth, candidate completion curves, career match demand, and skill gap distribution.
@@ -33,9 +33,9 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Analytics Overview Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Career Demand Distribution */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <TrendingUp className="h-4 w-4 text-blue-600" />
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">

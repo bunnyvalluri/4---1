@@ -82,7 +82,7 @@ export default function RecommendationsPage() {
 
       <main
         id="main-content"
-        className="flex-1 py-6 px-4 sm:px-6 lg:px-8 overflow-y-auto"
+        className="flex-1 py-6 px-3.5 sm:px-6 lg:px-8 pb-32 lg:pb-10 overflow-y-auto overflow-x-hidden min-w-0"
         role="main"
         aria-label="Career recommendations"
       >
