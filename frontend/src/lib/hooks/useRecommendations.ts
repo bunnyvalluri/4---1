@@ -188,14 +188,29 @@ async function apiFetch(
 ): Promise<Response> {
   const baseUrl = getApiBaseUrl();
   const resolvedToken = token ?? (await getFirebaseToken());
-  return fetch(`${baseUrl}${path}`, {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  if (baseUrl) {
+    try {
+      const res = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        credentials: 'include',
+        headers,
+      });
+      return res;
+    } catch {
+      // Direct backend connection failed (e.g. port 8000 not running) -> seamless fallback to relative Next.js API route
+    }
+  }
+
+  return fetch(path, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
-      ...(options.headers || {}),
-    },
+    headers,
   });
 }
 
