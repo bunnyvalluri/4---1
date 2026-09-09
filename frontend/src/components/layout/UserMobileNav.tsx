@@ -18,7 +18,9 @@ import {
   LogOut,
   X,
   Compass,
+  Loader2,
 } from 'lucide-react';
+import { signOutFirebase } from '@/lib/firebase/client';
 
 interface UserData {
   name?: string;
@@ -76,12 +78,39 @@ export function UserMobileNav() {
     };
   }, [moreSheetOpen]);
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {}
-    router.push('/login');
-    router.refresh();
+      // 1. Immediately close drawer and unlock body scroll
+      setMoreSheetOpen(false);
+      document.body.style.overflow = '';
+
+      // 2. Clear client-side Firebase Auth session
+      await signOutFirebase();
+
+      // 3. Clear server-side HTTP-only session cookie
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      // 4. Clear any accessible document cookies
+      if (typeof document !== 'undefined') {
+        document.cookie = 'career_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+      }
+
+      // 5. Hard redirect to /login to ensure completely fresh auth evaluation
+      window.location.replace('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+      window.location.replace('/login');
+    }
   };
 
   // Only render on candidate/user workspace routes
@@ -406,10 +435,20 @@ export function UserMobileNav() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50/80 border border-rose-200 hover:bg-rose-100/70 transition-colors"
+                disabled={loggingOut}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50/80 border border-rose-200 hover:bg-rose-100/70 transition-colors cursor-pointer disabled:opacity-50"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign Out</span>
+                {loggingOut ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-600" />
+                    <span>Signing Out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

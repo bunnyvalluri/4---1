@@ -17,6 +17,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { ResponsiveDrawer } from '@/components/ui/ResponsiveDrawer';
+import { signOutFirebase } from '@/lib/firebase/client';
 
 interface DashboardSidebarProps {
   userName?: string;
@@ -36,10 +37,17 @@ export function DashboardSidebar({
 
   const handleLogout = async () => {
     try {
+      if (onCloseMobile) onCloseMobile();
+      await signOutFirebase();
       await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {}
-    router.push('/login');
-    router.refresh();
+      if (typeof document !== 'undefined') {
+        document.cookie = 'career_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+      }
+      window.location.replace('/login');
+    } catch {
+      window.location.replace('/login');
+    }
   };
 
   const navItems = [

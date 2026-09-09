@@ -20,6 +20,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
+import { signOutFirebase } from '@/lib/firebase/client';
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -51,10 +53,18 @@ export function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    setUser(null);
-    router.push('/login');
-    router.refresh();
+    try {
+      setUser(null);
+      await signOutFirebase();
+      await fetch('/api/auth/logout', { method: 'POST' });
+      if (typeof document !== 'undefined') {
+        document.cookie = 'career_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+      }
+      window.location.replace('/login');
+    } catch {
+      window.location.replace('/login');
+    }
   };
 
   const isAuthPage =

@@ -25,7 +25,9 @@ import {
   LogOut,
   ChevronRight,
   Menu,
+  Loader2,
 } from 'lucide-react';
+import { signOutFirebase } from '@/lib/firebase/client';
 
 interface AdminMobileNavProps {
   onOpenSidebar?: () => void;
@@ -94,14 +96,30 @@ export function AdminMobileNav({
     };
   }, [moreSheetOpen]);
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {
-      // Proceed
+      setMoreSheetOpen(false);
+      document.body.style.overflow = '';
+      await signOutFirebase();
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (typeof document !== 'undefined') {
+        document.cookie = 'career_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+      }
+      window.location.replace('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+      window.location.replace('/login');
     }
-    router.push('/login');
-    router.refresh();
   };
 
   // Nav item checks
@@ -395,10 +413,20 @@ export function AdminMobileNav({
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50/80 border border-rose-200 hover:bg-rose-100/70 transition-colors"
+                disabled={loggingOut}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50/80 border border-rose-200 hover:bg-rose-100/70 transition-colors cursor-pointer disabled:opacity-50"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign Out from Admin</span>
+                {loggingOut ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-600" />
+                    <span>Signing Out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out from Admin</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

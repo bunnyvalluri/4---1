@@ -79,3 +79,16 @@ if (typeof window !== 'undefined') {
 
 export { _auth as auth, _db as db, _googleProvider as googleProvider };
 export { firebaseConfig };
+
+export async function signOutFirebase(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    const firebaseAuth = _auth || getFirebaseAuth();
+    if (firebaseAuth && firebaseAuth.currentUser) {
+      const { signOut } = await import('firebase/auth');
+      await signOut(firebaseAuth);
+    }
+  } catch (err) {
+    console.warn('[Firebase SignOut] Warning:', err);
+  }
+}
