@@ -179,6 +179,12 @@ export function UserMobileNav() {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Render exclusively on candidate workspace routes
   const isCandidateWorkspace =
     pathname.startsWith('/dashboard') ||
@@ -197,7 +203,7 @@ export function UserMobileNav() {
     pathname.startsWith('/trajectory') ||
     pathname.startsWith('/mentors');
 
-  if (!isCandidateWorkspace || pathname.startsWith('/admin')) {
+  if (!mounted || !isCandidateWorkspace || pathname.startsWith('/admin')) {
     return null;
   }
 

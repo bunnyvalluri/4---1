@@ -117,6 +117,12 @@ export function AdminMobileNav({
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Nav item active determinations
   const isDashboardActive = pathname === '/admin/dashboard' || pathname === '/admin';
   const isUsersActive =
@@ -124,6 +130,10 @@ export function AdminMobileNav({
   const isAnalyticsActive = pathname.startsWith('/admin/analytics');
   const isActivityActive =
     pathname.startsWith('/admin/audit-logs') || pathname.startsWith('/admin/notifications');
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>

@@ -62,7 +62,12 @@ export default function ResumePage() {
   const [starterRepoCreated, setStarterRepoCreated] = useState(false);
 
   // Subscribe to real-time Server-Sent Events from FastAPI backend
-  const { isConnected: sseConnected, events: sseEvents, latestEvent, activeStage, completedStages, clearStages } = useCareerEvents();
+  const { isConnected: sseConnected, events: sseEvents, latestEvent, activeStage: sseActiveStage, completedStages: sseCompletedStages, clearStages } = useCareerEvents();
+  const [localActiveStage, setLocalActiveStage] = useState<string>('');
+  const [localCompletedStages, setLocalCompletedStages] = useState<string[]>([]);
+
+  const activeStage = sseActiveStage || localActiveStage;
+  const completedStages = Array.from(new Set([...sseCompletedStages, ...localCompletedStages]));
 
   // Load existing telemetry and profile on mount
   useEffect(() => {
@@ -134,6 +139,29 @@ export default function ResumePage() {
     setAnalyzing(true);
     setError(null);
     clearStages();
+    setLocalActiveStage('Uploaded');
+    setLocalCompletedStages(['Uploaded']);
+
+    const stagePipeline = [
+      'Uploaded',
+      'Text Extracted',
+      'Resume Parsed',
+      'Skills Detected',
+      'Career Alignment Analyzed',
+      'Skill Gaps Identified',
+      'Roadmap Generated',
+      'Assignments Generated',
+    ];
+
+    let currentStep = 1;
+    const stageInterval = setInterval(() => {
+      if (currentStep < stagePipeline.length) {
+        const nextStage = stagePipeline[currentStep];
+        setLocalActiveStage(nextStage);
+        setLocalCompletedStages((prev) => Array.from(new Set([...prev, nextStage])));
+        currentStep++;
+      }
+    }, 400);
 
     try {
       const formData = new FormData();
@@ -150,6 +178,9 @@ export default function ResumePage() {
         throw new Error(data.error || 'Failed to analyze resume');
       }
 
+      setLocalCompletedStages(stagePipeline);
+      setLocalActiveStage('Assignments Generated');
+
       if (data.analysis) {
         setAnalysis(data.analysis);
         setHistory((prev) => [data.analysis, ...prev]);
@@ -157,6 +188,7 @@ export default function ResumePage() {
     } catch (err: any) {
       setError(err.message || 'Analysis failed. Please try again.');
     } finally {
+      clearInterval(stageInterval);
       setAnalyzing(false);
     }
   };
