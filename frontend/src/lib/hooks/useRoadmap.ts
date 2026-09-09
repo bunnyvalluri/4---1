@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getFirebaseFirestore } from '@/lib/firebase/client';
+import { getFirebaseFirestore, getFirebaseApp } from '@/lib/firebase/client';
+import { getAuth } from 'firebase/auth';
 import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import {
   RoadmapData,
@@ -9,7 +10,6 @@ import {
   RoadmapActivityItem,
   LearningPace,
 } from '@/lib/types/roadmap';
-import { getFallbackRoadmap } from '@/lib/roadmapFallback';
 
 export function useRoadmap() {
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
@@ -25,6 +25,22 @@ export function useRoadmap() {
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   const unsubRef = useRef<Unsubscribe | null>(null);
+
+  const getAuthToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const fbApp = getFirebaseApp();
+      if (fbApp) {
+        const auth = getAuth(fbApp);
+        const user = auth.currentUser;
+        if (user) {
+          return await user.getIdToken();
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }, []);
 
   // Monitor network status
   useEffect(() => {
@@ -49,13 +65,16 @@ export function useRoadmap() {
   const fetchActiveRoadmap = useCallback(async () => {
     setTelemetryStatus('Syncing...');
     try {
+      const token = await getAuthToken();
+      const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
       const [roadRes, profRes, careersRes] = await Promise.allSettled([
         fetch('/api/v1/roadmaps/active', {
-          headers: { Authorization: 'Bearer test-sandbox-token' },
+          headers: authHeaders,
           cache: 'no-store',
         }).then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/profile', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/careers', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/profile', { headers: authHeaders, cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/careers', { headers: authHeaders, cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
       ]);
 
       if (profRes.status === 'fulfilled' && profRes.value?.user) {
@@ -65,13 +84,7 @@ export function useRoadmap() {
       if (careersRes.status === 'fulfilled' && Array.isArray(careersRes.value?.careers)) {
         setAvailableCareers(careersRes.value.careers);
       } else {
-        setAvailableCareers([
-          { id: 'c-fs', title: 'Full Stack Developer' },
-          { id: 'c-ai', title: 'AI / Machine Learning Engineer' },
-          { id: 'c-ba', title: 'Backend Architect' },
-          { id: 'c-cloud', title: 'Cloud Infrastructure & DevOps Engineer' },
-          { id: 'c-sec', title: 'Cybersecurity Analyst' },
-        ]);
+        setAvailableCareers([]);
       }
 
       if (roadRes.status === 'fulfilled' && roadRes.value) {
@@ -82,48 +95,19 @@ export function useRoadmap() {
         }
         setTelemetryStatus('Live');
       } else {
-        // Fallback demo roadmap
-        const fallback = getFallbackRoadmap();
-        setRoadmap(fallback);
+        setRoadmap(null);
         setTelemetryStatus('Cached');
       }
 
-      // Initialize activity history
-      setActivities([
-        {
-          id: 'act-1',
-          title: 'Roadmap Synchronized',
-          action: 'GENERATED',
-          category: 'CURRICULUM',
-          relative_time: 'Just now',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: 'act-2',
-          title: 'Completed Month 2: Framework Architecture Fundamentals',
-          action: 'COMPLETED',
-          category: 'LEARNING',
-          relative_time: '3 days ago',
-          timestamp: new Date(Date.now() - 3 * 86400000).toISOString(),
-        },
-        {
-          id: 'act-3',
-          title: 'Completed Month 1 Lab: Software Paradigms Application',
-          action: 'COMPLETED',
-          category: 'PRACTICE',
-          relative_time: '1 week ago',
-          timestamp: new Date(Date.now() - 7 * 86400000).toISOString(),
-        },
-      ]);
+      setActivities([]);
     } catch (err: any) {
       console.warn('Failed to load active roadmap from server:', err);
-      const fallback = getFallbackRoadmap();
-      setRoadmap(fallback);
+      setRoadmap(null);
       setTelemetryStatus('Cached');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getAuthToken]);
 
   useEffect(() => {
     fetchActiveRoadmap();
@@ -188,9 +172,13 @@ export function useRoadmap() {
     });
 
     try {
+      const token = await getAuthToken();
       await fetch(`/api/v1/roadmaps/items/${itemId}/start`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer test-sandbox-token' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       const startedItem = roadmap?.items.find((i) => i.id === itemId);
@@ -248,9 +236,13 @@ export function useRoadmap() {
     });
 
     try {
+      const token = await getAuthToken();
       await fetch(`/api/v1/roadmaps/items/${itemId}/complete`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer test-sandbox-token' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       setActivities((prev) => [
@@ -277,9 +269,13 @@ export function useRoadmap() {
     });
 
     try {
+      const token = await getAuthToken();
       await fetch(`/api/v1/roadmaps/items/${itemId}/skip`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer test-sandbox-token' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
     } catch (err) {
       console.error('Failed to skip item:', err);
@@ -300,9 +296,13 @@ export function useRoadmap() {
     });
 
     try {
+      const token = await getAuthToken();
       await fetch(`/api/v1/roadmaps/items/${itemId}/resources/${resourceId}/complete`, {
         method: 'POST',
-        headers: { Authorization: 'Bearer test-sandbox-token' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
     } catch (err) {
       console.error('Failed to complete resource:', err);
@@ -366,9 +366,13 @@ export function useRoadmap() {
   const updateSettings = async (hoursPerWeek: number, pace: LearningPace) => {
     if (!roadmap?.id) return;
     try {
+      const token = await getAuthToken();
       const res = await fetch(`/api/v1/roadmaps/${roadmap.id}/settings`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ hours_per_week: hoursPerWeek, learning_pace: pace }),
       });
       if (res.ok) {
@@ -384,9 +388,13 @@ export function useRoadmap() {
     if (!roadmap?.id) return;
     setLoading(true);
     try {
+      const token = await getAuthToken();
       const res = await fetch(`/api/v1/roadmaps/${roadmap.id}/regenerate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ reason, hours_per_week: hoursPerWeek, learning_pace: pace, career_id: careerId }),
       });
       if (res.ok) {
@@ -406,9 +414,13 @@ export function useRoadmap() {
   const buildRoadmap = async (careerId: string, hoursPerWeek: number = 10, pace: LearningPace = 'balanced') => {
     setLoading(true);
     try {
+      const token = await getAuthToken();
       const res = await fetch('/api/v1/roadmaps/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ career_id: careerId, hours_per_week: hoursPerWeek, learning_pace: pace, duration_months: 6 }),
       });
       if (res.ok) {

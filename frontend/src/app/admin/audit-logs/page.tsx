@@ -22,9 +22,9 @@ export default function AdminAuditLogsPage() {
       const res = await fetch('/api/admin/audit-logs');
       if (!res.ok) throw new Error('Failed to load audit logs');
       const data = await res.json();
-      setLogs(data || []);
+      setLogs(Array.isArray(data) ? data : data.logs || []);
     } catch {
-      // Fallback
+      setLogs([]);
     } finally {
       setLoading(false);
     }

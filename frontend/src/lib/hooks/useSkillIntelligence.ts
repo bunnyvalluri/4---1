@@ -197,7 +197,7 @@ export function useSkillIntelligence() {
   const unsubscribersRef = useRef<Unsubscribe[]>([]);
 
   // Token helper
-  const getAuthToken = useCallback(async (): Promise<string> => {
+  const getAuthToken = useCallback(async (): Promise<string | null> => {
     try {
       const fbApp = getFirebaseApp();
       if (fbApp) {
@@ -210,7 +210,7 @@ export function useSkillIntelligence() {
     } catch {
       // Fallback
     }
-    return 'test-sandbox-token';
+    return null;
   }, []);
 
   // Update relative time display
@@ -273,7 +273,7 @@ export function useSkillIntelligence() {
       const res = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 
@@ -362,7 +362,7 @@ export function useSkillIntelligence() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
       });
@@ -398,7 +398,7 @@ export function useSkillIntelligence() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(updates),
       });
@@ -426,7 +426,7 @@ export function useSkillIntelligence() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 

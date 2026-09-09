@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { evaluateSubmission } from '@/lib/assessmentFallback';
 
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
 
@@ -22,20 +21,16 @@ export async function POST(
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (res.ok) {
       const data = await res.json();
       return NextResponse.json(data);
     }
-  } catch (err) {}
-
-  // Fallback evaluation if FastAPI is offline
-  const answers = body.answers
-    ? Object.fromEntries(body.answers.map((a: any) => [a.question_id, a.selected_option]))
-    : body.answers_data || {};
-
-  const evaluated = evaluateSubmission(answers, body.time_spent_seconds || 180);
-  return NextResponse.json({ ...evaluated, id: attemptId });
+    const err = await res.json().catch(() => ({}));
+    return NextResponse.json(err || { error: 'Failed to submit assessment' }, { status: res.status });
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Assessment submission service unavailable' }, { status: 503 });
+  }
 }

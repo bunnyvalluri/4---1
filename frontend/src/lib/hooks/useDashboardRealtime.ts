@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getFirebaseFirestore } from '@/lib/firebase/client';
+import { getFirebaseFirestore, getFirebaseApp } from '@/lib/firebase/client';
+import { getAuth } from 'firebase/auth';
 import { doc, onSnapshot, collection, query, where, Unsubscribe } from 'firebase/firestore';
 
 export interface DashboardCandidate {
@@ -205,9 +206,27 @@ export function useDashboardRealtime() {
     return () => clearInterval(timer);
   }, [lastUpdated]);
 
+  // Token helper
+  const getAuthToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const fbApp = getFirebaseApp();
+      if (fbApp) {
+        const auth = getAuth(fbApp);
+        const user = auth.currentUser;
+        if (user) {
+          return await user.getIdToken();
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  }, []);
+
   const fetchDashboardData = useCallback(async () => {
     setTelemetryStatus('Syncing...');
     try {
+      const token = await getAuthToken();
       // 1. Fetch unified endpoints from FastAPI backend
       const endpoints = [
         `${BACKEND_URL}/api/v1/dashboard/summary`,
@@ -226,7 +245,7 @@ export function useDashboardRealtime() {
           fetch(url, {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer test-sandbox-token',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
           }).then(async (res) => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -285,36 +304,7 @@ export function useDashboardRealtime() {
       if (notifRes.status === 'fulfilled' && Array.isArray(notifRes.value)) {
         setNotifications(notifRes.value);
       } else {
-        // Fallback realistic notifications
-        setNotifications([
-          {
-            id: 'n1',
-            title: 'Career Recommendation Updated',
-            message: 'Your Full Stack Developer match has stabilized at 92%.',
-            type: 'RECOMMENDATION',
-            is_read: false,
-            link: '/recommendations',
-            created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-          },
-          {
-            id: 'n2',
-            title: 'Resume ATS Analysis Complete',
-            message: 'Your ATS score is 88/100 with 18 detected verified skills.',
-            type: 'RESUME',
-            is_read: false,
-            link: '/resume',
-            created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          },
-          {
-            id: 'n3',
-            title: 'Roadmap Milestone Unlocked',
-            message: 'Month 3: Backend Development is now ready for progression.',
-            type: 'ROADMAP',
-            is_read: true,
-            link: '/roadmap',
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          },
-        ]);
+        setNotifications([]);
       }
 
       setTelemetryStatus('Live');
@@ -419,11 +409,12 @@ export function useDashboardRealtime() {
     });
 
     try {
+      const token = await getAuthToken();
       await fetch(`${BACKEND_URL}/api/v1/dashboard/roadmap/toggle-task`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer test-sandbox-token',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           item_id: itemId,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSanitizedQuestions } from '@/lib/assessmentFallback';
+import { prisma } from '@/lib/db';
 
-const FASTAPI_URL = process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,19 +9,35 @@ export async function GET(req: NextRequest) {
     const headers: Record<string, string> = {};
     if (authHeader) headers['Authorization'] = authHeader;
 
-    const res = await fetch(`${FASTAPI_URL}/api/v1/assessments/questions`, {
-      headers,
-      cache: 'no-store',
-      signal: AbortSignal.timeout(3000),
+    // 1. Try FastAPI endpoint
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/v1/assessments/questions`, {
+        headers,
+        cache: 'no-store',
+        signal: AbortSignal.timeout(4000),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return NextResponse.json(data);
+      }
+    } catch {}
+
+    // 2. Query Local Database for real questions (strictly omit correct answers)
+    const questions = await prisma.aptitudeQuestion.findMany({
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        category: true,
+        question: true,
+        options: true,
+        difficulty: true,
+      },
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      return NextResponse.json(data);
-    }
+    return NextResponse.json(questions);
   } catch (err) {
-    // FastAPI unavailable or timed out, serve fallback questions
+    console.error('Questions error:', err);
+    return NextResponse.json({ error: 'Failed to load assessment questions.' }, { status: 500 });
   }
-
-  return NextResponse.json(getSanitizedQuestions());
 }

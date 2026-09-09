@@ -10,14 +10,6 @@ import {
   onSnapshot,
   Unsubscribe,
 } from 'firebase/firestore';
-import {
-  FALLBACK_RECOMMENDATIONS,
-  FALLBACK_STATUS,
-  FALLBACK_SKILL_GAPS,
-  FALLBACK_CATEGORIES,
-  filterAndSortRecommendations,
-  buildComparisonMatrix,
-} from '@/lib/recommendationsFallback';
 
 /**
  * Returns safe API base URL depending on runtime environment.
@@ -260,13 +252,9 @@ export function useRecommendations(): UseRecommendationsReturn {
       const res = await apiFetch(`/api/v1/recommendations?${params.toString()}`);
       if (!res.ok) {
         if (res.status === 401) {
-          // Authentication check failed, load fallback gracefully
-          const fallback = filterAndSortRecommendations(FALLBACK_RECOMMENDATIONS, search, category, sort);
-          setItems(fallback.items);
-          setTopMatch(fallback.top_match);
-          setStatus(FALLBACK_STATUS);
-          setCategories(FALLBACK_CATEGORIES);
-          setError(null);
+          setItems([]);
+          setTopMatch(null);
+          setError('Authentication required to view personalized recommendations.');
           return;
         }
         throw new Error(`HTTP ${res.status}`);
@@ -275,26 +263,21 @@ export function useRecommendations(): UseRecommendationsReturn {
       if (data.items && data.items.length > 0) {
         setItems(data.items);
         setTopMatch(data.top_match ?? data.items[0] ?? null);
-        setStatus(data.status ?? FALLBACK_STATUS);
-        setCategories(data.categories && data.categories.length > 0 ? data.categories : FALLBACK_CATEGORIES);
+        setStatus(data.status ?? null);
+        setCategories(data.categories && data.categories.length > 0 ? data.categories : ['ALL']);
         setError(null);
       } else {
-        // Empty data from server — use fallback
-        const fallback = filterAndSortRecommendations(FALLBACK_RECOMMENDATIONS, search, category, sort);
-        setItems(fallback.items);
-        setTopMatch(fallback.top_match);
-        setStatus(FALLBACK_STATUS);
-        setCategories(FALLBACK_CATEGORIES);
+        setItems([]);
+        setTopMatch(null);
+        setStatus(data.status ?? null);
+        setCategories(data.categories && data.categories.length > 0 ? data.categories : ['ALL']);
         setError(null);
       }
     } catch (err: any) {
-      console.warn('[useRecommendations] Fetch error, activating resilience fallback:', err);
-      const fallback = filterAndSortRecommendations(FALLBACK_RECOMMENDATIONS, search, category, sort);
-      setItems(fallback.items);
-      setTopMatch(fallback.top_match);
-      setStatus(FALLBACK_STATUS);
-      setCategories(FALLBACK_CATEGORIES);
-      setError(null);
+      console.warn('[useRecommendations] Fetch error:', err);
+      setItems([]);
+      setTopMatch(null);
+      setError('Unable to load recommendations. Please retry.');
     }
   }, []);
 
@@ -304,14 +287,14 @@ export function useRecommendations(): UseRecommendationsReturn {
       const res = await apiFetch('/api/v1/dashboard/skill-gaps');
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setSkillGaps(data);
           return;
         }
       }
-      setSkillGaps(FALLBACK_SKILL_GAPS);
+      setSkillGaps([]);
     } catch {
-      setSkillGaps(FALLBACK_SKILL_GAPS);
+      setSkillGaps([]);
     }
   }, []);
 
@@ -452,9 +435,9 @@ export function useRecommendations(): UseRecommendationsReturn {
         setComparison(await res.json());
         return;
       }
-      throw new Error('Comparison API fallback');
+      setComparison(null);
     } catch {
-      setComparison(buildComparisonMatrix(comparisonCareerIds));
+      setComparison(null);
     }
   }, [comparisonCareerIds]);
 

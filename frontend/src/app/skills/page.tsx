@@ -61,8 +61,8 @@ export default function SkillIntelligenceCenterPage() {
     <div className="min-h-screen bg-slate-50/50 flex flex-col lg:flex-row text-slate-900">
       {/* Primary Global Navigation */}
       <Sidebar
-        userName={data?.candidate?.name || 'Alex Johnson'}
-        userEmail={data?.candidate?.email || 'alex@example.com'}
+        userName={data?.candidate?.name || 'Candidate'}
+        userEmail={data?.candidate?.email || ''}
       />
 
       {/* Main Content Workspace */}

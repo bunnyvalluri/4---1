@@ -28,8 +28,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({
-  userName = 'Alex Johnson',
-  userEmail = 'alex@example.com',
+  userName = 'Candidate',
+  userEmail = '',
   telemetryStatus,
   lastUpdatedText,
   notifications,
@@ -47,7 +47,7 @@ export function DashboardHeader({
     }
   };
 
-  const initial = (userName || 'A').charAt(0).toUpperCase();
+  const initial = (userName || 'C').charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all">

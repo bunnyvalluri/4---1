@@ -14,9 +14,13 @@ from app.api.v1 import (
     notifications,
     admin,
     dashboard,
+    public_config,
 )
 
 api_router = APIRouter()
+
+# Register public configuration & contact router
+api_router.include_router(public_config.router)
 
 # Register all v1 feature routers
 api_router.include_router(dashboard.router)

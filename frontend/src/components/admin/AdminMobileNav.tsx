@@ -69,7 +69,7 @@ const moreMenuItems: QuickLinkItem[] = [
 export function AdminMobileNav({
   onOpenSidebar,
   adminName = 'Administrator',
-  adminEmail = 'admin@careerai.dev',
+  adminEmail = '',
 }: AdminMobileNavProps) {
   const pathname = usePathname();
   const router = useRouter();

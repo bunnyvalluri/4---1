@@ -1,59 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 
+const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
+
 export async function GET(req: NextRequest) {
   try {
     await requireAuth(req, 'ADMIN');
 
+    const authHeader = req.headers.get('authorization');
+
     try {
-      const fastApiRes = await fetch('http://localhost:8000/api/v1/admin/ai', {
-        headers: { Authorization: 'Bearer test-sandbox-token' },
+      const fastApiRes = await fetch(`${FASTAPI_URL}/api/v1/admin/ai`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        },
         cache: 'no-store',
       });
       if (fastApiRes.ok) {
         const data = await fastApiRes.json();
         return NextResponse.json(data);
       }
-    } catch {
-      // Fallback
+    } catch (e) {
+      console.warn('Backend admin AI endpoint unavailable:', e);
     }
 
     return NextResponse.json({
-      total_requests: 1428,
-      successful_responses: 1419,
-      failed_requests: 9,
-      success_rate: 99.4,
-      average_latency_ms: 680,
+      total_requests: 0,
+      successful_responses: 0,
+      failed_requests: 0,
+      success_rate: 0,
+      average_latency_ms: 0,
       active_models: [
         {
           name: 'gemini-2.5-flash',
           provider: 'Google Generative AI',
           role: 'Primary Reasoning & Guidance',
-          status: 'OPERATIONAL',
-          latency_ms: 650,
+          status: 'STANDBY',
+          latency_ms: 0,
         },
         {
           name: 'text-embedding-004',
           provider: 'Google Embeddings',
           role: 'Vector Match & Skill Similarity',
-          status: 'OPERATIONAL',
-          latency_ms: 140,
+          status: 'STANDBY',
+          latency_ms: 0,
         },
         {
           name: 'rule-engine-v1',
           provider: 'Local Fallback Scorer',
           role: 'High-Availability Offline Fallback',
           status: 'OPERATIONAL',
-          latency_ms: 12,
+          latency_ms: 0,
         },
       ],
-      recent_errors: [
-        {
-          timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-          model: 'gemini-2.5-flash',
-          reason: 'Rate limit backoff triggered; auto-recovered within 2 seconds',
-        },
-      ],
+      recent_errors: [],
     });
   } catch (error: any) {
     if (error?.message === 'UNAUTHORIZED' || error?.message === 'FORBIDDEN') {

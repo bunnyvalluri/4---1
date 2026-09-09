@@ -280,7 +280,8 @@ class RoadmapService:
                 dep_item = all_items.get(dep_id)
                 if dep_item and not dep_item.is_completed and dep_item.status != "SKIPPED":
                     raise ValidationError(
-                        f"Prerequisite milestone '{dep_item.title}' must be completed before starting this item."
+                        f"Prerequisite milestone '{dep_item.title}' must be completed before starting this item.",
+                        status_code=422,
                     )
 
         item.status = "IN_PROGRESS"

@@ -26,8 +26,8 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({
-  userName = 'Alex Johnson',
-  userEmail = 'alex@example.com',
+  userName = 'Candidate',
+  userEmail = '',
   mobileOpen,
   onCloseMobile,
 }: DashboardSidebarProps) {
@@ -100,7 +100,7 @@ export function DashboardSidebar({
     </div>
   );
 
-  const initial = (userName || 'A').charAt(0).toUpperCase();
+  const initial = (userName || 'C').charAt(0).toUpperCase();
 
   const userProfileCard = (
     <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-2xs">

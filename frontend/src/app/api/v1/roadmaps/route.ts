@@ -4,10 +4,10 @@ const FASTAPI_URL = process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization') || 'Bearer test-sandbox-token';
+    const authHeader = req.headers.get('authorization');
     const res = await fetch(`${FASTAPI_URL}/api/v1/roadmaps`, {
       headers: {
-        Authorization: authHeader,
+        ...(authHeader ? { Authorization: authHeader } : {}),
         'Content-Type': 'application/json',
       },
       cache: 'no-store',

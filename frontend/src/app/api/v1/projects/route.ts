@@ -4,13 +4,13 @@ const FASTAPI_URL = process.env.FASTAPI_URL || process.env.NEXT_PUBLIC_BACKEND_U
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization') || 'Bearer test-sandbox-token';
+    const authHeader = req.headers.get('authorization');
     const url = new URL(req.url);
     const queryString = url.search;
 
     const res = await fetch(`${FASTAPI_URL}/api/v1/projects${queryString}`, {
       headers: {
-        Authorization: authHeader,
+        ...(authHeader ? { Authorization: authHeader } : {}),
         'Content-Type': 'application/json',
       },
       cache: 'no-store',
@@ -29,13 +29,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization') || 'Bearer test-sandbox-token';
+    const authHeader = req.headers.get('authorization');
     const body = await req.json();
 
     const res = await fetch(`${FASTAPI_URL}/api/v1/projects`, {
       method: 'POST',
       headers: {
-        Authorization: authHeader,
+        ...(authHeader ? { Authorization: authHeader } : {}),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),

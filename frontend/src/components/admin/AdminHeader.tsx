@@ -22,7 +22,7 @@ interface AdminHeaderProps {
 export function AdminHeader({
   onMenuClick,
   adminName = 'Administrator',
-  adminEmail = 'admin@careerai.dev',
+  adminEmail = '',
 }: AdminHeaderProps) {
   const [systemHealth, setSystemHealth] = useState<'OPERATIONAL' | 'DEGRADED' | 'CHECKING'>('CHECKING');
   const [searchQuery, setSearchQuery] = useState('');

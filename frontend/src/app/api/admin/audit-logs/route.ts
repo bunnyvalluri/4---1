@@ -1,56 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
 export async function GET(req: NextRequest) {
   try {
     await requireAuth(req, 'ADMIN');
 
-    try {
-      const fastApiRes = await fetch('http://localhost:8000/api/v1/admin/audit-logs', {
-        headers: { Authorization: 'Bearer test-sandbox-token' },
-        cache: 'no-store',
-      });
-      if (fastApiRes.ok) {
-        const data = await fastApiRes.json();
-        return NextResponse.json(data);
-      }
-    } catch {
-      // Fallback
+    const authHeader = req.headers.get('authorization') || '';
+    const fastApiRes = await fetch(`${BACKEND_URL}/api/v1/admin/audit-logs`, {
+      headers: authHeader ? { Authorization: authHeader } : {},
+      cache: 'no-store',
+    });
+
+    if (fastApiRes.ok) {
+      const data = await fastApiRes.json();
+      return NextResponse.json(data);
     }
 
-    return NextResponse.json([
-      {
-        id: 'audit-01',
-        actorId: 'admin-system-id',
-        actorRole: 'ADMIN',
-        action: 'ADMIN_LOGIN',
-        resourceType: 'SESSION',
-        resourceId: 'admin@careerai.dev',
-        timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-      },
-      {
-        id: 'audit-02',
-        actorId: 'admin-system-id',
-        actorRole: 'ADMIN',
-        action: 'CANDIDATE_VIEWED',
-        resourceType: 'CANDIDATE',
-        resourceId: 'alex@example.com',
-        timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      },
-      {
-        id: 'audit-03',
-        actorId: 'admin-system-id',
-        actorRole: 'ADMIN',
-        action: 'CAREER_UPDATED',
-        resourceType: 'CAREER',
-        resourceId: 'ai-ml-engineer',
-        timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-      },
-    ]);
-  } catch (error: any) {
-    if (error?.message === 'UNAUTHORIZED' || error?.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Return real empty array if no audit records exist yet
+    return NextResponse.json([]);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    if (err?.message === 'UNAUTHORIZED' || err?.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden: Administrator privileges required.' }, { status: 403 });
     }
-    return NextResponse.json({ error: 'Failed to load audit logs' }, { status: 500 });
+    console.error('Audit logs API error:', error);
+    return NextResponse.json({ error: 'Failed to load audit logs.' }, { status: 500 });
   }
 }

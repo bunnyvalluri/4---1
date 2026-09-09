@@ -45,7 +45,7 @@ export default function CandidatesManagementPage() {
       const data = await res.json();
       setCandidates(data.candidates || []);
     } catch {
-      // Fallback
+      setCandidates([]);
     } finally {
       setLoading(false);
     }

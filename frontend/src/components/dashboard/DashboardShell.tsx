@@ -19,8 +19,8 @@ interface DashboardShellProps {
 
 export function DashboardShell({
   children,
-  userName = 'Alex Johnson',
-  userEmail = 'alex@example.com',
+  userName = 'Candidate',
+  userEmail = '',
   telemetryStatus,
   lastUpdatedText,
   notifications,

@@ -35,20 +35,6 @@ async def get_current_user(
     if not token:
         raise AuthenticationError("Authentication token is required.")
 
-    # Sandbox / Local dev token fallback
-    if token == "test-sandbox-token":
-        if db is not None:
-            user_repo = UserRepository(db)
-            user = await user_repo.get_by_id("c1f0802c5de24254a8c182f5e65c1389")
-            if user:
-                return user
-        return FirebaseUserWrapper(
-            uid="c1f0802c5de24254a8c182f5e65c1389",
-            email="alex@example.com",
-            name="Alex Johnson",
-            role=Role.USER,
-        )
-
     # 1. Attempt Firebase ID Token Verification
     try:
         decoded_fb = verify_firebase_token(token)
@@ -101,10 +87,12 @@ async def get_current_user(
                 return user
 
         role_str = payload.get("role", "USER")
+        email = payload.get("email", "")
+        name = payload.get("name", email.split("@")[0] if email else "User")
         return FirebaseUserWrapper(
             uid=user_id,
-            email=payload.get("email", f"{user_id}@example.com"),
-            name="Test User",
+            email=email,
+            name=name,
             role=Role.ADMIN if role_str == "ADMIN" else Role.USER,
         )
     except Exception:

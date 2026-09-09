@@ -17,12 +17,8 @@ import {
   Sparkles,
   ShieldCheck,
   BrainCircuit,
-  Zap,
   TrendingUp,
-  CheckCircle2,
   Check,
-  FileCheck,
-  Map,
 } from 'lucide-react';
 import { auth, googleProvider, getFirebaseAuth, getGoogleProvider } from '@/lib/firebase/client';
 import { signInWithPopup } from 'firebase/auth';
@@ -73,10 +69,12 @@ export function AuthCard({ initialMode }: AuthCardProps) {
     router.prefetch('/register');
   }, [router]);
 
-  useEffect(() => {
+  const [prevInitialMode, setPrevInitialMode] = useState(initialMode);
+  if (prevInitialMode !== initialMode) {
+    setPrevInitialMode(initialMode);
     setMode(initialMode);
     setError(null);
-  }, [initialMode]);
+  }
 
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: '#CBD5E1' };
@@ -96,32 +94,6 @@ export function AuthCard({ initialMode }: AuthCardProps) {
     setMode(newMode);
     setError(null);
     window.history.replaceState(null, '', newMode === 'login' ? '/login' : '/register');
-  };
-
-  const handleQuickDemoLogin = async (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError(null);
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: demoEmail, password: demoPass }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Demo login failed');
-      }
-
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
-      setLoading(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,8 +136,9 @@ export function AuthCard({ initialMode }: AuthCardProps) {
         router.push('/onboarding');
         router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during submission.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred during submission.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -220,25 +193,26 @@ export function AuthCard({ initialMode }: AuthCardProps) {
         router.push(mode === 'login' ? '/dashboard' : '/onboarding');
       }
       router.refresh();
-    } catch (err: any) {
-      console.error('[Firebase Auth Error]', err.code, err.message);
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+    } catch (err: unknown) {
+      const firebaseError = err as { code?: string; message?: string };
+      console.error('[Firebase Auth Error]', firebaseError.code, firebaseError.message);
+      if (firebaseError.code === 'auth/popup-closed-by-user' || firebaseError.code === 'auth/cancelled-popup-request') {
         setGoogleLoading(false);
         return;
       }
-      if (err.code === 'auth/invalid-api-key' || err.message?.includes('api-key')) {
+      if (firebaseError.code === 'auth/invalid-api-key' || firebaseError.message?.includes('api-key')) {
         setError('Invalid Firebase API Key. Please verify your Web API Key from Firebase Console.');
         setApiKeyModalOpen(true);
-      } else if (err.code === 'auth/internal-error') {
+      } else if (firebaseError.code === 'auth/internal-error') {
         setError(
           'Firebase internal error: This is usually caused by (1) the current domain not being whitelisted in Firebase Console → Authentication → Settings → Authorized Domains, or (2) a missing/invalid Firebase config. Please add "localhost" (or your deployed domain) to the authorized domains list.'
         );
-      } else if (err.code === 'auth/operation-not-allowed') {
+      } else if (firebaseError.code === 'auth/operation-not-allowed') {
         setError('Google Sign-In is not enabled. Please enable it in Firebase Console → Authentication → Sign-in method.');
-      } else if (err.code === 'auth/popup-blocked') {
+      } else if (firebaseError.code === 'auth/popup-blocked') {
         setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
       } else {
-        setError(err.message || 'Google Sign-In could not be completed.');
+        setError(firebaseError.message || 'Google Sign-In could not be completed.');
       }
     } finally {
       setGoogleLoading(false);
@@ -314,8 +288,8 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                   />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900">Alex Johnson</div>
-                  <div className="text-[10px] text-slate-400">Software Engineer Track • Active</div>
+                  <div className="text-xs font-bold text-slate-900">Candidate Profile</div>
+                  <div className="text-[10px] text-slate-400">Engineering Track • Active Guidance</div>
                 </div>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-bold text-emerald-700">
@@ -441,60 +415,10 @@ export function AuthCard({ initialMode }: AuthCardProps) {
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed">
               {mode === 'login'
-                ? 'Enter your credentials or use a 1-click sandbox profile below.'
+                ? 'Enter your credentials to access your personalized career command center.'
                 : 'Start your comprehensive diagnostic and discover your best-fit career.'}
             </p>
           </div>
-
-          {/* Quick 1-Click Sandbox Fast Access (Sign In Mode) */}
-          {mode === 'login' && (
-            <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <Zap className="h-3.5 w-3.5 text-amber-500" />
-                  1-Click Instant Sandbox Logins
-                </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Ready
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('alex@example.com', 'Password@123')}
-                  disabled={loading}
-                  className="flex items-center justify-between p-2.5 min-h-[44px] rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all text-left group cursor-pointer"
-                >
-                  <div className="overflow-hidden pr-1">
-                    <div className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600">
-                      Alex Johnson
-                    </div>
-                    <div className="text-[10px] text-slate-400 truncate">Candidate Account</div>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-50 text-blue-600 shrink-0">
-                    Enter
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('admin@careerai.dev', 'Admin@123456')}
-                  disabled={loading}
-                  className="flex items-center justify-between p-2.5 min-h-[44px] rounded-lg bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-xs transition-all text-left group cursor-pointer"
-                >
-                  <div className="overflow-hidden pr-1">
-                    <div className="text-xs font-bold text-slate-900 truncate group-hover:text-indigo-600 flex items-center gap-1">
-                      <Shield className="h-3 w-3 text-indigo-600" /> Admin
-                    </div>
-                    <div className="text-[10px] text-slate-400 truncate">System Portal</div>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-indigo-50 text-indigo-600 shrink-0">
-                    Enter
-                  </span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -520,7 +444,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Alex Johnson"
+                    placeholder="Jane Doe"
                     className="w-full min-h-[44px] rounded-xl pl-10 pr-4 py-2.5 text-base sm:text-sm bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
                   />
                 </div>
@@ -540,7 +464,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="alex@example.com"
+                  placeholder="name@example.com"
                   className="w-full min-h-[44px] rounded-xl pl-10 pr-4 py-2.5 text-base sm:text-sm bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 transition-all focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
                 />
               </div>

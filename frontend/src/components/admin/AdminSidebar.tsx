@@ -110,7 +110,7 @@ export function AdminSidebar({
   mobileOpen = false,
   onMobileClose,
   adminName = 'Administrator',
-  adminEmail = 'admin@careerai.dev',
+  adminEmail = '',
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();

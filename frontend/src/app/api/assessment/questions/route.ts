@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSanitizedQuestions } from '@/lib/assessmentFallback';
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,12 +18,9 @@ export async function GET(req: NextRequest) {
       orderBy: { id: 'asc' },
     });
 
-    if (questions && questions.length > 0) {
-      return NextResponse.json({ questions });
-    }
+    return NextResponse.json({ questions: questions || [] });
   } catch (error) {
-    // Database connection error, fallback gracefully
+    console.error('Failed to load assessment questions:', error);
+    return NextResponse.json({ questions: [] });
   }
-
-  return NextResponse.json({ questions: getSanitizedQuestions() });
 }

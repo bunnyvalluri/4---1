@@ -51,8 +51,8 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <DashboardShell
-        userName="Alex Johnson"
-        userEmail="alex@example.com"
+        userName="Candidate"
+        userEmail=""
         telemetryStatus="Syncing..."
         lastUpdatedText="just now"
         notifications={[]}
@@ -64,11 +64,11 @@ export default function DashboardPage() {
     );
   }
 
-  const userName = candidate?.name || 'Alex Johnson';
-  const userEmail = candidate?.email || 'alex@example.com';
-  const targetCareer = candidate?.target_career || metrics?.career_match.title || 'Full Stack Developer';
-  const careerMatchScore = metrics?.career_match.score || 92;
-  const profileCompletion = candidate?.profile_completion || metrics?.profile_completion.score || 78;
+  const userName = candidate?.name || 'Candidate';
+  const userEmail = candidate?.email || '';
+  const targetCareer = candidate?.target_career || metrics?.career_match?.title || 'Target Career Not Selected';
+  const careerMatchScore = metrics?.career_match?.score ?? 0;
+  const profileCompletion = candidate?.profile_completion ?? metrics?.profile_completion?.score ?? 0;
 
   return (
     <DashboardShell

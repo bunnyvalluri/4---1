@@ -36,37 +36,9 @@ export default function AdminCareersPage() {
       if (!res.ok) throw new Error('Failed to load careers');
       const data = await res.json();
       setCareers(data.careers || []);
-    } catch {
-      // Fallback data
-      setCareers([
-        {
-          id: 'car-1',
-          title: 'AI / Machine Learning Engineer',
-          category: 'Artificial Intelligence',
-          salary_range: '$120,000 - $185,000 / yr',
-          demand_level: 'High',
-          skill_count: 5,
-          description: 'Design, train, and deploy deep learning models and scalable neural networks.',
-        },
-        {
-          id: 'car-2',
-          title: 'Full Stack Cloud Engineer',
-          category: 'Software Engineering',
-          salary_range: '$105,000 - $160,000 / yr',
-          demand_level: 'Very High',
-          skill_count: 6,
-          description: 'Build enterprise Next.js and FastAPI cloud systems with distributed databases.',
-        },
-        {
-          id: 'car-3',
-          title: 'DevOps & MLOps Architect',
-          category: 'Cloud Infrastructure',
-          salary_range: '$130,000 - $190,000 / yr',
-          demand_level: 'High',
-          skill_count: 4,
-          description: 'Manage automated CI/CD pipelines, container orchestration, and model deployment.',
-        },
-      ]);
+    } catch (err: any) {
+      console.warn('Failed to load careers:', err);
+      setCareers([]);
     } finally {
       setLoading(false);
     }

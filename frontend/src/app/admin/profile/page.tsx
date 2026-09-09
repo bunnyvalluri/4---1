@@ -34,7 +34,7 @@ export default function AdminProfilePage() {
                 {adminUser?.role || 'ADMIN'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">{adminUser?.email || 'admin@careerai.dev'}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{adminUser?.email || 'Authorized Administrator'}</p>
           </div>
         </div>
 

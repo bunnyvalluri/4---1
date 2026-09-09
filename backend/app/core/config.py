@@ -63,6 +63,14 @@ class Settings(BaseSettings):
     FIRESTORE_EMULATOR_HOST: str = ""
     FIREBASE_STORAGE_EMULATOR_HOST: str = ""
 
+    # Public Platform & Contact Configuration
+    SUPPORT_EMAIL: str = os.getenv("SUPPORT_EMAIL", "")
+    CONTACT_EMAIL: str = os.getenv("CONTACT_EMAIL", "")
+    CONTACT_PHONE: str = os.getenv("CONTACT_PHONE", "")
+    COMPANY_WEBSITE: str = os.getenv("COMPANY_WEBSITE", "https://careerai-platform-202.netlify.app")
+    LINKEDIN_URL: str = os.getenv("LINKEDIN_URL", "")
+    GITHUB_URL: str = os.getenv("GITHUB_URL", "https://github.com/bunnyvalluri/4---1")
+
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod

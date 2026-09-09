@@ -1,39 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
 export async function GET(req: NextRequest) {
   try {
     await requireAuth(req, 'ADMIN');
 
-    // Try FastAPI health
-    try {
-      const fastApiRes = await fetch('http://localhost:8000/api/v1/admin/health', {
-        headers: { Authorization: 'Bearer test-sandbox-token' },
-        cache: 'no-store',
-      });
-      if (fastApiRes.ok) {
-        const data = await fastApiRes.json();
-        return NextResponse.json(data);
-      }
-    } catch {
-      // Return fallback
+    const authHeader = req.headers.get('authorization') || '';
+    const fastApiRes = await fetch(`${BACKEND_URL}/api/v1/admin/health`, {
+      headers: authHeader ? { Authorization: authHeader } : {},
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (fastApiRes.ok) {
+      const data = await fastApiRes.json();
+      return NextResponse.json(data);
     }
 
     return NextResponse.json({
-      status: 'OPERATIONAL',
+      status: 'DEGRADED',
       systems: {
-        api: { status: 'OPERATIONAL', latency_ms: 12 },
-        firebase_auth: { status: 'OPERATIONAL', project_id: 'careerai-app-9777b' },
-        firestore: { status: 'OPERATIONAL', latency_ms: 24 },
-        storage: { status: 'OPERATIONAL', bucket: 'careerai-app-9777b.firebasestorage.app' },
-        ai_service: { status: 'OPERATIONAL', provider: 'Google Gemini 2.5 Flash' },
+        api: { status: 'DEGRADED', error: `Backend returned status ${fastApiRes.status}` },
+        firebase_auth: { status: 'UNKNOWN' },
+        firestore: { status: 'UNKNOWN' },
+        storage: { status: 'UNKNOWN' },
+        ai_service: { status: 'UNKNOWN' },
       },
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
-    if (error?.message === 'UNAUTHORIZED' || error?.message === 'FORBIDDEN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    if (err?.message === 'UNAUTHORIZED' || err?.message === 'FORBIDDEN') {
+      return NextResponse.json({ error: 'Forbidden: Administrator privileges required.' }, { status: 403 });
     }
-    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
+    return NextResponse.json({
+      status: 'DEGRADED',
+      systems: {
+        api: { status: 'DEGRADED', error: 'Backend server connection failed or timed out.' },
+        firebase_auth: { status: 'UNKNOWN' },
+        firestore: { status: 'UNKNOWN' },
+        storage: { status: 'UNKNOWN' },
+        ai_service: { status: 'UNKNOWN' },
+      },
+      timestamp: new Date().toISOString(),
+    });
   }
 }

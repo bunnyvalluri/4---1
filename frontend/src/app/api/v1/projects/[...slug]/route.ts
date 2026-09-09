@@ -4,7 +4,7 @@ const FASTAPI_URL = process.env.FASTAPI_URL || process.env.NEXT_PUBLIC_BACKEND_U
 
 async function forwardRequest(req: NextRequest, slug: string[], method: string) {
   try {
-    const authHeader = req.headers.get('authorization') || 'Bearer test-sandbox-token';
+    const authHeader = req.headers.get('authorization');
     const subpath = slug.join('/');
     const url = new URL(req.url);
     const queryString = url.search;
@@ -23,7 +23,7 @@ async function forwardRequest(req: NextRequest, slug: string[], method: string) 
     const res = await fetch(targetUrl, {
       method,
       headers: {
-        Authorization: authHeader,
+        ...(authHeader ? { Authorization: authHeader } : {}),
         'Content-Type': 'application/json',
       },
       body: body && body.length > 0 ? body : undefined,
