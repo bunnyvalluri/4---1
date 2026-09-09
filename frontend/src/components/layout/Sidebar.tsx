@@ -18,6 +18,11 @@ import {
   Menu,
   SlidersHorizontal,
   Compass,
+  Mic,
+  LineChart,
+  Briefcase,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { ResponsiveDrawer } from '@/components/ui/ResponsiveDrawer';
 
@@ -49,16 +54,26 @@ export function Sidebar({ userName = 'Candidate', userEmail = '' }: SidebarProps
     {
       title: 'Execution & Growth',
       items: [
-        { label: 'Career Assessment', href: '/assessment', icon: BrainCircuit },
+        { label: 'Assessments', href: '/assessment', icon: BrainCircuit },
         { label: 'Learning Roadmap', href: '/roadmap', icon: Map },
         { label: 'Portfolio Projects', href: '/projects', icon: FolderGit2 },
-        { label: 'Resume ATS Scanner', href: '/resume', icon: FileCheck, badge: 'ATS' },
+        { label: 'Resume ATS', href: '/resume', icon: FileCheck, badge: 'ATS' },
+      ],
+    },
+    {
+      title: 'Specialized Tools',
+      items: [
+        { label: 'Interview Sim', href: '/interview', icon: Mic, badge: 'New' },
+        { label: 'Market Intel', href: '/market', icon: LineChart, badge: 'New' },
+        { label: 'Job Tracker', href: '/applications', icon: Briefcase, badge: 'New' },
+        { label: 'Career Trajectory', href: '/trajectory', icon: TrendingUp, badge: 'New' },
+        { label: 'Mentors', href: '/mentors', icon: Users, badge: 'New' },
       ],
     },
     {
       title: 'Copilot & Profile',
       items: [
-        { label: 'AI Assistant', href: '/chat', icon: MessageSquare, badge: 'Live' },
+        { label: 'AI Copilot', href: '/chat', icon: MessageSquare, badge: 'Live' },
         { label: 'My Profile', href: '/profile', icon: User },
       ],
     },
@@ -67,8 +82,9 @@ export function Sidebar({ userName = 'Candidate', userEmail = '' }: SidebarProps
   // Quick action items for mobile top strip
   const quickItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Diagnostic', href: '/assessment', icon: BrainCircuit },
     { label: 'Matches', href: '/recommendations', icon: Sparkles },
+    { label: 'Skills', href: '/skills', icon: BarChart2 },
+    { label: 'Assessments', href: '/assessment', icon: BrainCircuit },
     { label: 'Roadmap', href: '/roadmap', icon: Map },
     { label: 'Resume', href: '/resume', icon: FileCheck },
     { label: 'AI Copilot', href: '/chat', icon: MessageSquare },

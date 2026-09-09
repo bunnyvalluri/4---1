@@ -58,21 +58,21 @@ export function DashboardSidebar({
   };
 
   const navItems = [
-    { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Career Match', href: '/recommendations', icon: Sparkles, badge: 'AI' },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Career Matches', href: '/recommendations', icon: Sparkles, badge: 'AI' },
+    { label: 'Skill Gaps', href: '/skills', icon: BarChart2 },
     { label: 'Assessments', href: '/assessment', icon: BrainCircuit },
-    { label: 'Skill Gap', href: '/skills', icon: BarChart2 },
     { label: 'Learning Roadmap', href: '/roadmap', icon: Map },
     { label: 'Portfolio Projects', href: '/projects', icon: FolderGit2 },
     { label: 'Resume ATS', href: '/resume', icon: FileCheck, badge: 'ATS' },
-    { label: 'AI Assistant', href: '/chat', icon: MessageSquare, badge: 'Live' },
+    { label: 'AI Copilot', href: '/chat', icon: MessageSquare, badge: 'Live' },
   ];
 
   const advancedItems = [
     { label: 'Interview Sim', href: '/interview', icon: Mic, badge: 'New' },
     { label: 'Market Intel', href: '/market', icon: LineChart, badge: 'New' },
     { label: 'Job Tracker', href: '/applications', icon: Briefcase, badge: 'New' },
-    { label: 'Trajectory', href: '/trajectory', icon: TrendingUp, badge: 'New' },
+    { label: 'Career Trajectory', href: '/trajectory', icon: TrendingUp, badge: 'New' },
     { label: 'Mentors', href: '/mentors', icon: Users, badge: 'New' },
   ];
 
@@ -174,11 +174,6 @@ export function DashboardSidebar({
       {/* ======================================================== */}
       <aside className="w-56 shrink-0 border-r border-slate-200/80 bg-slate-50/70 h-[calc(100vh-4rem)] sticky top-16 flex-col justify-between p-3 hidden lg:flex overflow-y-auto">
         <div className="space-y-4">
-          {/* Brand Header */}
-          <div className="px-1">
-            <BrandLogo href="/dashboard" subtext="Intelligence Center" size="sm" />
-          </div>
-
           {/* User Profile Capsule */}
           {userProfileCard}
 

@@ -21,6 +21,11 @@ import {
   X,
   Compass,
   Loader2,
+  Mic,
+  LineChart,
+  Briefcase,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { signOutFirebase } from '@/lib/firebase/client';
 import { BrandLogo } from '@/components/ui/BrandLogo';
@@ -41,7 +46,7 @@ interface QuickToolItem {
 
 const moreCandidateTools: QuickToolItem[] = [
   {
-    name: 'Career Diagnostic',
+    name: 'Assessments',
     href: '/assessment',
     icon: BrainCircuit,
     description: 'Aptitude & personality evaluation',
@@ -53,31 +58,59 @@ const moreCandidateTools: QuickToolItem[] = [
     description: 'Hands-on industry projects',
   },
   {
-    name: 'Resume ATS Scanner',
+    name: 'Resume ATS',
     href: '/resume',
     icon: FileCheck,
     badge: 'ATS',
     description: 'Instant keyword & match audit',
   },
   {
-    name: 'AI Career Assistant',
+    name: 'AI Copilot',
     href: '/chat',
     icon: MessageSquare,
-    badge: 'AI',
+    badge: 'Live',
     description: '24/7 intelligent career mentor',
   },
   {
-    name: 'Candidate Profile',
+    name: 'Interview Sim',
+    href: '/interview',
+    icon: Mic,
+    badge: 'New',
+    description: 'AI-guided mock interviews',
+  },
+  {
+    name: 'Market Intel',
+    href: '/market',
+    icon: LineChart,
+    badge: 'New',
+    description: 'Real-time hiring & salary data',
+  },
+  {
+    name: 'Job Tracker',
+    href: '/applications',
+    icon: Briefcase,
+    badge: 'New',
+    description: 'Application pipeline & status',
+  },
+  {
+    name: 'Career Trajectory',
+    href: '/trajectory',
+    icon: TrendingUp,
+    badge: 'New',
+    description: '5-year compensation growth',
+  },
+  {
+    name: 'Mentors',
+    href: '/mentors',
+    icon: Users,
+    badge: 'New',
+    description: 'Verified industry mentorship',
+  },
+  {
+    name: 'My Profile',
     href: '/profile',
     icon: User,
     description: 'Personal info, target career, skills',
-  },
-  {
-    name: 'Notifications',
-    href: '/dashboard',
-    icon: Bell,
-    badge: '3',
-    description: 'Updates, reminders & match alerts',
   },
   {
     name: 'Account Settings',
