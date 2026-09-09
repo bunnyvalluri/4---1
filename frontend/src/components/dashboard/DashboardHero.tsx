@@ -100,7 +100,7 @@ export function DashboardHero({
         </div>
 
         {/* Right Column: Quick Global Actions */}
-        <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2.5 shrink-0 self-start lg:self-center w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2.5 shrink-0 self-start lg:self-center w-full sm:w-auto">
           <Link
             href="/recommendations"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-sm shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 transition-all hover:-translate-y-0.5 text-center min-h-[44px]"

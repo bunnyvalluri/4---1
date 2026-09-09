@@ -43,7 +43,7 @@ export function MetricCard({
   }[badgeVariant];
 
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between min-w-0 group">
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between min-w-0 group">
       <div className="space-y-3">
         {/* Top Header Row */}
         <div className="flex items-center justify-between gap-2">
@@ -57,7 +57,7 @@ export function MetricCard({
 
         {/* Primary Metric Number & Badge */}
         <div className="flex items-baseline justify-between gap-2">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
             {value}
           </div>
           {badge && (

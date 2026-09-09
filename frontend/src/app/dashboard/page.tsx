@@ -97,7 +97,7 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 2. PRIMARY CAREER INTELLIGENCE METRIC GRID (6 CARDS) */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* Metric 1: Career Match */}
           <MetricCard
             label="Career Match"
@@ -203,9 +203,9 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 4. MAJOR SECTION A: CAREER MATCH & PATHWAYS */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          {/* Deep Career Match Widget (7 columns) */}
-          <div className="xl:col-span-7">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+          {/* Deep Career Match Widget */}
+          <div className="lg:col-span-3">
             <CareerMatchCard
               careerTitle={targetCareer}
               matchScore={careerMatchScore}
@@ -214,8 +214,8 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Top Ranked Career Paths List (5 columns) */}
-          <div className="xl:col-span-5">
+          {/* Top Ranked Career Paths List */}
+          <div className="lg:col-span-2">
             <CareerPathList paths={careerMatch?.top_paths} />
           </div>
         </div>
@@ -223,14 +223,14 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 5. MAJOR SECTION B: SKILLS & GAPS */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          {/* Candidate Skill Profile (6 columns) */}
-          <div className="xl:col-span-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Candidate Skill Profile */}
+          <div>
             <SkillProfile categories={skills?.categories} />
           </div>
 
-          {/* Career Skill Gaps (6 columns) */}
-          <div className="xl:col-span-6">
+          {/* Career Skill Gaps */}
+          <div>
             <SkillGapCard gaps={skillGaps} />
           </div>
         </div>
@@ -238,17 +238,17 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 6. MAJOR SECTION C: ROADMAP & RESUME INTELLIGENCE */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          {/* Active Learning Curriculum & Milestone Toggles (7 columns) */}
-          <div className="xl:col-span-7">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+          {/* Active Learning Curriculum & Milestone Toggles */}
+          <div className="lg:col-span-3">
             <RoadmapProgress
               roadmap={roadmap}
               onToggleTask={toggleRoadmapTask}
             />
           </div>
 
-          {/* Resume ATS Intelligence (5 columns) */}
-          <div className="xl:col-span-5">
+          {/* Resume ATS Intelligence */}
+          <div className="lg:col-span-2">
             <ResumeIntelligence resume={resume} />
           </div>
         </div>
@@ -256,14 +256,14 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 7. MAJOR SECTION D: ASSESSMENTS, AI COPILOT & RECENT ACTIVITY */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-          {/* Assessment Performance Radar (7 columns) */}
-          <div className="xl:col-span-7">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+          {/* Assessment Performance Radar */}
+          <div className="lg:col-span-3">
             <AssessmentOverview assessment={assessments} />
           </div>
 
-          {/* Copilot Ask & Live Activity Stream (5 columns) */}
-          <div className="xl:col-span-5 space-y-6">
+          {/* Copilot Ask & Live Activity Stream */}
+          <div className="lg:col-span-2 space-y-6">
             <AIQuickAsk />
             <RecentActivity activities={activities} />
           </div>
