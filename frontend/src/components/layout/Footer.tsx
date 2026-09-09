@@ -43,7 +43,12 @@ export function Footer() {
     pathname?.startsWith('/projects') ||
     pathname?.startsWith('/profile') ||
     pathname?.startsWith('/admin') ||
-    pathname?.startsWith('/careers');
+    pathname?.startsWith('/careers') ||
+    pathname?.startsWith('/interview') ||
+    pathname?.startsWith('/applications') ||
+    pathname?.startsWith('/market') ||
+    pathname?.startsWith('/trajectory') ||
+    pathname?.startsWith('/mentors');
 
   if (isAuthPage || isWorkspacePage) return null;
 

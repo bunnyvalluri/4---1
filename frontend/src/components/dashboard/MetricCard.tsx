@@ -42,37 +42,37 @@ export function MetricCard({
   }[badgeVariant];
 
   const content = (
-    <div className="flex flex-col gap-2 h-full">
+    <div className="flex flex-col gap-2 h-full min-w-0">
       {/* Header: icon + badge */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1.5 min-w-0">
         <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${iconBg} ${iconColor} shrink-0`}>
           <Icon className="h-4 w-4" />
         </div>
         {badge && (
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badgeColor}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full truncate max-w-[110px] ${badgeColor}`}>
             {badge}
           </span>
         )}
       </div>
 
       {/* Value */}
-      <div className="text-2xl font-black text-slate-900 tracking-tight leading-none">
+      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none truncate mt-0.5">
         {value}
       </div>
 
       {/* Label */}
-      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide leading-tight">
+      <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wide leading-tight truncate">
         {label}
       </div>
 
       {/* Subtext */}
-      <div className="text-[11px] text-slate-400 leading-tight flex-1">
+      <div className="text-[11px] text-slate-400 leading-tight flex-1 line-clamp-2">
         {subtext}
       </div>
 
       {/* Progress */}
       {progressPercent !== undefined && (
-        <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-auto">
+        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
           <div
             className={`h-full rounded-full transition-all duration-700 ${progressColor}`}
             style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
@@ -82,7 +82,7 @@ export function MetricCard({
     </div>
   );
 
-  const wrapper = "block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow-md transition-all group min-w-[160px] flex-1";
+  const wrapper = "block rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-4 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all group w-full min-w-0 min-h-[120px] active:scale-[0.99]";
 
   return actionHref ? (
     <Link href={actionHref} className={wrapper}>

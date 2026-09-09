@@ -80,9 +80,9 @@ export default function DashboardPage() {
       onRefresh={refresh}
       onMarkNotificationRead={markNotificationRead}
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full min-w-0">
         {/* ======================================================== */}
-        {/* 1. PERSONALIZED COMMAND CENTER HERO */}
+        {/* 1. GREETING & COMMAND CENTER HERO */}
         {/* ======================================================== */}
         <DashboardHero
           userName={userName}
@@ -95,9 +95,14 @@ export default function DashboardPage() {
         />
 
         {/* ======================================================== */}
-        {/* 2. PRIMARY CAREER INTELLIGENCE METRIC GRID (6 CARDS) */}
+        {/* 2. NEXT BEST ACTION (Prominent, uncompressed) */}
         {/* ======================================================== */}
-        <div className="flex gap-3 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
+        <NextBestAction action={nextAction} targetCareer={targetCareer} />
+
+        {/* ======================================================== */}
+        {/* 3. PRIMARY KPI METRIC GRID (2-Col Mobile, 3-Col Tablet, 6-Col Desktop) */}
+        {/* ======================================================== */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3.5 lg:gap-4 w-full min-w-0">
           {/* Metric 1: Career Match */}
           <MetricCard
             label="Career Match"
@@ -196,16 +201,11 @@ export default function DashboardPage() {
         </div>
 
         {/* ======================================================== */}
-        {/* 3. NEXT BEST ACTION HIGHLIGHT */}
+        {/* 4. MAJOR SECTION A: CAREER MATCH & TOP CAREER PATHS */}
         {/* ======================================================== */}
-        <NextBestAction action={nextAction} targetCareer={targetCareer} />
-
-        {/* ======================================================== */}
-        {/* 4. MAJOR SECTION A: CAREER MATCH & PATHWAYS */}
-        {/* ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 items-start w-full min-w-0">
           {/* Deep Career Match Widget */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <CareerMatchCard
               careerTitle={targetCareer}
               matchScore={careerMatchScore}
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Ranked Career Paths List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <CareerPathList paths={careerMatch?.top_paths} />
           </div>
         </div>
@@ -223,14 +223,14 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 5. MAJOR SECTION B: SKILLS & GAPS */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start w-full min-w-0">
           {/* Candidate Skill Profile */}
-          <div>
+          <div className="min-w-0">
             <SkillProfile categories={skills?.categories} />
           </div>
 
           {/* Career Skill Gaps */}
-          <div>
+          <div className="min-w-0">
             <SkillGapCard gaps={skillGaps} />
           </div>
         </div>
@@ -238,9 +238,9 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 6. MAJOR SECTION C: ROADMAP & RESUME INTELLIGENCE */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 items-start w-full min-w-0">
           {/* Active Learning Curriculum & Milestone Toggles */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <RoadmapProgress
               roadmap={roadmap}
               onToggleTask={toggleRoadmapTask}
@@ -248,7 +248,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Resume ATS Intelligence */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <ResumeIntelligence resume={resume} />
           </div>
         </div>
@@ -256,14 +256,14 @@ export default function DashboardPage() {
         {/* ======================================================== */}
         {/* 7. MAJOR SECTION D: ASSESSMENTS, AI COPILOT & RECENT ACTIVITY */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 items-start w-full min-w-0">
           {/* Assessment Performance Radar */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <AssessmentOverview assessment={assessments} />
           </div>
 
           {/* Copilot Ask & Live Activity Stream */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-5 sm:space-y-6 min-w-0">
             <AIQuickAsk />
             <RecentActivity activities={activities} />
           </div>

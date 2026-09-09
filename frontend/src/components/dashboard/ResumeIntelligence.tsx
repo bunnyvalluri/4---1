@@ -28,15 +28,15 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
   const isUploadRequired = data.status === 'UPLOAD_REQUIRED';
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs space-y-5">
+    <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-4 min-w-0 overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
           <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-            <FileCheck className="h-4 w-4 text-violet-600" />
+            <FileCheck className="h-4 w-4 text-violet-600 shrink-0" />
             <span>Resume Intelligence</span>
           </h3>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            ATS keyword extraction and candidate alignment scoring
+            ATS keyword extraction and candidate alignment
           </p>
         </div>
 
@@ -44,17 +44,17 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
         <div className="self-start sm:self-auto">
           {isProcessing ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
               <span>AI Analyzing Resume...</span>
             </span>
           ) : isUploadRequired ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200">
-              <AlertCircle className="h-3.5 w-3.5" />
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               <span>Upload Required</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-              <CheckCircle2 className="h-3.5 w-3.5" />
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
               <span>Analyzed</span>
             </span>
           )}
@@ -84,7 +84,7 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
           </div>
           <Link
             href="/resume"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-xs hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-blue-600 text-white text-xs font-bold shadow-xs hover:bg-blue-700 transition-colors"
           >
             <span>Upload Resume</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -92,10 +92,10 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
         </div>
       ) : (
         <>
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          {/* 2x2 Metric Grid on mobile, 4 columns on desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
                 ATS Score
               </div>
               <div className="text-xl sm:text-2xl font-black text-slate-900">
@@ -104,40 +104,40 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
               <div className="text-[10px] font-bold text-emerald-600">{data.rating}</div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
                 Skills Detected
               </div>
               <div className="text-xl sm:text-2xl font-black text-slate-900">
                 {data.skills_detected}
               </div>
-              <div className="text-[10px] text-slate-500">From resume text</div>
+              <div className="text-[10px] text-slate-500">From resume</div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Missing Keywords
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                Missing
               </div>
               <div className="text-xl sm:text-2xl font-black text-rose-600">
                 {data.missing_keywords}
               </div>
-              <div className="text-[10px] text-slate-500">High ATS impact</div>
+              <div className="text-[10px] text-slate-500">High impact</div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Career Alignment
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                Alignment
               </div>
               <div className="text-xl sm:text-2xl font-black text-blue-600">
                 {data.career_alignment}%
               </div>
-              <div className="text-[10px] text-slate-500">Benchmark match</div>
+              <div className="text-[10px] text-slate-500">Benchmark</div>
             </div>
           </div>
 
           {/* Missing Keywords Pills */}
           {data.missing_keywords_list.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                 Top Keywords to Add:
               </span>
@@ -145,7 +145,7 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
                 {data.missing_keywords_list.map((kw) => (
                   <span
                     key={kw}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200"
+                    className="text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200"
                   >
                     + {kw}
                   </span>
@@ -154,17 +154,17 @@ export function ResumeIntelligence({ resume }: ResumeIntelligenceProps) {
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+          {/* Action Links */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 border-t border-slate-100 gap-2">
             <Link
               href="/resume"
-              className="text-xs font-bold text-slate-600 hover:text-slate-900"
+              className="text-xs font-bold text-slate-600 hover:text-slate-900 min-h-[40px] flex items-center justify-center sm:justify-start"
             >
               View Full Analysis
             </Link>
             <Link
               href="/resume"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200/60 transition-colors min-h-[44px]"
             >
               <span>Improve Resume</span>
               <ArrowRight className="h-3.5 w-3.5" />

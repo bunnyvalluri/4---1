@@ -5,8 +5,6 @@ import Link from 'next/link';
 import {
   BrainCircuit,
   TrendingUp,
-  ArrowRight,
-  ShieldCheck,
   Zap,
 } from 'lucide-react';
 import {
@@ -42,36 +40,38 @@ export function AssessmentOverview({ assessment }: AssessmentOverviewProps) {
   const data = assessment || defaultAssessment;
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-3">
+    <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-5 min-w-0 overflow-hidden">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
           <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-            <BrainCircuit className="h-4 w-4 text-indigo-600" />
+            <BrainCircuit className="h-4 w-4 text-indigo-600 shrink-0" />
             <span>Assessment Performance</span>
           </h3>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            Evaluated across 5 foundational cognitive & psychometric dimensions
+            Evaluated across 5 foundational cognitive dimensions
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
             Benchmark: 70%+
           </span>
           <Link
             href="/assessment"
-            className="text-xs font-bold text-blue-600 hover:text-blue-700"
+            className="text-xs font-bold text-blue-600 hover:text-blue-700 min-h-[44px] flex items-center"
           >
             Retake Diagnostic →
           </Link>
         </div>
       </div>
 
+      {/* Grid: Vertical stack on mobile (chart first, then insights), 5-col on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
-        {/* Radar Chart Column (3 spans) */}
-        <div className="lg:col-span-3 h-60 sm:h-64 w-full min-w-0 overflow-hidden">
+        {/* Radar Chart Container: Min height 260px on mobile to ensure readable axes */}
+        <div className="lg:col-span-3 h-64 sm:h-72 w-full min-w-0 overflow-hidden relative">
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-            <RadarChart data={data.radar_data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+            <RadarChart data={data.radar_data} margin={{ top: 15, right: 25, bottom: 15, left: 25 }}>
               <PolarGrid stroke="#E2E8F0" />
               <PolarAngleAxis
                 dataKey="subject"
@@ -95,25 +95,26 @@ export function AssessmentOverview({ assessment }: AssessmentOverviewProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* Breakdown Summary Column (2 spans) */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-1">
+        {/* Breakdown Summary & Strength Cards */}
+        <div className="lg:col-span-2 space-y-3 min-w-0">
+          <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 space-y-1">
             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800">
-              <Zap className="h-3.5 w-3.5 text-emerald-600" />
+              <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
               <span>Top Strength</span>
             </div>
-            <div className="text-xs font-bold text-slate-900">{data.top_strength}</div>
+            <div className="text-xs sm:text-sm font-bold text-slate-900">{data.top_strength}</div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1">
+          <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-1">
             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-800">
-              <TrendingUp className="h-3.5 w-3.5 text-amber-600" />
+              <TrendingUp className="h-3.5 w-3.5 text-amber-600 shrink-0" />
               <span>Growth Opportunity</span>
             </div>
-            <div className="text-xs font-bold text-slate-900">{data.growth_area}</div>
+            <div className="text-xs sm:text-sm font-bold text-slate-900">{data.growth_area}</div>
           </div>
 
-          <div className="pt-2 space-y-2">
+          {/* Dimension Scores */}
+          <div className="pt-2 space-y-2 border-t border-slate-100">
             {data.radar_data.map((item) => (
               <div key={item.subject} className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-600">{item.subject}</span>

@@ -86,6 +86,11 @@ export function Navbar() {
     pathname.startsWith('/projects') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/careers') ||
+    pathname.startsWith('/interview') ||
+    pathname.startsWith('/applications') ||
+    pathname.startsWith('/market') ||
+    pathname.startsWith('/trajectory') ||
+    pathname.startsWith('/mentors') ||
     pathname.startsWith('/admin');
 
   if (isAuthPage || isWorkspacePage) return null;

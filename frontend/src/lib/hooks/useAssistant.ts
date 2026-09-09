@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirebaseApp } from '@/lib/firebase/client';
 import { getAuth } from 'firebase/auth';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const BACKEND_URL = '';
 
 export interface StructuredAction {
   action_type: string;
@@ -138,6 +138,7 @@ export function useAssistant() {
     try {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/context`, {
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -158,11 +159,11 @@ export function useAssistant() {
     setLoadingSessions(true);
     try {
       const token = await getAuthToken();
-      const url = new URL(`${BACKEND_URL}/api/v1/assistant/sessions`);
-      if (query && query.trim()) {
-        url.searchParams.set('q', query.trim());
-      }
-      const res = await fetch(url.toString(), {
+      const endpoint = query && query.trim()
+        ? `${BACKEND_URL}/api/v1/assistant/sessions?q=${encodeURIComponent(query.trim())}`
+        : `${BACKEND_URL}/api/v1/assistant/sessions`;
+      const res = await fetch(endpoint, {
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -191,6 +192,7 @@ export function useAssistant() {
     try {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -236,6 +238,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -263,6 +266,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -284,6 +288,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -308,6 +313,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -397,6 +403,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${targetSessionId || 'default'}/stream`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'text/event-stream',
@@ -525,6 +532,7 @@ export function useAssistant() {
       const token = await getAuthToken();
       const res = await fetch(`${BACKEND_URL}/api/v1/assistant/actions/execute`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

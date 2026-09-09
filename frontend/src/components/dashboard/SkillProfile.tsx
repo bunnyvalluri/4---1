@@ -62,33 +62,34 @@ export function SkillProfile({ categories = {} }: SkillProfileProps) {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div>
+    <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-4 min-w-0 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
+        <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-            <Award className="h-4 w-4 text-emerald-600" />
-            <span>Your Skill Profile</span>
+            <Award className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span className="truncate">Your Skill Profile</span>
           </h3>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            Verified candidate competence across technical and soft capabilities
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
+            Verified candidate competence
           </p>
         </div>
         <Link
           href="/skills"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700"
+          className="text-xs font-bold text-blue-600 hover:text-blue-700 shrink-0 min-h-[44px] flex items-center"
         >
           View All Skills →
         </Link>
       </div>
 
-      {/* Category Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+      {/* Horizontally Scrollable Category Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-webkit-overflow-scrolling:touch]">
         {categoryKeys.map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+            className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer select-none ${
               selectedCategory === cat
                 ? 'bg-blue-600 text-white shadow-2xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
@@ -99,30 +100,30 @@ export function SkillProfile({ categories = {} }: SkillProfileProps) {
         ))}
       </div>
 
-      {/* Skills Proficiency List */}
+      {/* Skills List: 1-col on mobile, 2-col on desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
         {currentSkills.map((s) => (
           <div
             key={s.name}
-            className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3 hover:bg-white hover:border-slate-300 transition-all flex items-center justify-between gap-2"
+            className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3 sm:p-3.5 hover:bg-white hover:border-slate-300 transition-all flex items-center justify-between gap-2 min-w-0"
           >
             <div className="space-y-0.5 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-slate-900 truncate">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                   {s.name}
                 </span>
                 {s.verified && (
-                  <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                 )}
               </div>
-              <div className="flex items-center gap-1 text-[10px] text-slate-400">
-                <span>Proficiency {s.proficiency}/5</span>
+              <div className="text-[11px] text-slate-400">
+                Proficiency {s.proficiency}/5
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="shrink-0">
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getLevelBadge(
+                className={`text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full border ${getLevelBadge(
                   s.level
                 )}`}
               >

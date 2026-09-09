@@ -7,10 +7,11 @@ import {
   Compass,
   Search,
   MessageSquare,
-  Menu,
   Sparkles,
   Command,
   User as UserIcon,
+  X,
+  Bot
 } from 'lucide-react';
 import { NotificationCenter } from './NotificationCenter';
 import { RealtimeStatus } from './RealtimeStatus';
@@ -24,7 +25,7 @@ interface DashboardHeaderProps {
   notifications: NotificationItem[];
   onRefresh: () => void;
   onMarkNotificationRead: (id: string) => void;
-  onOpenMobileMenu: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export function DashboardHeader({
@@ -35,45 +36,41 @@ export function DashboardHeader({
   notifications,
   onRefresh,
   onMarkNotificationRead,
-  onOpenMobileMenu,
 }: DashboardHeaderProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/recommendations?q=${encodeURIComponent(searchQuery.trim())}`);
+      setMobileSearchOpen(false);
     }
   };
 
   const initial = (userName || 'C').charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all">
-      <div className="flex h-16 items-center justify-between px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto gap-2 sm:gap-4">
-        {/* Left: Mobile Menu Trigger + Brand on mobile */}
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={onOpenMobileMenu}
-            className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-600 outline-none cursor-pointer"
-            aria-label="Open sidebar menu"
+    <header className="sticky top-0 z-30 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md pt-[env(safe-area-inset-top,0px)] transition-all">
+      <div className="flex h-16 items-center justify-between px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto gap-2 sm:gap-4">
+        {/* Left: Brand Logo & Desktop Telemetry */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 group min-h-[44px] items-center"
+            aria-label="CareerAI Dashboard Home"
           >
-            <Menu className="h-4 w-4" />
-          </button>
-
-          <Link href="/dashboard" className="flex items-center gap-2 lg:hidden group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
-              <Compass className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <Compass className="h-5 w-5" />
             </div>
-            <span className="font-extrabold text-slate-900 tracking-tight text-base">
+            <span className="font-black text-slate-900 tracking-tight text-lg">
               Career<span className="text-blue-600">AI</span>
             </span>
           </Link>
 
           {/* Desktop Realtime Telemetry Indicator */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:block ml-2">
             <RealtimeStatus
               status={telemetryStatus}
               lastUpdatedText={lastUpdatedText}
@@ -82,7 +79,7 @@ export function DashboardHeader({
           </div>
         </div>
 
-        {/* Center: Global Search Bar */}
+        {/* Center: Desktop Global Search Bar */}
         <form
           onSubmit={handleSearchSubmit}
           className="flex-1 max-w-md mx-2 sm:mx-4 relative hidden md:block"
@@ -102,16 +99,27 @@ export function DashboardHeader({
           </div>
         </form>
 
-        {/* Right: Quick Tools, Notifications, AI Assistant & User Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick AI Assistant Shortcut */}
+        {/* Right: Mobile Search Button, Quick Tools, Notifications, AI Assistant & User Profile */}
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* Mobile Search Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            aria-label="Open search"
+          >
+            {mobileSearchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+          </button>
+
+          {/* Quick AI Copilot Shortcut (Touch friendly on mobile & desktop) */}
           <Link
             href="/chat"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200/70 transition-colors shadow-2xs"
-            title="Ask AI Assistant"
+            className="flex items-center gap-1.5 min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200/80 transition-colors shadow-2xs"
+            title="Ask AI Copilot"
+            aria-label="Open AI Copilot"
           >
-            <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
-            <span className="hidden lg:inline">AI Copilot</span>
+            <Bot className="h-4 w-4 text-blue-600 shrink-0" />
+            <span className="hidden sm:inline">AI Copilot</span>
           </Link>
 
           {/* Real-time Notification Center */}
@@ -125,10 +133,10 @@ export function DashboardHeader({
           {/* User Profile Avatar & Name */}
           <Link
             href="/profile"
-            className="flex items-center gap-2 p-1 pl-1.5 rounded-xl hover:bg-slate-100 transition-colors group"
+            className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors group min-h-[40px]"
             title="View Profile"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs shadow-xs group-hover:scale-105 transition-transform">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs shadow-xs group-hover:scale-105 transition-transform shrink-0">
               {initial}
             </div>
             <div className="hidden xl:flex flex-col text-left leading-none">
@@ -142,6 +150,32 @@ export function DashboardHeader({
           </Link>
         </div>
       </div>
+
+      {/* Mobile Search Dropdown Form */}
+      {mobileSearchOpen && (
+        <div className="md:hidden border-t border-slate-100 bg-white px-4 py-3 shadow-sm animate-in slide-in-from-top-2 duration-200">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="absolute left-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              type="search"
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search careers, skills, roadmaps..."
+              className="w-full h-11 pl-10 pr-10 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 text-slate-400 hover:text-slate-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </form>
+        </div>
+      )}
     </header>
   );
 }

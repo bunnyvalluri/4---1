@@ -5,25 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { getFirebaseApp, getFirebaseFirestore } from '@/lib/firebase/client';
 import { collection, onSnapshot, Unsubscribe } from 'firebase/firestore';
 
-function getApiBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    if (window.location.protocol === 'https:') {
-      if (
-        process.env.NEXT_PUBLIC_BACKEND_URL &&
-        process.env.NEXT_PUBLIC_BACKEND_URL.startsWith('https://')
-      ) {
-        return process.env.NEXT_PUBLIC_BACKEND_URL;
-      }
-      return '';
-    }
-    if (window.location.hostname === 'localhost') {
-      return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-    }
-  }
-  return process.env.NEXT_PUBLIC_BACKEND_URL || '';
-}
-
-const BACKEND_URL = getApiBaseUrl();
+// Use Next.js API layer which bridges candidate sessions with the FastAPI service
+const BACKEND_URL = '';
 
 export interface SkillItem {
   id: string;

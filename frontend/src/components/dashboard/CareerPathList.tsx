@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ChevronRight, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { TopCareerPath } from '@/lib/hooks/useDashboardRealtime';
 
 interface CareerPathListProps {
@@ -49,74 +49,83 @@ export function CareerPathList({ paths = [] }: CareerPathListProps) {
   const items = paths.length > 0 ? paths : defaultPaths;
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div>
+    <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 lg:p-7 shadow-xs space-y-4 min-w-0 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
+        <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            <span>Top Career Paths</span>
+            <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+            <span className="truncate">Top Career Paths</span>
           </h3>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            Ranked by multi-factor algorithmic recommendation engine
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
+            Ranked by recommendation engine
           </p>
         </div>
         <Link
           href="/recommendations"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700"
+          className="text-xs font-bold text-blue-600 hover:text-blue-700 shrink-0 min-h-[44px] flex items-center"
         >
           View All ({items.length})
         </Link>
       </div>
 
-      <div className="space-y-2.5">
+      {/* Cards List */}
+      <div className="space-y-3">
         {items.map((item) => (
           <div
             key={item.careerId || item.rank}
-            className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3.5 sm:p-4 hover:border-slate-300 hover:bg-white transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+            className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 hover:border-slate-300 hover:bg-white transition-all space-y-3 group min-w-0"
           >
-            {/* Left: Rank, Title, Salary */}
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-100 text-blue-700 text-xs font-black shrink-0">
-                #{item.rank}
-              </span>
-              <div className="space-y-0.5 min-w-0">
-                <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                  {item.title}
-                </h4>
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                  <span>{item.category}</span>
-                  <span>•</span>
-                  <span className="font-semibold text-slate-700">{item.salaryRange}</span>
+            {/* Top Row: Rank, Title, Salary */}
+            <div className="flex items-start justify-between gap-3 min-w-0">
+              <div className="flex items-start gap-3 min-w-0">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 text-xs font-black shrink-0 mt-0.5">
+                  #{item.rank}
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors break-words">
+                    {item.title}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                    <span>{item.category}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="font-semibold text-slate-700 block sm:inline">{item.salaryRange}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Match Score Badge */}
+              <div className="text-right shrink-0 bg-white border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
+                <div className="text-lg font-black text-blue-600 leading-none">
+                  {item.matchScore}%
+                </div>
+                <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
+                  Match
                 </div>
               </div>
             </div>
 
-            {/* Right: Metrics, Strongest factor, Gap, Action */}
-            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-              <div className="text-left sm:text-right">
-                <div className="text-base sm:text-lg font-black text-blue-600">
-                  {item.matchScore}%
-                </div>
-                <div className="text-[10px] text-slate-400 font-semibold">
-                  {item.strongestFactor}
-                </div>
+            {/* Middle Row: Factors & Missing Skills */}
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 text-slate-600">
+              <div className="flex items-center gap-1.5 font-medium">
+                <span className="text-slate-400">Driver:</span>
+                <span className="font-bold text-slate-800">{item.strongestFactor}</span>
               </div>
-
-              <div className="hidden md:block text-left sm:text-right">
-                <div className="text-[11px] font-bold text-slate-700">
+              <div className="text-right">
+                <span className="font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md text-[11px]">
                   {item.skillGap}
-                </div>
-                <div className="text-[10px] text-amber-600 font-semibold">
-                  Action required
-                </div>
+                </span>
               </div>
+            </div>
 
+            {/* Bottom Row: Full-width touch friendly action on mobile */}
+            <div className="pt-1">
               <Link
                 href={`/careers/${item.slug || 'full-stack-developer'}`}
-                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors shrink-0"
+                className="w-full flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs sm:text-sm border border-blue-200/80 transition-all active:scale-[0.98]"
               >
                 <span>Deep Dive</span>
-                <ChevronRight className="h-3 w-3" />
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
