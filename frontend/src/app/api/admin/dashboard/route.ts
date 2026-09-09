@@ -127,55 +127,21 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (dbErr) {
-      console.warn('Database offline or unreachable in admin dashboard, serving platform telemetry:', dbErr);
+      console.warn('Database offline or unreachable in admin dashboard, serving genuine empty counts:', dbErr);
 
-      // Resilient Platform Telemetry for Serverless / Cloud environments
       return NextResponse.json({
         metrics: {
-          total_candidates: 128,
-          active_candidates: 94,
-          new_candidates: 16,
-          assessments_completed: 84,
-          recommendations_generated: 116,
-          active_roadmaps: 42,
-          resumes_analyzed: 65,
-          ai_conversations: 312,
+          total_candidates: 0,
+          active_candidates: 0,
+          new_candidates: 0,
+          assessments_completed: 0,
+          recommendations_generated: 0,
+          active_roadmaps: 0,
+          resumes_analyzed: 0,
+          ai_conversations: 0,
           timestamp: new Date().toISOString(),
         },
-        live_activity: [
-          {
-            id: 'event-1',
-            event: 'New Candidate Registered',
-            description: 'Alex Johnson joined CareerAI platform',
-            timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-            status: 'ACTIVE',
-            type: 'registration',
-          },
-          {
-            id: 'event-2',
-            event: 'Assessment Evaluated',
-            description: 'Jordan Vance scored 84% in Cloud Architecture Diagnostic',
-            timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-            status: 'COMPLETED',
-            type: 'assessment',
-          },
-          {
-            id: 'event-3',
-            event: 'Roadmap Milestone Progress',
-            description: 'Elena Rostova completed Docker & Microservices Phase 2',
-            timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-            status: 'PROGRESS',
-            type: 'roadmap',
-          },
-          {
-            id: 'event-4',
-            event: 'ATS Resume Scanned',
-            description: 'Full Stack Developer Resume scored 88/100 match index',
-            timestamp: new Date(Date.now() - 1000 * 60 * 140).toISOString(),
-            status: 'COMPLETED',
-            type: 'resume',
-          },
-        ],
+        live_activity: [],
         admin_user: {
           id: adminUser.userId,
           email: adminUser.email,
