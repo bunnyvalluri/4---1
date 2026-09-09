@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export function DashboardFooter() {
   return (
-    <footer className="w-full border-t border-slate-200/80 bg-white/70 py-4 px-4 sm:px-6 lg:px-8 mt-10">
+    <footer className="w-full border-t border-slate-200/80 bg-white/70 py-4 px-4 sm:px-6 lg:px-8 pb-24 sm:pb-4 mt-10">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
         <div className="flex items-center gap-1.5 font-medium">
           <span className="font-bold text-slate-700">CareerAI</span>
