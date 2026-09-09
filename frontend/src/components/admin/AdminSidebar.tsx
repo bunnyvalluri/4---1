@@ -30,6 +30,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { signOutFirebase } from '@/lib/firebase/client';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface AdminSidebarProps {
   mobileOpen?: boolean;
@@ -137,20 +138,7 @@ export function AdminSidebar({
     <div className="flex h-full flex-col bg-white border-r border-slate-200">
       {/* Brand Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-        <Link href="/admin/dashboard" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20 group-hover:bg-blue-700 transition-colors">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 text-base tracking-tight">CareerAI</span>
-              <span className="px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-blue-50 text-blue-700 border border-blue-200 rounded">
-                Admin
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 font-medium">Control Center</p>
-          </div>
-        </Link>
+        <BrandLogo href="/admin/dashboard" badge="Admin" subtext="Control Center" size="md" />
         {onMobileClose && (
           <button
             onClick={onMobileClose}

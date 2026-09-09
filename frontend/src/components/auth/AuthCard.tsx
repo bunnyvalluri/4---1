@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { auth, googleProvider, getFirebaseAuth, getGoogleProvider } from '@/lib/firebase/client';
 import { signInWithPopup } from 'firebase/auth';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -242,19 +243,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
 
         <div className="relative z-10 space-y-8">
           {/* Logo & Platform Tag */}
-          <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 group-hover:scale-105 transition-transform">
-              <Compass className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-                Career<span className="text-blue-600">AI</span>
-              </span>
-              <span className="block text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
-                Talent Intelligence Suite
-              </span>
-            </div>
-          </Link>
+          <BrandLogo href="/" subtext="Talent Intelligence Suite" size="md" />
 
           {/* Narrative Headline */}
           <div className="space-y-3 max-w-lg">
@@ -363,13 +352,8 @@ export function AuthCard({ initialMode }: AuthCardProps) {
         
         {/* Top bar with back to home */}
         <div className="flex items-center justify-between mb-6">
-          <div className="lg:hidden flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
-              <Compass className="h-4 w-4" />
-            </div>
-            <span className="text-base font-extrabold text-slate-900">
-              Career<span className="text-blue-600">AI</span>
-            </span>
+          <div className="lg:hidden">
+            <BrandLogo href="/" size="xs" />
           </div>
           <Link
             href="/"

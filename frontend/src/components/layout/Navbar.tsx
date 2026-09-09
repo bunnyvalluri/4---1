@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { signOutFirebase } from '@/lib/firebase/client';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -101,19 +102,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25 group-hover:scale-[1.03] transition-transform">
-            <Compass className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-              Career<span className="text-blue-600">AI</span>
-            </span>
-            <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
-              Guidance Platform
-            </span>
-          </div>
-        </Link>
+        <BrandLogo href="/" subtext="Guidance Platform" size="md" />
 
         {/* Desktop Nav Links */}
         <nav className="hidden lg:flex items-center gap-1">

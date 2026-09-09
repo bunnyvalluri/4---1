@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, Mail, Phone, Globe } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface PublicContact {
   support_email: string | null;
@@ -53,14 +54,7 @@ export function Footer() {
           
           {/* Column 1: Brand & Description (spans 2 columns on tablet/desktop) */}
           <div className="col-span-2 space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                <Compass className="h-4 w-4" />
-              </div>
-              <span className="font-extrabold text-slate-900 tracking-tight text-lg">
-                Career<span className="text-blue-600">AI</span>
-              </span>
-            </Link>
+            <BrandLogo href="/" size="md" />
 
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
               AI-powered career guidance platform delivering personalized recommendations, verified skill-gap analysis, interactive roadmaps, and resume intelligence.

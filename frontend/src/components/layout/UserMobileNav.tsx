@@ -23,6 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { signOutFirebase } from '@/lib/firebase/client';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface UserData {
   name?: string;
@@ -350,15 +351,7 @@ export function UserMobileNav() {
             <div className="px-5 pt-3 pb-3 border-b border-slate-100 bg-slate-50/80">
               <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
-                    <Compass className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-sm leading-tight">CareerAI Workspace</h3>
-                    <p className="text-[11px] text-slate-500">Candidate Intelligence & Growth Tools</p>
-                  </div>
-                </div>
+                <BrandLogo size="sm" subtext="Growth Tools" />
                 <button
                   type="button"
                   onClick={() => setMoreSheetOpen(false)}

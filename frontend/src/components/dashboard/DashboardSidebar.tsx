@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveDrawer } from '@/components/ui/ResponsiveDrawer';
 import { signOutFirebase } from '@/lib/firebase/client';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface DashboardSidebarProps {
   userName?: string;
@@ -133,19 +134,9 @@ export function DashboardSidebar({
       <aside className="w-64 shrink-0 border-r border-slate-200/80 bg-slate-50/70 h-[calc(100vh-4rem)] sticky top-16 flex-col justify-between p-4 hidden lg:flex overflow-y-auto">
         <div className="space-y-5">
           {/* Brand Header */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 px-2 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
-              <Compass className="h-5 w-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-slate-900 tracking-tight text-base leading-none">
-                Career<span className="text-blue-600">AI</span>
-              </span>
-              <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase mt-1">
-                Intelligence Center
-              </span>
-            </div>
-          </Link>
+          <div className="px-1">
+            <BrandLogo href="/dashboard" subtext="Intelligence Center" size="sm" />
+          </div>
 
           {/* User Profile Capsule */}
           {userProfileCard}
@@ -180,14 +171,7 @@ export function DashboardSidebar({
       <ResponsiveDrawer
         isOpen={mobileOpen}
         onClose={onCloseMobile}
-        title={
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white">
-              <Compass className="h-4 w-4" />
-            </div>
-            <span className="font-extrabold text-slate-900">CareerAI Navigation</span>
-          </div>
-        }
+        title={<BrandLogo size="xs" subtext="Workspace" />}
       >
         <div className="space-y-5 pt-2">
           {userProfileCard}
