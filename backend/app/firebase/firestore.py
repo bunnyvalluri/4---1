@@ -42,6 +42,10 @@ class FirestoreCollections:
     NOTIFICATIONS = "notifications"
     AUDIT_LOGS = "audit_logs"
     EMAIL_EVENTS = "email_events"
+    CAREER_PREFERENCES = "career_preferences"
+    CAREER_GOALS = "career_goals"
+    PROFILE_ACTIVITY = "profile_activity"
+    PROFILE_INSIGHTS = "profile_insights"
 
 
 def get_firestore_client() -> FirestoreClient:
