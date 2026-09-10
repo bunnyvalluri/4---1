@@ -108,16 +108,12 @@ export function middleware(request: NextRequest) {
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (isAdmin) {
-      // Admin should be directed to the Admin Control Center
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-    }
     return NextResponse.next();
   }
 
   // 6. Auth Pages Redirection (/login, /register)
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
-  if (isAuthPage && token) {
+  if (isAuthPage && token && !request.nextUrl.searchParams.has('switch')) {
     if (isAdmin) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url));
     }
