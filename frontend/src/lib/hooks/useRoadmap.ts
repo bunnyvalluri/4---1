@@ -282,6 +282,32 @@ export function useRoadmap() {
     }
   };
 
+  const startResource = async (itemId: string, resourceId: string) => {
+    try {
+      const token = await getAuthToken();
+      // Ping internal API route
+      fetch('/api/roadmap/resource', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'start', itemId, resourceId }),
+      }).catch(() => {});
+
+      // Ping backend v1 route
+      fetch(`/api/v1/roadmaps/items/${itemId}/resources/${resourceId}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }).catch(() => {});
+    } catch (err) {
+      console.error('Failed to track start resource:', err);
+    }
+  };
+
   const completeResource = async (itemId: string, resourceId: string) => {
     setRoadmap((prev) => {
       if (!prev) return prev;
@@ -289,7 +315,9 @@ export function useRoadmap() {
         if (item.id !== itemId) return item;
         return {
           ...item,
-          resource_links: item.resource_links.map((res) => (res.id === resourceId || res.url === resourceId ? { ...res, is_completed: true } : res)),
+          resource_links: item.resource_links.map((res) =>
+            res.id === resourceId || res.url === resourceId ? { ...res, is_completed: true } : res
+          ),
         };
       });
       return { ...prev, items: updated };
@@ -297,6 +325,17 @@ export function useRoadmap() {
 
     try {
       const token = await getAuthToken();
+      // Ping internal Next.js API route
+      fetch('/api/roadmap/resource', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: 'complete', itemId, resourceId }),
+      }).catch(() => {});
+
+      // Ping FastAPI backend v1 route
       await fetch(`/api/v1/roadmaps/items/${itemId}/resources/${resourceId}/complete`, {
         method: 'POST',
         headers: {
@@ -455,6 +494,7 @@ export function useRoadmap() {
     startItem,
     completeItem,
     skipItem,
+    startResource,
     completeResource,
     toggleTask,
     saveNotes,

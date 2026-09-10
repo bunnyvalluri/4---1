@@ -148,7 +148,7 @@ class CareerApiClient {
             });
             if (retryRes.ok) {
               const contentType = retryRes.headers.get('content-type') || '';
-              return contentType.includes('application/json') ? await retryRes.json() : await retryRes.text();
+              return (contentType.includes('application/json') ? await retryRes.json() : await retryRes.text()) as T;
             }
           } catch {
             // Ignore retry network error and fall through to standard 401

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { ResumeParserService } from '@/lib/resumeParser';
+import { RoadmapService } from '@/lib/roadmapService';
 import { SkillCategory } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
@@ -182,7 +183,10 @@ export async function POST(
                 title: rc.title,
                 slug: rc.slug,
                 category: rc.category,
+                description: rc.reasoning,
                 overview: rc.reasoning,
+                educationReqs: "Bachelor's in Computer Science or related practical experience",
+                aptitudeReqs: { LOGICAL: 70, QUANTITATIVE: 70, PROBLEM_SOLVING: 75 },
                 salaryRange: '$95,000 - $145,000',
               },
             });
@@ -288,88 +292,9 @@ export async function POST(
     // E. Synchronize Roadmap and Roadmap Items in Neon PostgreSQL
     if (topCareerDbId) {
       try {
-        const roadmapTitle = `${topCareer?.title || 'Engineering'} Career Accelerator Roadmap`;
-        const roadmapRecord = await prisma.roadmap.upsert({
-          where: {
-            userId_careerId: {
-              userId: targetUser.id,
-              careerId: topCareerDbId,
-            },
-          },
-          update: {
-            title: roadmapTitle,
-            durationMonths: 3,
-            status: 'ACTIVE',
-          },
-          create: {
-            userId: targetUser.id,
-            careerId: topCareerDbId,
-            title: roadmapTitle,
-            description: `12-week personalized curriculum customized from your latest resume ATS analysis.`,
-            durationMonths: 3,
-            progressPercent: 0,
-            status: 'ACTIVE',
-          },
-        });
-
-        // Seed initial milestone items
-        const milestoneData = [
-          {
-            month: 1,
-            title: 'Core Architecture & Asynchronous Services',
-            description: 'Master advanced architectural patterns and high-throughput endpoint design.',
-            skills: ['FastAPI', 'PostgreSQL', 'REST APIs', 'SQLAlchemy'],
-            tasks: [
-              { id: 'm1_t1', text: 'Implement connection pooling and indexing', done: false },
-              { id: 'm1_t2', text: 'Write automated unit test fixtures with Pytest', done: false },
-            ],
-          },
-          {
-            month: 2,
-            title: 'Containerization & CI/CD Pipeline Engineering',
-            description: 'Containerize backend workloads and configure automated testing in GitHub Actions.',
-            skills: ['Docker', 'Docker Compose', 'CI/CD', 'GitHub Actions'],
-            tasks: [
-              { id: 'm2_t1', text: 'Write multi-stage Dockerfile with non-root security', done: false },
-              { id: 'm2_t2', text: 'Configure continuous integration workflows', done: false },
-            ],
-          },
-          {
-            month: 3,
-            title: 'Distributed Caching & System Resilience',
-            description: 'Implement distributed Redis caching, rate limiting, and observability telemetry.',
-            skills: ['Redis', 'Distributed Systems', 'Monitoring', 'Nginx'],
-            tasks: [
-              { id: 'm3_t1', text: 'Deploy Redis caching cluster for sub-10ms queries', done: false },
-              { id: 'm3_t2', text: 'Conduct load testing under high concurrency', done: false },
-            ],
-          },
-        ];
-
-        for (const m of milestoneData) {
-          const existingItem = await prisma.roadmapItem.findFirst({
-            where: {
-              roadmapId: roadmapRecord.id,
-              month: m.month,
-            },
-          });
-
-          if (!existingItem) {
-            await prisma.roadmapItem.create({
-              data: {
-                roadmapId: roadmapRecord.id,
-                month: m.month,
-                title: m.title,
-                description: m.description,
-                skills: m.skills,
-                tasks: m.tasks,
-                isCompleted: false,
-              },
-            });
-          }
-        }
-      } catch (roadErr) {
-        console.warn('[RoadmapSync] Warning:', roadErr);
+        await RoadmapService.generateRoadmapForCareer(targetUser.id, topCareerDbId);
+      } catch (rErr) {
+        console.warn('Roadmap auto-generation deferred:', rErr);
       }
     }
 

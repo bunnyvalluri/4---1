@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
         const fastApiFormData = new FormData();
         if (file && fileBuffer) {
-          const blob = new Blob([fileBuffer], { type: file.type || 'application/pdf' });
+          const blob = new Blob([fileBuffer as any], { type: file.type || 'application/pdf' });
           fastApiFormData.append('file', blob, file.name);
         }
         if (directText && directText.trim()) {

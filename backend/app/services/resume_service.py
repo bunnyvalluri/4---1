@@ -10,6 +10,7 @@ from app.models.career import Career
 from app.models.skill import Skill, UserSkill, SkillCategory
 from app.models.recommendation import CareerRecommendation, SkillGap
 from app.models.profile import Profile
+from app.models.project import ProjectRecommendation
 from app.repositories.resume_repository import ResumeRepository
 from app.ai.resume_intelligence import resume_intelligence
 from app.services.career_roadmap_engine import career_roadmap_engine
@@ -425,6 +426,58 @@ class ResumeService:
         except Exception:
             pass
 
+        # G. Provision Calibrated Project Recommendations Targeting Skill Gaps
+        if selected_career_id:
+            try:
+                missing_set = audit.get("missing_skills", [])
+                target_title = top_career.get("title", "Software Engineer")
+                proj_specs = [
+                    {
+                        "id": f"proj_{uuid.uuid4().hex[:12]}",
+                        "title": f"Production {target_title} Microservices & CI/CD Platform",
+                        "difficulty": "Intermediate",
+                        "tech_stack": list(set(extracted_skills[:3] + missing_set[:2] + ["Docker", "GitHub Actions"])),
+                        "problem_statement": f"Architect and deploy a production-grade service demonstrating {', '.join(missing_set[:2] or ['containerization', 'distributed architecture'])} with automated testing pipelines.",
+                        "expected_outcome": "Fully containerized service with 90%+ unit test coverage, automated GitHub Actions CI pipeline, and live health monitoring endpoints.",
+                        "skills_learned": missing_set[:4] or ["Docker", "FastAPI", "CI/CD", "System Design"],
+                        "estimated_duration": "2-3 weeks",
+                        "portfolio_value": "High - Demonstrates production deployment and container orchestration.",
+                    },
+                    {
+                        "id": f"proj_{uuid.uuid4().hex[:12]}",
+                        "title": f"Distributed Rate Limiter & Cache-Aside Invalidation Engine",
+                        "difficulty": "Advanced",
+                        "tech_stack": list(set(extracted_skills[:2] + ["Redis", "PostgreSQL", "Docker"])),
+                        "problem_statement": "Engineer a distributed sliding-window counter and token-bucket rate limiter to protect downstream services during traffic spikes.",
+                        "expected_outcome": "Sub-millisecond rate limiter middleware with Redis backing and automated load benchmark reports.",
+                        "skills_learned": ["Distributed Systems", "Redis", "High-Throughput APIs", "Caching Strategies"],
+                        "estimated_duration": "3-4 weeks",
+                        "portfolio_value": "High - System design evidence suitable for senior engineering interviews.",
+                    },
+                ]
+                for ps in proj_specs:
+                    stmt_p = select(ProjectRecommendation).where(
+                        ProjectRecommendation.career_id == selected_career_id,
+                        ProjectRecommendation.title == ps["title"],
+                    )
+                    existing_p = (await self.session.execute(stmt_p)).scalar_one_or_none()
+                    if not existing_p:
+                        p_entity = ProjectRecommendation(
+                            id=ps["id"],
+                            career_id=selected_career_id,
+                            title=ps["title"],
+                            difficulty=ps["difficulty"],
+                            tech_stack=ps["tech_stack"],
+                            problem_statement=ps["problem_statement"],
+                            expected_outcome=ps["expected_outcome"],
+                            skills_learned=ps["skills_learned"],
+                            estimated_duration=ps["estimated_duration"],
+                            portfolio_value=ps["portfolio_value"],
+                        )
+                        self.session.add(p_entity)
+            except Exception as proj_err:
+                logger.debug(f"[ResumeService] ProjectRecommendation sync error: {proj_err}")
+
         await self.session.commit()
         logger.info(f"[ResumeService] Successfully analyzed & persisted resume {saved.id} (v{saved.version}) for user {user_id}")
 
@@ -432,6 +485,12 @@ class ResumeService:
         await event_hub.publish(user_id, "profile.updated", {"targetCareer": top_career["title"]})
         await event_hub.publish(user_id, "skills.updated", {"skillsCount": len(extracted_skills)})
         await event_hub.publish(user_id, "career_matches.updated", {"topCareer": top_career["title"], "matchScore": top_career["matchScore"]})
+        await event_hub.publish(user_id, "skill_gaps.updated", {"gapsCount": len(skill_gaps)})
+        await event_hub.publish(user_id, "roadmap.updated", {"roadmapId": active_road_id if 'active_road_id' in locals() else None})
+        await event_hub.publish(user_id, "assignments.updated", {"count": len(generated_assignments)})
+        await event_hub.publish(user_id, "projects.updated", {"careerId": selected_career_id})
+        await event_hub.publish(user_id, "trajectory.updated", {"topCareer": top_career["title"]})
+        await event_hub.publish(user_id, "ai_context.updated", {"resumeId": saved.id})
         await event_hub.publish(user_id, "resume.analysis.completed", {
             "resume_id": saved.id,
             "user_id": user_id,

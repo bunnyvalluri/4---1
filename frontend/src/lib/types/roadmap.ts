@@ -8,6 +8,14 @@ export interface RoadmapResourceLink {
   title: string;
   url: string;
   type: string;
+  provider?: 'W3SCHOOLS' | 'GEEKSFORGEEKS' | string;
+  topic?: string;
+  skill?: string;
+  skill_level?: string;
+  resource_type?: string;
+  description?: string;
+  why_recommended?: string;
+  is_verified?: boolean;
   is_completed?: boolean;
 }
 
@@ -20,6 +28,8 @@ export interface RoadmapTask {
 export interface RoadmapItemData {
   id: string;
   month: number;
+  week_number?: number;
+  sequence_number?: number;
   phase_id: string;
   title: string;
   description: string;
@@ -27,6 +37,17 @@ export interface RoadmapItemData {
   priority: PriorityLevel;
   status: RoadmapItemStatus;
   skills: string[];
+  current_level?: string;
+  target_level?: string;
+  why_matters?: string;
+  practice_task?: string;
+  assignment?: {
+    title: string;
+    description: string;
+    repoTemplate: string;
+    verificationCriteria: string[];
+  } | any;
+  verification_type?: string;
   tasks: RoadmapTask[];
   estimated_hours: number;
   actual_hours: number;

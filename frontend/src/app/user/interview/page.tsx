@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Mic,
@@ -133,13 +133,94 @@ export default function UserInterviewPage() {
   const [showStarGuide, setShowStarGuide] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [resumeProfile, setResumeProfile] = useState<{
+    hasResume: boolean;
+    version: number;
+    targetRole: string;
+    skills: string[];
+    gaps: string[];
+  } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  const availableCareers = Object.keys(QUESTION_BANKS);
-  const availableTypes = Object.keys(QUESTION_BANKS[career] || {});
-  const questions = QUESTION_BANKS[career]?.[type] || [];
+  // Fetch real resume profile from PostgreSQL bootstrap
+  useEffect(() => {
+    let mounted = true;
+    async function loadResumeProfile() {
+      try {
+        const res = await fetch('/api/v1/dashboard/bootstrap');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted && data?.resume?.hasResume) {
+          const targetRole = data.primaryMatch?.targetRole || 'Software Engineer';
+          const detectedSkills = data.skills?.skills || [];
+          const missingSkills = data.skillGaps?.missingSkills || [];
+          setResumeProfile({
+            hasResume: true,
+            version: data.resume.version || 1,
+            targetRole,
+            skills: detectedSkills,
+            gaps: missingSkills,
+          });
+
+          // Match closest available career if present
+          if (QUESTION_BANKS[targetRole]) {
+            setCareer(targetRole);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load resume profile for interview:', err);
+      }
+    }
+    loadResumeProfile();
+
+    const handleInvalidate = () => {
+      loadResumeProfile();
+    };
+    window.addEventListener('career:data-invalidated', handleInvalidate);
+    return () => {
+      mounted = false;
+      window.removeEventListener('career:data-invalidated', handleInvalidate);
+    };
+  }, []);
+
+  const resumeQuestions = useMemo(() => {
+    if (!resumeProfile?.hasResume) return [];
+    const skillsList = resumeProfile.skills.length > 0 ? resumeProfile.skills : ['Python', 'SQL', 'FastAPI'];
+    const gapsList = resumeProfile.gaps.length > 0 ? resumeProfile.gaps : ['Distributed Systems', 'System Design'];
+    const target = resumeProfile.targetRole;
+
+    return [
+      `In your resume targeting ${target}, you highlighted experience with ${skillsList.slice(0, 2).join(' and ')}. Walk me through a challenging architectural decision you made with these technologies, the trade-offs evaluated, and how you validated the outcome.`,
+      `Your CareerAI analysis identifies a development gap in ${gapsList[0] || 'high-throughput architectures'}. If tasked tomorrow with architecting a service requiring this competency, how would you rapidly bridge this gap and ensure production reliability?`,
+      `Describe a high-stakes project mentioned on your resume where requirements shifted abruptly or a production regression occurred. What was your triage methodology and post-mortem mitigation?`,
+      `Looking at your ${target} track, how do you approach database schema design, query optimization, and latency SLAs in a microservices environment?`,
+    ];
+  }, [resumeProfile]);
+
+  const availableCareers = useMemo(() => {
+    const defaultList = Object.keys(QUESTION_BANKS);
+    if (resumeProfile?.hasResume && resumeProfile.targetRole && !defaultList.includes(resumeProfile.targetRole)) {
+      return [resumeProfile.targetRole, ...defaultList];
+    }
+    return defaultList;
+  }, [resumeProfile]);
+
+  const availableTypes = useMemo(() => {
+    const baseTypes = Object.keys(QUESTION_BANKS[career] || QUESTION_BANKS['Software Engineer'] || {});
+    if (resumeProfile?.hasResume) {
+      return ['Resume Defense', ...baseTypes];
+    }
+    return baseTypes;
+  }, [career, resumeProfile]);
+
+  const questions = useMemo(() => {
+    if (type === 'Resume Defense') {
+      return resumeQuestions.length > 0 ? resumeQuestions : (QUESTION_BANKS[career]?.[type] || QUESTION_BANKS['Software Engineer']['Technical']);
+    }
+    return QUESTION_BANKS[career]?.[type] || QUESTION_BANKS['Software Engineer']?.[type] || [];
+  }, [career, type, resumeQuestions]);
 
   // Setup Speech Recognition on client
   useEffect(() => {
@@ -417,6 +498,47 @@ export default function UserInterviewPage() {
         {!started ? (
           /* PRE-SESSION CONFIGURATION & PREVIEW */
           <div className="space-y-6">
+            {/* Resume Personalization Banner */}
+            {resumeProfile?.hasResume ? (
+              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700 p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-black text-[11px] tracking-wide uppercase border border-white/20">
+                      Resume V{resumeProfile.version} Active
+                    </span>
+                    <span className="text-xs text-blue-100 font-medium">
+                      Target: <strong className="text-white font-bold">{resumeProfile.targetRole}</strong>
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-100">
+                    Interview questions are dynamically synthesized from your detected skills ({resumeProfile.skills.slice(0, 4).join(', ')}) and skill gaps. Select <strong className="text-white font-bold">&quot;Resume Defense&quot;</strong> to practice defending your actual projects.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setType('Resume Defense')}
+                  className="px-4 py-2 rounded-xl bg-white text-blue-700 font-black text-xs hover:bg-blue-50 transition-all shadow-xs shrink-0"
+                >
+                  Load Resume Defense Questions →
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                  <div className="text-xs">
+                    <strong className="font-bold">No resume analyzed yet (0% calibrated).</strong>
+                    <span className="text-amber-800 ml-1">Currently showing generic interview questions. Upload your resume to unlock questions tailored to your actual codebases and skill gaps.</span>
+                  </div>
+                </div>
+                <Link
+                  href="/user/resume"
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 transition-all"
+                >
+                  Upload Resume →
+                </Link>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Config Panel */}
               <div className="lg:col-span-7 space-y-6">
@@ -437,7 +559,7 @@ export default function UserInterviewPage() {
                       Target Role
                     </label>
                     <div className="grid grid-cols-2 gap-2.5">
-                      {availableCareers.map((c) => {
+                      {availableCareers.map((c: string) => {
                         const isSelected = career === c;
                         return (
                           <button
@@ -469,7 +591,7 @@ export default function UserInterviewPage() {
                       Interview Format
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {availableTypes.map((t) => {
+                      {availableTypes.map((t: string) => {
                         const isSelected = type === t;
                         return (
                           <button
@@ -624,7 +746,7 @@ export default function UserInterviewPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="flex gap-1.5">
-                  {questions.map((_, idx) => {
+                  {questions.map((_: unknown, idx: number) => {
                     const isCompleted = idx < qIndex;
                     const isCurrent = idx === qIndex;
                     return (

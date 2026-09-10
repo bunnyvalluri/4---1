@@ -17,71 +17,83 @@ export async function GET(req: NextRequest) {
         include: {
           profile: true,
           skills: { include: { skill: true } },
+          skillGaps: { include: { skill: true, career: true }, orderBy: { priority: 'asc' }, take: 5 },
           recommendations: { include: { career: true }, orderBy: { matchScore: 'desc' }, take: 1 },
-          roadmaps: { include: { career: true, items: true }, take: 1 },
-          resumeAnalyses: { orderBy: { createdAt: 'desc' }, take: 1 },
+          roadmaps: { include: { career: true, items: { orderBy: { month: 'asc' } } }, take: 1 },
+          resumeAnalyses: { where: { isCurrent: true }, orderBy: { createdAt: 'desc' }, take: 1 },
           aptitudeAttempts: { orderBy: { completedAt: 'desc' }, take: 1 },
         },
       });
+
+      if (!user) {
+        user = await prisma.user.findFirst({
+          include: {
+            profile: true,
+            skills: { include: { skill: true } },
+            skillGaps: { include: { skill: true, career: true }, orderBy: { priority: 'asc' }, take: 5 },
+            recommendations: { include: { career: true }, orderBy: { matchScore: 'desc' }, take: 1 },
+            roadmaps: { include: { career: true, items: { orderBy: { month: 'asc' } } }, take: 1 },
+            resumeAnalyses: { orderBy: { createdAt: 'desc' }, take: 1 },
+            aptitudeAttempts: { orderBy: { completedAt: 'desc' }, take: 1 },
+          },
+        });
+      }
     } catch {
       // ignore
     }
 
-    const targetCareer = user?.recommendations?.[0]?.career?.title || 'Full Stack Developer';
-    const matchScore = user?.recommendations?.[0]?.matchScore || 92;
+    const latestResume = user?.resumeAnalyses?.[0];
+    const topRec = user?.recommendations?.[0];
+    const targetCareer = topRec?.career?.title || user?.profile?.careerGoals || (latestResume ? (latestResume.rankedCareers as any)?.[0]?.title || 'Target Career Not Selected' : 'Target Career Not Selected');
+    const matchScore = topRec ? Math.round(topRec.matchScore) : 0;
 
     const topSkills = user?.skills?.map((s) => ({
       name: s.skill.name,
       proficiency: s.proficiency,
-      isVerified: true,
-    })) || [
-      { name: 'TypeScript', proficiency: 4, isVerified: true },
-      { name: 'React.js', proficiency: 4, isVerified: true },
-      { name: 'Python', proficiency: 4, isVerified: true },
-    ];
+      isVerified: s.verified,
+    })) || [];
+
+    const realGaps = (user?.skillGaps || []).map((g) => ({
+      name: g.skill.name,
+      severity: g.gapSeverity || (g.priority === 1 ? 'HIGH' : 'MEDIUM'),
+      requiredProficiency: g.requiredProficiency,
+      currentProficiency: g.currentProficiency,
+    }));
 
     const activeRoadmap = user?.roadmaps?.[0];
-    const totalMilestones = activeRoadmap?.items?.length || 6;
-    const completedMilestones = activeRoadmap?.items?.filter((i) => i.isCompleted)?.length || 2;
-    const progressPercent = activeRoadmap?.progressPercent || Math.round((completedMilestones / totalMilestones) * 100);
+    const totalMilestones = activeRoadmap?.items?.length || 0;
+    const completedMilestones = activeRoadmap?.items?.filter((i) => i.isCompleted)?.length || 0;
+    const progressPercent = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+    const nextItem = activeRoadmap?.items?.find((i) => !i.isCompleted);
 
     const context = {
-      user_id: userId,
-      user_name: userName,
-      email: email,
+      user_id: user?.id || userId,
+      user_name: user?.name || userName,
+      email: user?.email || email,
       target_career: targetCareer,
       career_match_score: matchScore,
-      top_skill_gaps: [
-        {
-          name: 'Distributed System Design',
-          severity: 'HIGH',
-          requiredProficiency: 4,
-          currentProficiency: 2,
-        },
-        {
-          name: 'Kubernetes & Cloud Orchestration',
-          severity: 'MEDIUM',
-          requiredProficiency: 3,
-          currentProficiency: 1,
-        },
-      ],
+      top_skill_gaps: realGaps,
       top_skills: topSkills,
       roadmap: {
-        id: activeRoadmap?.id || 'default-roadmap-1',
-        title: targetCareer,
+        id: activeRoadmap?.id || null,
+        title: activeRoadmap?.title || targetCareer,
         progressPercent: progressPercent,
         totalMilestones: totalMilestones,
         completedMilestones: completedMilestones,
-        nextMilestone: 'Backend API Design & Validation Pipelines',
-        currentPhase: 3,
+        nextMilestone: nextItem?.title || (activeRoadmap ? 'All milestones completed' : 'Roadmap Not Generated'),
+        currentPhase: nextItem?.month || 1,
       },
-      resume_ats_score: user?.resumeAnalyses?.[0]?.atsScore || 88,
-      assessment_score: user?.aptitudeAttempts?.[0]?.score || 84,
-      suggested_prompts: [
-        'What should I prioritize on my roadmap this month?',
-        'How can I bridge my Distributed System Design gap?',
+      resume_ats_score: latestResume ? Math.round(latestResume.atsScore) : 0,
+      assessment_score: user?.aptitudeAttempts?.[0] ? Math.round(user.aptitudeAttempts[0].score) : 0,
+      suggested_prompts: realGaps.length > 0 ? [
+        `What should I prioritize on my roadmap to become a ${targetCareer}?`,
+        `How can I bridge my ${realGaps[0].name} gap?`,
         'What skills should I highlight on my resume for top ATS matching?',
-        'Simulate a mock technical interview for Full Stack Developer',
+        `Simulate a mock technical interview for ${targetCareer}`,
+      ] : [
+        'What should I learn next?',
+        'How can I improve my resume for technical roles?',
+        'What projects should I build to enhance my portfolio?',
       ],
     };
 
@@ -92,11 +104,11 @@ export async function GET(req: NextRequest) {
       user_id: 'default_user',
       user_name: 'Candidate',
       email: 'candidate@careerai.com',
-      target_career: 'Full Stack Developer',
-      career_match_score: 92,
+      target_career: 'Target Career Not Selected',
+      career_match_score: 0,
       top_skill_gaps: [],
       top_skills: [],
-      suggested_prompts: ['What should I learn next?'],
+      suggested_prompts: ['Upload your resume to calibrate personalized guidance.'],
     });
   }
 }

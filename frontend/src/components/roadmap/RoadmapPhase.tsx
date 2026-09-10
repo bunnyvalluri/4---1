@@ -15,6 +15,7 @@ interface RoadmapPhaseProps {
   onToggleTask: (itemId: string, taskId: string, currentDone: boolean) => void;
   onSaveNotes: (itemId: string, notes: string) => void;
   onCompleteResource: (itemId: string, resourceId: string) => void;
+  onStartResource?: (itemId: string, resourceId: string) => void;
 }
 
 export function RoadmapPhase({
@@ -27,6 +28,7 @@ export function RoadmapPhase({
   onToggleTask,
   onSaveNotes,
   onCompleteResource,
+  onStartResource,
 }: RoadmapPhaseProps) {
   const isPhaseComplete = phase.progress_percent >= 100;
 
@@ -96,6 +98,7 @@ export function RoadmapPhase({
             onToggleTask={onToggleTask}
             onSaveNotes={onSaveNotes}
             onCompleteResource={onCompleteResource}
+            onStartResource={onStartResource}
           />
         ))}
       </div>

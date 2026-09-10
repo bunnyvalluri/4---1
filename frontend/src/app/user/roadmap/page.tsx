@@ -37,6 +37,7 @@ export default function UserRoadmapPage() {
     startItem,
     completeItem,
     skipItem,
+    startResource,
     completeResource,
     toggleTask,
     saveNotes,
@@ -125,6 +126,7 @@ export default function UserRoadmapPage() {
               onToggleTask={toggleTask}
               onSaveNotes={saveNotes}
               onCompleteResource={completeResource}
+              onStartResource={startResource}
             />
           )}
 

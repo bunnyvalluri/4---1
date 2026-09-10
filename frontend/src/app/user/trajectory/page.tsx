@@ -636,12 +636,57 @@ export default function UserTrajectoryPage() {
   const [selectedTrackType, setSelectedTrackType] = useState<'ic' | 'management'>('ic');
   const [expandedYear, setExpandedYear] = useState<number | null>(1);
   const [completedMilestones, setCompletedMilestones] = useState<Record<string, boolean>>({});
+  const [resumeProfile, setResumeProfile] = useState<{
+    hasResume: boolean;
+    version: number;
+    targetRole: string;
+  } | null>(null);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_MILESTONES);
       if (saved) setCompletedMilestones(JSON.parse(saved));
     } catch {}
+  }, []);
+
+  // Synchronize with real resume profile from PostgreSQL
+  useEffect(() => {
+    let mounted = true;
+    async function loadResumeBootstrap() {
+      try {
+        const res = await fetch('/api/v1/dashboard/bootstrap');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted && data?.resume?.hasResume) {
+          const target = data.primaryMatch?.targetRole || 'Software Engineer';
+          setResumeProfile({
+            hasResume: true,
+            version: data.resume.version || 1,
+            targetRole: target,
+          });
+
+          // Automatically select matching trajectory if present
+          const targetLower = target.toLowerCase();
+          if (targetLower.includes('ai') || targetLower.includes('machine learning') || targetLower.includes('data')) {
+            setSelectedCareerKey('ai-ml-engineer');
+          } else if (targetLower.includes('cloud') || targetLower.includes('devops') || targetLower.includes('sre') || targetLower.includes('security')) {
+            setSelectedCareerKey('cloud-devops');
+          } else {
+            setSelectedCareerKey('software-engineer');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load resume bootstrap in trajectory:', err);
+      }
+    }
+    loadResumeBootstrap();
+
+    const handleInvalidate = () => loadResumeBootstrap();
+    window.addEventListener('career:data-invalidated', handleInvalidate);
+    return () => {
+      mounted = false;
+      window.removeEventListener('career:data-invalidated', handleInvalidate);
+    };
   }, []);
 
   const toggleMilestone = (id: string) => {
@@ -747,6 +792,47 @@ export default function UserTrajectoryPage() {
             )}
           </div>
         </div>
+
+        {/* Resume Personalization Status Banner */}
+        {resumeProfile?.hasResume ? (
+          <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700 p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white font-black text-[11px] tracking-wide uppercase border border-white/20">
+                  Resume V{resumeProfile.version} Calibrated
+                </span>
+                <span className="text-xs text-blue-100 font-medium">
+                  5-Year Track: <strong className="text-white font-bold">{resumeProfile.targetRole}</strong>
+                </span>
+              </div>
+              <p className="text-xs text-blue-100">
+                Your 5-year progression milestones and compensation benchmarks are personalized based on your detected resume experience and target role.
+              </p>
+            </div>
+            <Link
+              href="/user/roadmap"
+              className="px-4 py-2 rounded-xl bg-white text-blue-700 font-black text-xs hover:bg-blue-50 transition-all shadow-xs shrink-0 text-center"
+            >
+              View 12-Week Execution Roadmap →
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Compass className="h-5 w-5 text-amber-600 shrink-0" />
+              <div className="text-xs">
+                <strong className="font-bold">No resume analyzed yet (0% calibrated).</strong>
+                <span className="text-amber-800 ml-1">Showing industry standard baseline projections. Upload your resume to calibrate your entry level (L3 vs L4) and personalized promotion milestones.</span>
+              </div>
+            </div>
+            <Link
+              href="/user/resume"
+              className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 transition-all"
+            >
+              Upload Resume →
+            </Link>
+          </div>
+        )}
 
         {/* Executive High-Impact Telemetry Banner */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

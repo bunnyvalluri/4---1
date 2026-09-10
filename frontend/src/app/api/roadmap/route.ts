@@ -8,14 +8,21 @@ export async function GET(req: NextRequest) {
     const session = await requireAuth(req);
     const { searchParams } = new URL(req.url);
     const careerId = searchParams.get('careerId');
+    const history = searchParams.get('history');
+
+    if (history === 'true') {
+      const historyList = await RoadmapService.getRoadmapHistory(session.userId, careerId || undefined);
+      return NextResponse.json({ history: historyList });
+    }
 
     let roadmap = await prisma.roadmap.findFirst({
       where: {
         userId: session.userId,
         careerId: careerId || undefined,
+        isCurrent: true,
       },
       include: {
-        items: { orderBy: { month: 'asc' } },
+        items: { orderBy: { weekNumber: 'asc' } },
         career: true,
       },
       orderBy: { updatedAt: 'desc' },

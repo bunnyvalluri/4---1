@@ -6,16 +6,18 @@ import {
   Circle,
   Lock,
   Play,
-  FastForward,
   Clock,
-  BookOpen,
   ExternalLink,
   Save,
   Check,
   AlertCircle,
   Edit3,
+  GitBranch,
+  Terminal,
+  ShieldCheck,
 } from 'lucide-react';
 import { RoadmapItemData } from '@/lib/types/roadmap';
+import { ResourceCard } from './ResourceCard';
 
 interface RoadmapItemCardProps {
   item: RoadmapItemData;
@@ -26,6 +28,7 @@ interface RoadmapItemCardProps {
   onToggleTask: (itemId: string, taskId: string, currentDone: boolean) => void;
   onSaveNotes: (itemId: string, notes: string) => void;
   onCompleteResource: (itemId: string, resourceId: string) => void;
+  onStartResource?: (itemId: string, resourceId: string) => void;
 }
 
 export function RoadmapItemCard({
@@ -37,6 +40,7 @@ export function RoadmapItemCard({
   onToggleTask,
   onSaveNotes,
   onCompleteResource,
+  onStartResource,
 }: RoadmapItemCardProps) {
   const [notes, setNotes] = useState(item.notes || '');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
@@ -78,6 +82,8 @@ export function RoadmapItemCard({
     }
   };
 
+  const weekDisplay = item.week_number || (item.month ? (item.month - 1) * 2 + 1 : 1);
+
   return (
     <div
       id={`item-${item.id}`}
@@ -91,21 +97,25 @@ export function RoadmapItemCard({
           : 'border-slate-200 bg-white shadow-2xs'
       }`}
     >
-      {/* Header with Title and Status */}
+      {/* Header with Week, Month, Title and Status */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${getTypeBadge(item.item_type)}`}>
-              {item.item_type}
+            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-blue-600 text-white shadow-2xs">
+              Week {weekDisplay}
             </span>
 
-            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
               Month {item.month}
+            </span>
+
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${getTypeBadge(item.item_type || 'learning')}`}>
+              {item.item_type || 'Curriculum'}
             </span>
 
             <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
               <Clock className="h-3 w-3 text-slate-400" />
-              <span>{Math.round(item.estimated_hours)} hrs</span>
+              <span>{Math.round(item.estimated_hours || 10)} hrs</span>
             </span>
           </div>
 
@@ -155,22 +165,72 @@ export function RoadmapItemCard({
         </div>
       )}
 
-      {/* Target Skills Covered */}
-      {item.skills && item.skills.length > 0 && (
-        <div className="space-y-1.5">
-          <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-            Competencies Tested
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {item.skills.map((s) => (
-              <span
-                key={s}
-                className="px-2.5 py-0.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold"
-              >
-                {s}
+      {/* Embedded ResourceCard for W3Schools & GeeksforGeeks Verified Tutorials */}
+      <ResourceCard
+        itemId={item.id}
+        skillName={item.skills?.[0] || item.title}
+        currentLevel={item.current_level || 'BEGINNER'}
+        targetLevel={item.target_level || 'INTERMEDIATE'}
+        whyMatters={item.why_matters}
+        resources={item.resource_links || []}
+        onStartResource={onStartResource}
+        onCompleteResource={onCompleteResource}
+      />
+
+      {/* Practical Implementation & CI/CD Assignment */}
+      {item.assignment && (
+        <div className="rounded-xl border border-slate-800/10 bg-slate-900 text-white p-4 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+            <div className="flex items-center gap-2">
+              <Terminal className="h-4 w-4 text-emerald-400" />
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-200">
+                Weekly Production Assignment: {item.assignment.title}
+              </h4>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                <ShieldCheck className="h-3 w-3" />
+                {item.verification_type || 'GITHUB_ACTIONS'}
               </span>
-            ))}
+            </div>
           </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {item.assignment.description}
+          </p>
+
+          {item.assignment.verificationCriteria && item.assignment.verificationCriteria.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Automated Verification Criteria
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {item.assignment.verificationCriteria.map((crit: string, idx: number) => (
+                  <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-300">
+                    <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <span>{crit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {item.assignment.repoTemplate && (
+            <div className="pt-2 flex items-center justify-between">
+              <a
+                href={item.assignment.repoTemplate}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline"
+              >
+                <GitBranch className="h-3.5 w-3.5" />
+                <span>GitHub Starter Repository</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+              <span className="text-[10px] text-slate-400">Fork & Submit PR to Verify</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -214,57 +274,12 @@ export function RoadmapItemCard({
         </div>
       )}
 
-      {/* Curated Resources */}
-      {item.resource_links && item.resource_links.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-            Curated Learning Resources
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {item.resource_links.map((res) => (
-              <div
-                key={res.id || res.url}
-                className="p-3 rounded-xl border border-slate-200/90 bg-slate-50/50 hover:bg-white transition-colors flex items-center justify-between gap-2 text-xs"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <BookOpen className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                  <a
-                    href={res.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-slate-800 hover:text-blue-600 hover:underline truncate"
-                  >
-                    {res.title}
-                  </a>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    {res.type || 'Doc'}
-                  </span>
-                  <a
-                    href={res.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1 text-slate-400 hover:text-blue-600"
-                    aria-label={`Open ${res.title}`}
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Personal Learning Notes Field */}
       <div className="space-y-2 pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Edit3 className="h-3 w-3" />
-            <span>Personal Notes & Journal</span>
+            <span>Personal Notes & Repository Link</span>
           </label>
 
           {saveSuccess && (
@@ -307,7 +322,7 @@ export function RoadmapItemCard({
               className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Play className="h-3.5 w-3.5 fill-white" />
-              <span>Start Milestone</span>
+              <span>Start Week Milestone</span>
             </button>
           )}
 

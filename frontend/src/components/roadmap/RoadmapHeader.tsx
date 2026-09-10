@@ -32,8 +32,16 @@ export function RoadmapHeader({ roadmap, onContinue, onCustomize, onRegenerate }
               {roadmap.status === 'ACTIVE' ? 'Active Curriculum' : roadmap.status}
             </span>
 
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-xs font-bold text-purple-700">
+              12-Week Resume Grounded
+            </span>
+
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-800">
+              W3Schools & GeeksforGeeks Verified
+            </span>
+
             <span className="text-xs font-semibold text-slate-400">
-              v{roadmap.version || 1}.0
+              Roadmap V{roadmap.version || 1}
             </span>
           </div>
 

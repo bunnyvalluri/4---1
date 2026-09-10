@@ -21,7 +21,7 @@ import {
   Check,
 } from 'lucide-react';
 import { auth, googleProvider, getFirebaseAuth, getGoogleProvider } from '@/lib/firebase/client';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
 function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {

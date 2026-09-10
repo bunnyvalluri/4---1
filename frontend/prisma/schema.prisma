@@ -204,38 +204,88 @@ model SkillGap {
 }
 
 model Roadmap {
-  id             String        @id @default(cuid())
-  userId         String
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  careerId       String
-  career         Career        @relation(fields: [careerId], references: [id], onDelete: Cascade)
-  title          String
-  description    String
-  durationMonths Int           @default(6)
-  progressPercent Float        @default(0)
-  status         String        @default("IN_PROGRESS") // NOT_STARTED, IN_PROGRESS, COMPLETED
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerId        String
+  career          Career        @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  durationMonths  Int           @default(6)
+  progressPercent Float         @default(0)
+  status          String        @default("CURRENT") // CURRENT, ARCHIVED, COMPLETED
+  version         Int           @default(1)
+  isCurrent       Boolean       @default(true)
+  hoursPerWeek    Int           @default(10)
+  learningPace    String        @default("balanced") // fast_track, balanced, flexible
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  items          RoadmapItem[]
+  items           RoadmapItem[]
 
-  @@unique([userId, careerId])
+  @@index([userId, isCurrent])
+  @@index([userId, careerId])
 }
 
 model RoadmapItem {
-  id          String    @id @default(cuid())
-  roadmapId   String
-  roadmap     Roadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
-  month       Int
-  title       String
-  description String
-  skills      String[]  @default([])
-  tasks       Json      // array of { id, text, done }
-  isCompleted Boolean   @default(false)
-  notes       String?
-  completedAt DateTime?
+  id               String    @id @default(cuid())
+  roadmapId        String
+  roadmap          Roadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  month            Int
+  weekNumber       Int       @default(1)
+  sequenceNumber   Int       @default(1)
+  title            String
+  description      String
+  skills           String[]  @default([])
+  currentLevel     String?   // BEGINNER, INTERMEDIATE, ADVANCED
+  targetLevel      String?   // BEGINNER, INTERMEDIATE, ADVANCED
+  priority         String?   @default("HIGH") // CRITICAL, HIGH, MEDIUM, LOW
+  whyMatters       String?
+  estimatedHours   Float     @default(6.0)
+  tasks            Json?     // array of { id, text, done }
+  practiceTask     String?
+  assignment       Json?     // { title, description, repoTemplate, verificationCriteria }
+  verificationType String?   // GITHUB_ACTIONS, MANUAL_REVIEW, QUIZ
+  resourceLinks    Json?     // array of { id, provider, title, url, resourceType, whyRecommended, isCompleted }
+  isCompleted      Boolean   @default(false)
+  notes            String?
+  completedAt      DateTime?
 
   @@index([roadmapId, month])
+  @@index([roadmapId, weekNumber])
+}
+
+model LearningResource {
+  id             String    @id @default(cuid())
+  provider       String    // W3SCHOOLS, GEEKSFORGEEKS
+  title          String
+  url            String
+  topic          String
+  skill          String
+  skillLevel     String    // BEGINNER, INTERMEDIATE, ADVANCED
+  resourceType   String    // TUTORIAL, REFERENCE, ROADMAP, EXERCISE, PRACTICE, ARTICLE, PROBLEM_SET
+  description    String
+  isVerified     Boolean   @default(true)
+  lastVerifiedAt DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([skill, skillLevel])
+  @@index([provider])
+  @@index([topic])
+}
+
+model ResourceInteraction {
+  id             String    @id @default(cuid())
+  userId         String
+  roadmapItemId  String
+  resourceId     String
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  completionType String?   // USER_MARKED_COMPLETE, VERIFIED_COMPLETION
+  notes          String?
+
+  @@index([userId, roadmapItemId])
 }
 
 model ProjectRecommendation {
@@ -260,6 +310,9 @@ model ResumeAnalysis {
   careerId           String?
   career             Career?  @relation(fields: [careerId], references: [id], onDelete: SetNull)
   fileName           String
+  version            Int      @default(1)
+  isCurrent          Boolean  @default(true)
+  status             String   @default("COMPLETED")
   atsScore           Float    // 0-100
   extractedSkills    String[] @default([])
   missingSkills      String[] @default([])
@@ -279,6 +332,9 @@ model ResumeAnalysis {
   rankedCareers      Json?    // array of { careerId, title, matchScore, reasoning }
   subScores          Json?    // { keywordCoverage, technicalSkillCoverage, roleAlignment, structureQuality, actionVerbs, quantification }
   createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+
+  @@index([userId, isCurrent])
 }
 
 model ChatSession {

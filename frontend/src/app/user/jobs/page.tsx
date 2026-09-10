@@ -247,17 +247,14 @@ const INITIAL_SAMPLES: JobApplication[] = [
 const STORAGE_KEY = 'careerai_applications_v2';
 
 function loadApps(): JobApplication[] {
-  if (typeof window === 'undefined') return INITIAL_SAMPLES;
+  if (typeof window === 'undefined') return [];
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) {
-      // Seed with initial high-quality samples so users never experience a desolate empty screen
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SAMPLES));
-      return INITIAL_SAMPLES;
-    }
-    return JSON.parse(saved);
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return INITIAL_SAMPLES;
+    return [];
   }
 }
 
@@ -295,6 +292,12 @@ export default function UserJobsPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [celebrationOffer, setCelebrationOffer] = useState<string | null>(null);
+  const [resumeProfile, setResumeProfile] = useState<{
+    hasResume: boolean;
+    version: number;
+    targetRole: string;
+    skillsCount: number;
+  } | null>(null);
 
   // Form State
   const [form, setForm] = useState({
@@ -316,6 +319,36 @@ export default function UserJobsPage() {
 
   useEffect(() => {
     setApps(loadApps());
+  }, []);
+
+  // Fetch real resume profile from PostgreSQL bootstrap
+  useEffect(() => {
+    let mounted = true;
+    async function loadBootstrap() {
+      try {
+        const res = await fetch('/api/v1/dashboard/bootstrap');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted && data?.resume?.hasResume) {
+          setResumeProfile({
+            hasResume: true,
+            version: data.resume.version || 1,
+            targetRole: data.primaryMatch?.targetRole || 'Software Engineer',
+            skillsCount: data.skills?.skills?.length || 0,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load bootstrap in jobs page:', err);
+      }
+    }
+    loadBootstrap();
+
+    const handleInvalidate = () => loadBootstrap();
+    window.addEventListener('career:data-invalidated', handleInvalidate);
+    return () => {
+      mounted = false;
+      window.removeEventListener('career:data-invalidated', handleInvalidate);
+    };
   }, []);
 
   const handleResetToDemo = () => {
@@ -569,6 +602,40 @@ export default function UserJobsPage() {
           </div>
         </div>
 
+        {/* External Provider & Resume Integration Callout */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-slate-100 text-slate-600 border border-slate-200">
+              <Building className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black text-slate-900">Live Job Provider Feeds</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  No Job Provider Connected
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                Live ATS/Job integrations (Greenhouse, Lever, LinkedIn, Workday) are not configured. External scraped feeds are disabled to guarantee zero fake or simulated listings. You can track all manual applications and interview rounds below.
+              </p>
+            </div>
+          </div>
+          {resumeProfile?.hasResume ? (
+            <div className="flex items-center gap-2 shrink-0 bg-blue-50 border border-blue-200/70 px-3.5 py-2 rounded-xl text-xs">
+              <Sparkles className="h-4 w-4 text-blue-600" />
+              <div>
+                <span className="font-bold text-blue-900">Resume V{resumeProfile.version} Active</span>
+                <span className="text-blue-700 block text-[11px]">Calibrated for {resumeProfile.targetRole}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 shrink-0 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl text-xs text-slate-600">
+              <AlertCircle className="h-4 w-4 text-slate-400" />
+              <span>Resume: 0% Calibrated</span>
+            </div>
+          )}
+        </div>
+
         {/* Telemetry Dashboard: 4 High-Impact KPI Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs relative overflow-hidden group hover:border-blue-200 transition-colors">
@@ -585,8 +652,8 @@ export default function UserJobsPage() {
               </span>
             </div>
             <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              High conversion velocity
+              <span className={`h-1.5 w-1.5 rounded-full ${stats.total > 0 ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+              {stats.total > 0 ? 'Active candidate pipeline' : 'No applications tracked'}
             </div>
           </div>
 
@@ -599,11 +666,11 @@ export default function UserJobsPage() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-violet-700">{stats.interviewRate}%</span>
-              <span className="text-xs font-bold text-slate-400">vs 15% avg</span>
+              <span className="text-xs font-bold text-slate-400">conversion</span>
             </div>
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-600 font-bold">
-              <Zap className="h-3 w-3" />
-              Top 10% candidate tier
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
+              <Zap className="h-3 w-3 text-violet-500" />
+              {stats.interviewRate > 0 ? 'Calibrated interview response rate' : 'Awaiting interview outcomes'}
             </div>
           </div>
 
@@ -620,7 +687,7 @@ export default function UserJobsPage() {
             </div>
             <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1">
               <Clock className="h-3 w-3 text-slate-400" />
-              Next round tomorrow (Stripe)
+              {stats.interviews > 0 ? `${stats.interviews} round(s) scheduled` : 'No upcoming interview rounds'}
             </div>
           </div>
 
@@ -634,11 +701,11 @@ export default function UserJobsPage() {
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-emerald-600">{stats.offers}</span>
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                🎉 Won
+                {stats.offers > 0 ? '🎉 Active' : '0'}
               </span>
             </div>
             <div className="mt-2 text-[11px] text-slate-500">
-              Est. package: <strong className="text-slate-900">$195k+</strong>
+              {stats.offers > 0 ? 'Review compensation details' : 'No compensation offers yet'}
             </div>
           </div>
         </div>

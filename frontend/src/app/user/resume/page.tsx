@@ -165,7 +165,7 @@ export default function UserResumePage() {
     try {
       // Step 1: Ingest and persist resume in Neon PostgreSQL via centralized API Client
       setAnalysisStatusMessage('Uploading resume & persisting in Neon DB...');
-      const uploadRes = await apiClient.uploadResume(file, directText);
+      const uploadRes: any = await apiClient.uploadResume(file, directText);
       const activeResumeId = uploadRes.resume_id || uploadRes.id;
       setResumeId(activeResumeId);
 
@@ -307,44 +307,29 @@ export default function UserResumePage() {
     setTimeout(() => setCopiedKeyword(null), 2000);
   };
 
-  const atsScore = analysis?.atsScore ?? 88;
+  const atsScore = analysis ? (analysis.atsScore ?? analysis.ats_score ?? 0) : null;
   const scoreTier =
-    atsScore >= 85
-      ? { label: 'Optimal Match', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
-      : atsScore >= 70
-      ? { label: 'Competitive', color: 'text-blue-700 bg-blue-50 border-blue-200' }
-      : { label: 'Needs Optimization', color: 'text-amber-800 bg-amber-50 border-amber-200' };
-
-  const fallbackRankedCareers = [
-    {
-      careerId: 'cmtucksve004z5cjgapltalrf',
-      title: 'Backend Developer',
-      category: 'Software Engineering',
-      matchScore: 92,
-      reasoning: 'Strong alignment with detected Python, FastAPI, PostgreSQL, and REST API architectural patterns.',
-    },
-    {
-      careerId: 'cmtucjmt9002y5cjgjanamxn8',
-      title: 'Full Stack Developer',
-      category: 'Software Engineering',
-      matchScore: 88,
-      reasoning: 'Demonstrates end-to-end full stack proficiency spanning modern web frameworks and database schemas.',
-    },
-    {
-      careerId: 'cmtuck1id003p5cjgsphrsct0',
-      title: 'AI / ML Engineer',
-      category: 'Artificial Intelligence & Data',
-      matchScore: 81,
-      reasoning: 'Demonstrated foundation in Python and data structures; candidate is well-positioned for AI specialization.',
-    },
-  ];
+    atsScore !== null
+      ? atsScore >= 85
+        ? { label: 'Optimal Match', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
+        : atsScore >= 70
+        ? { label: 'Competitive', color: 'text-blue-700 bg-blue-50 border-blue-200' }
+        : { label: 'Needs Optimization', color: 'text-amber-800 bg-amber-50 border-amber-200' }
+      : { label: 'Not Analyzed', color: 'text-slate-600 bg-slate-100 border-slate-200' };
 
   const displayRankedCareers =
     analysis?.rankedCareers && Array.isArray(analysis.rankedCareers) && analysis.rankedCareers.length > 0
       ? analysis.rankedCareers
-      : fallbackRankedCareers;
+      : [];
 
-  const topCareer = displayRankedCareers[0];
+  const topCareer = displayRankedCareers[0] || null;
+
+  const subScores = analysis?.subScores || analysis?.sub_scores || {};
+  const kwCoverage = Number(subScores.keywordCoverage ?? (atsScore ? Math.round(atsScore * 0.95) : 0));
+  const techScore = Number(subScores.technicalSkillCoverage ?? (atsScore ? Math.round(atsScore * 0.92) : 0));
+  const structScore = Number(subScores.structureQuality ?? (atsScore ? Math.min(100, Math.round(atsScore * 1.02)) : 0));
+  const verbScore = Number(subScores.actionVerbs ?? (atsScore ? Math.round(atsScore * 0.88) : 0));
+  const quantScore = Number(subScores.quantification ?? (atsScore ? Math.round(atsScore * 0.82) : 0));
 
   return (
     <div className="space-y-6 w-full min-w-0">
@@ -617,6 +602,57 @@ export default function UserResumePage() {
           {analysis && (
             <div className="space-y-6">
 
+              {/* Central Personalization Engine Active Callout Banner */}
+              <div className="rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-blue-600 shrink-0" />
+                    <span className="text-xs font-black uppercase tracking-wider text-blue-700">
+                      Central Personalization Engine Active
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-blue-200 text-blue-900 text-[10px] font-black tracking-wide">
+                      Resume V{analysis.version || 1}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-900">
+                    Used to personalize your CareerAI journey
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Your skills, career recommendations, skill gaps, personalized roadmap, project deliverables, and AI copilot are dynamically grounded in this resume.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <Link
+                    href="/user/recommendations"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-xs font-extrabold transition-all border border-blue-200 shadow-2xs"
+                  >
+                    <span>View Career Matches</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <Link
+                    href="/user/skills"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-xs font-extrabold transition-all border border-blue-200 shadow-2xs"
+                  >
+                    <span>View Skill Gaps</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <Link
+                    href="/user/roadmap"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-xs font-extrabold transition-all border border-blue-200 shadow-2xs"
+                  >
+                    <span>View Roadmap</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <Link
+                    href="/user/projects"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-blue-700 text-xs font-extrabold transition-all border border-blue-200 shadow-2xs"
+                  >
+                    <span>View Projects</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+
               {/* Live Career Development Status Panel */}
               <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
@@ -631,7 +667,7 @@ export default function UserResumePage() {
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold flex items-center gap-1.5 shadow-2xs">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Active
+                      Active (Resume V{analysis.version || 1})
                     </span>
                   </div>
                 </div>
@@ -640,19 +676,19 @@ export default function UserResumePage() {
                   <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70 space-y-1 hover:bg-blue-50/40 hover:border-blue-200 transition-all">
                     <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wide">Resume Analysis</span>
                     <div className="font-extrabold text-emerald-700 flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-emerald-600" /> Complete
+                      <Check className="h-3.5 w-3.5 text-emerald-600" /> V{analysis.version || 1} Complete
                     </div>
                   </div>
                   <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70 space-y-1 hover:bg-blue-50/40 hover:border-blue-200 transition-all">
                     <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wide">Career Matching</span>
                     <div className="font-extrabold text-emerald-700 flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-emerald-600" /> 92% Match
+                      <Check className="h-3.5 w-3.5 text-emerald-600" /> {topCareer ? `${Math.round(topCareer.matchScore)}% Match` : 'Active'}
                     </div>
                   </div>
                   <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70 space-y-1 hover:bg-blue-50/40 hover:border-blue-200 transition-all">
                     <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wide">Skill Gap Analysis</span>
                     <div className="font-extrabold text-emerald-700 flex items-center gap-1">
-                      <Check className="h-3.5 w-3.5 text-emerald-600" /> 5 Gaps Mapped
+                      <Check className="h-3.5 w-3.5 text-emerald-600" /> {(analysis.missingSkills || analysis.missing_skills || []).length} Gaps Identified
                     </div>
                   </div>
                   <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70 space-y-1 hover:bg-blue-50/40 hover:border-blue-200 transition-all">
@@ -684,7 +720,7 @@ export default function UserResumePage() {
                       ATS Diagnostic Telemetry
                     </span>
                     <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                      {analysis.fileName || 'Verified Candidate Audit'}
+                      {analysis.fileName || analysis.file_name || 'Verified Candidate Audit'}
                     </h2>
                   </div>
 
@@ -707,37 +743,37 @@ export default function UserResumePage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Keyword Coverage</span>
-                    <div className="text-base font-extrabold text-slate-900">92%</div>
+                    <div className="text-base font-extrabold text-slate-900">{kwCoverage}%</div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: '92%' }} />
+                      <div className="bg-blue-600 h-full rounded-full" style={{ width: `${kwCoverage}%` }} />
                     </div>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Technical Skills</span>
-                    <div className="text-base font-extrabold text-slate-900">86%</div>
+                    <div className="text-base font-extrabold text-slate-900">{techScore}%</div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-indigo-600 h-full rounded-full" style={{ width: '86%' }} />
+                      <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${techScore}%` }} />
                     </div>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Structure Quality</span>
-                    <div className="text-base font-extrabold text-slate-900">100%</div>
+                    <div className="text-base font-extrabold text-slate-900">{structScore}%</div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-emerald-600 h-full rounded-full" style={{ width: '100%' }} />
+                      <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${structScore}%` }} />
                     </div>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Action Verbs</span>
-                    <div className="text-base font-extrabold text-slate-900">85%</div>
+                    <div className="text-base font-extrabold text-slate-900">{verbScore}%</div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-teal-600 h-full rounded-full" style={{ width: '85%' }} />
+                      <div className="bg-teal-600 h-full rounded-full" style={{ width: `${verbScore}%` }} />
                     </div>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
                     <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Quantification</span>
-                    <div className="text-base font-extrabold text-slate-900">75%</div>
+                    <div className="text-base font-extrabold text-slate-900">{quantScore}%</div>
                     <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-amber-600 h-full rounded-full" style={{ width: '75%' }} />
+                      <div className="bg-amber-600 h-full rounded-full" style={{ width: `${quantScore}%` }} />
                     </div>
                   </div>
                 </div>

@@ -1,53 +1,15 @@
 import uuid
 from typing import Any, Dict, List, Optional
 from app.core.logging import logger
+from app.services.resource_catalog import ResourceSelectionEngine
 
 
 class AIRoadmapGenerator:
     """
-    Generates personalized learning milestones, phases, and structured items
-    tailored to the user's specific skill gaps, assessment diagnostic, and target career.
+    Generates a personalized 12-week curriculum and learning milestones
+    tailored to the user's specific resume evidence, verified skills,
+    skill gaps, and target career.
     """
-
-    # Verified, high-quality, safe documentation links
-    RESOURCE_CATALOG = {
-        "Python": [
-            {"id": "res-py-1", "title": "Official Python 3 Documentation & Tutorial", "url": "https://docs.python.org/3/tutorial/", "type": "Documentation"},
-            {"id": "res-py-2", "title": "Real Python: Python Best Practices & OOP", "url": "https://realpython.com/", "type": "Tutorial"},
-        ],
-        "JavaScript": [
-            {"id": "res-js-1", "title": "MDN Web Docs: JavaScript Guide", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", "type": "Documentation"},
-            {"id": "res-js-2", "title": "JavaScript.info: Modern JS from Basics to Advanced", "url": "https://javascript.info/", "type": "Tutorial"},
-        ],
-        "TypeScript": [
-            {"id": "res-ts-1", "title": "TypeScript Handbook & Type System", "url": "https://www.typescriptlang.org/docs/handbook/intro.html", "type": "Documentation"},
-        ],
-        "FastAPI": [
-            {"id": "res-fa-1", "title": "FastAPI Official Documentation & Tutorial", "url": "https://fastapi.tiangolo.com/tutorial/", "type": "Documentation"},
-        ],
-        "React": [
-            {"id": "res-rc-1", "title": "React.dev Official Documentation", "url": "https://react.dev/learn", "type": "Documentation"},
-        ],
-        "Machine Learning": [
-            {"id": "res-ml-1", "title": "Scikit-Learn User Guide & Supervised Models", "url": "https://scikit-learn.org/stable/user_guide.html", "type": "Documentation"},
-            {"id": "res-ml-2", "title": "Google Machine Learning Crash Course", "url": "https://developers.google.com/machine-learning/crash-course", "type": "Course"},
-        ],
-        "Deep Learning": [
-            {"id": "res-dl-1", "title": "PyTorch Official Tutorials & Deep Learning with PyTorch", "url": "https://pytorch.org/tutorials/", "type": "Documentation"},
-        ],
-        "Docker": [
-            {"id": "res-dk-1", "title": "Docker Getting Started Guide & Multi-Stage Builds", "url": "https://docs.docker.com/get-started/", "type": "Documentation"},
-        ],
-        "SQL": [
-            {"id": "res-sql-1", "title": "PostgreSQL Documentation & Query Optimization", "url": "https://www.postgresql.org/docs/current/tutorial.html", "type": "Documentation"},
-        ],
-        "Testing": [
-            {"id": "res-test-1", "title": "Pytest Documentation & Automated Testing", "url": "https://docs.pytest.org/en/stable/", "type": "Documentation"},
-        ],
-        "Portfolio": [
-            {"id": "res-port-1", "title": "GitHub Profile & README Best Practices", "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile", "type": "Article"},
-        ],
-    }
 
     async def generate_curriculum(
         self,
@@ -56,199 +18,170 @@ class AIRoadmapGenerator:
         duration_months: int = 6,
         hours_per_week: int = 10,
         learning_pace: str = "balanced",
+        candidate_skills: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Generates structured phases, milestone items, and dependencies
-        grounded in the user's missing skills and career destination.
+        Generates a 12-week personalized roadmap.
+        Curates verified resources from W3Schools and GeeksforGeeks
+        based on candidate skill gaps and level calibration.
         """
-        # Determine pace multiplier for hours
         pace_multiplier = 1.0
         if learning_pace == "fast_track":
             pace_multiplier = 1.25
         elif learning_pace == "flexible":
             pace_multiplier = 0.8
 
-        # Segment missing skills into phases
-        skills_p1 = [s for s in missing_skills if any(k in s.lower() for k in ["python", "java", "script", "foundation", "syntax", "basic"])] or ["Language Syntax & Standard Library", "Data Structures"]
-        skills_p2 = [s for s in missing_skills if any(k in s.lower() for k in ["fastapi", "react", "sql", "database", "orm", "statistic", "numpy", "pandas"])] or ["Framework Architecture", "Relational Persistence"]
-        skills_p3 = [s for s in missing_skills if any(k in s.lower() for k in ["machine learning", "deep learning", "system", "cache", "async", "security", "microservice"])] or ["Advanced Engineering Paradigms", "Performance Optimization"]
-        skills_p4 = [s for s in missing_skills if any(k in s.lower() for k in ["docker", "cloud", "aws", "gcp", "ci/cd", "deployment", "mlops", "kubernetes"])] or ["Containerization & CI/CD", "Cloud Deployment"]
-        skills_p5 = ["System Architecture Design", "Full Stack Capstone Engineering"]
-        skills_p6 = ["Technical Interview Algorithms", "System Design & Recruiter Portfolio"]
+        known_skills = {s.lower() for s in (candidate_skills or [])}
 
-        # Default fallback missing skill allocations
-        if missing_skills:
-            # Spread missing skills across phases 1-4 if not matched
-            for i, skill in enumerate(missing_skills):
-                if skill not in skills_p1 and skill not in skills_p2 and skill not in skills_p3 and skill not in skills_p4:
-                    if i % 4 == 0 and skill not in skills_p1:
-                        skills_p1.append(skill)
-                    elif i % 4 == 1 and skill not in skills_p2:
-                        skills_p2.append(skill)
-                    elif i % 4 == 2 and skill not in skills_p3:
-                        skills_p3.append(skill)
-                    elif skill not in skills_p4:
-                        skills_p4.append(skill)
+        # Normalize and filter missing skills
+        active_gaps = [s for s in missing_skills if s]
+        if not active_gaps:
+            # If candidate already has all basic skills, generate advanced mastery gaps
+            career_lower = career_title.lower()
+            if "frontend" in career_lower or "web" in career_lower:
+                active_gaps = ["TypeScript", "React", "State Management", "Performance Optimization", "System Design", "Testing"]
+            elif "ai" in career_lower or "data" in career_lower:
+                active_gaps = ["NumPy", "Pandas", "Machine Learning", "Deep Learning", "Algorithms", "Model Deployment"]
+            else:
+                active_gaps = ["FastAPI", "PostgreSQL", "Docker", "CI/CD", "System Design", "Testing"]
 
-        phase_configs = [
-            {
-                "id": "phase_1",
-                "month": 1,
-                "title": "Phase 1: Foundation",
-                "subtitle": "Core Language Mastery & Software Paradigms",
-                "description": f"Master core languages, memory management, data structures, and testing best practices required for {career_title}.",
-                "target_skills": skills_p1[:3],
-                "milestone": "Programming & Computational Foundations Certified",
-            },
-            {
-                "id": "phase_2",
-                "month": 2,
-                "title": "Phase 2: Core Skills",
-                "subtitle": "Framework Architecture & Data Workflows",
-                "description": f"Build end-to-end multi-tier architectures, schema optimization, and validation pipelines tailored to {career_title}.",
-                "target_skills": skills_p2[:3],
-                "milestone": "Core Architectural Competency Verified",
-            },
-            {
-                "id": "phase_3",
-                "month": 3,
-                "title": "Phase 3: Advanced",
-                "subtitle": "Domain Algorithms & Deep System Design",
-                "description": f"Implement high-concurrency systems, asynchronous background workflows, caching, and specialized algorithms.",
-                "target_skills": skills_p3[:3],
-                "milestone": "Advanced System Implementation Cleared",
-            },
-            {
-                "id": "phase_4",
-                "month": 4,
-                "title": "Phase 4: Deployment & Tooling",
-                "subtitle": "Containerization, Cloud & Production MLOps/DevOps",
-                "description": "Package production artifacts with Docker, configure automated CI/CD validation suites, and deploy to modern cloud infrastructure.",
-                "target_skills": skills_p4[:3],
-                "milestone": "Production Infrastructure Verified",
-            },
-            {
-                "id": "phase_5",
-                "month": 5,
-                "title": "Phase 5: Portfolio Projects",
-                "subtitle": "Production Capstone & Proof of Competence",
-                "description": f"Design and deliver an enterprise-grade portfolio project showcasing end-to-end {career_title} qualifications.",
-                "target_skills": skills_p5,
-                "milestone": "Production Capstone Deliverable Finalized",
-            },
-            {
-                "id": "phase_6",
-                "month": 6,
-                "title": "Phase 6: Career Launch",
-                "subtitle": "Interview Calibration & Technical Defense",
-                "description": "Polish technical resume bullet points, rehearse system design simulations, and finalize live GitHub demo repositories.",
-                "target_skills": skills_p6,
-                "milestone": "Candidate Interview Readiness Certified",
-            },
-        ]
+        # Weekly allocation templates customized to target career
+        week_templates = self._build_12_week_templates(career_title, active_gaps, known_skills)
 
         phases_data = []
         items_data = []
         previous_item_id: Optional[str] = None
-        item_counter = 1
 
-        for p_idx, p_cfg in enumerate(phase_configs[:duration_months]):
-            phase_id = p_cfg["id"]
-            month_num = p_cfg["month"]
+        # Build 6 phases (each spanning 2 weeks)
+        phase_names = [
+            ("Phase 1: Foundations & Language Review", "Core Syntax, Data Structures & Best Practices"),
+            ("Phase 2: Architectural Frameworks & Schemas", "Modern Frameworks & Relational Data Modeling"),
+            ("Phase 3: Production Engineering & Testing", "Automated Testing, Containerization & Docker"),
+            ("Phase 4: Automation, CI/CD & Cloud", "GitHub Actions, Deployment Pipelines & Cloud Storage"),
+            ("Phase 5: High-Scale Systems & Performance", "System Design, Microservices & Concurrency"),
+            ("Phase 6: Capstone Engineering & Interview Launch", "Production Portfolio & Live Technical Defense"),
+        ]
 
-            # Construct 2 curated items per phase
+        for p_idx, (p_title, p_sub) in enumerate(phase_names):
+            month_num = p_idx + 1
+            phase_id = f"phase_{month_num}"
+
+            # 2 weeks per phase
+            w1_idx = p_idx * 2
+            w2_idx = p_idx * 2 + 1
+
+            w1_spec = week_templates[w1_idx] if w1_idx < len(week_templates) else week_templates[-1]
+            w2_spec = week_templates[w2_idx] if w2_idx < len(week_templates) else week_templates[-1]
+
+            # Generate item for Week 1 of phase
             item1_id = uuid.uuid4().hex[:12]
-            item2_id = uuid.uuid4().hex[:12]
-
-            # Dependencies: item1 depends on previous phase's last item; item2 depends on item1
             item1_deps = [previous_item_id] if previous_item_id else []
-            item2_deps = [item1_id]
-
-            # Status: Only the very first item in Phase 1 starts as NOT_STARTED; others with dependencies start as LOCKED
             item1_status = "NOT_STARTED" if not item1_deps else "LOCKED"
-            item2_status = "LOCKED"
 
-            skills_for_item1 = p_cfg["target_skills"][:2] if p_cfg["target_skills"] else ["Core Fundamentals"]
-            skills_for_item2 = p_cfg["target_skills"][2:] if len(p_cfg["target_skills"]) > 2 else [skills_for_item1[0]]
+            item1_resources = self._resolve_resources_for_skills(
+                skills=w1_spec["skills"],
+                current_level=w1_spec["current_level"],
+                target_level=w1_spec["target_level"],
+            )
 
-            # Resources matching skills
-            res_item1 = self._get_resources_for_skills(skills_for_item1)
-            res_item2 = self._get_resources_for_skills(skills_for_item2)
-
-            est_h1 = round(20.0 * pace_multiplier, 1)
-            est_h2 = round(20.0 * pace_multiplier, 1)
-
-            # Define specific tasks per phase
-            tasks1, tasks2 = self._build_phase_tasks(p_idx + 1, career_title, skills_for_item1, skills_for_item2)
+            est_h1 = round(w1_spec.get("estimated_hours", 10.0) * pace_multiplier, 1)
 
             item1 = {
                 "id": item1_id,
                 "month": month_num,
+                "week_number": w1_idx + 1,
+                "sequence_number": w1_idx + 1,
                 "phase_id": phase_id,
-                "title": f"Month {month_num}: {p_cfg['subtitle'].split('&')[0].strip()} Fundamentals",
-                "description": f"Master the theoretical concepts and practical foundations of {', '.join(skills_for_item1)}.",
-                "item_type": "learning" if month_num <= 4 else ("project" if month_num == 5 else "interview"),
-                "priority": "CRITICAL" if month_num <= 2 else "HIGH",
+                "title": f"Week {w1_idx + 1}: {w1_spec['title']}",
+                "description": w1_spec["description"],
+                "item_type": w1_spec["item_type"],
+                "priority": w1_spec["priority"],
                 "status": item1_status,
-                "skills": skills_for_item1,
-                "tasks": tasks1,
+                "skills": w1_spec["skills"],
+                "current_level": w1_spec["current_level"],
+                "target_level": w1_spec["target_level"],
+                "why_matters": w1_spec["why_matters"],
+                "practice_task": w1_spec["practice_task"],
+                "assignment": w1_spec["assignment"],
+                "verification_type": w1_spec["verification_type"],
+                "tasks": w1_spec["tasks"],
                 "estimated_hours": est_h1,
                 "actual_hours": 0.0,
-                "item_order": item_counter,
+                "item_order": w1_idx + 1,
                 "dependencies": item1_deps,
-                "resource_links": res_item1,
+                "resource_links": item1_resources,
                 "project_id": None,
                 "is_completed": False,
                 "notes": "",
             }
-            item_counter += 1
+
+            # Generate item for Week 2 of phase
+            item2_id = uuid.uuid4().hex[:12]
+            item2_deps = [item1_id]
+            item2_status = "LOCKED"
+
+            item2_resources = self._resolve_resources_for_skills(
+                skills=w2_spec["skills"],
+                current_level=w2_spec["current_level"],
+                target_level=w2_spec["target_level"],
+            )
+
+            est_h2 = round(w2_spec.get("estimated_hours", 10.0) * pace_multiplier, 1)
 
             item2 = {
                 "id": item2_id,
                 "month": month_num,
+                "week_number": w2_idx + 1,
+                "sequence_number": w2_idx + 1,
                 "phase_id": phase_id,
-                "title": f"Month {month_num} Lab: {p_cfg['subtitle'].split('&')[-1].strip()} Application",
-                "description": f"Hands-on exercises and implementation challenges applying {', '.join(skills_for_item2)}.",
-                "item_type": "practice" if month_num <= 4 else ("project" if month_num == 5 else "resume"),
-                "priority": "HIGH",
+                "title": f"Week {w2_idx + 1}: {w2_spec['title']}",
+                "description": w2_spec["description"],
+                "item_type": w2_spec["item_type"],
+                "priority": w2_spec["priority"],
                 "status": item2_status,
-                "skills": skills_for_item2,
-                "tasks": tasks2,
+                "skills": w2_spec["skills"],
+                "current_level": w2_spec["current_level"],
+                "target_level": w2_spec["target_level"],
+                "why_matters": w2_spec["why_matters"],
+                "practice_task": w2_spec["practice_task"],
+                "assignment": w2_spec["assignment"],
+                "verification_type": w2_spec["verification_type"],
+                "tasks": w2_spec["tasks"],
                 "estimated_hours": est_h2,
                 "actual_hours": 0.0,
-                "item_order": item_counter,
+                "item_order": w2_idx + 1,
                 "dependencies": item2_deps,
-                "resource_links": res_item2,
+                "resource_links": item2_resources,
                 "project_id": None,
                 "is_completed": False,
                 "notes": "",
             }
-            item_counter += 1
 
             items_data.append(item1)
             items_data.append(item2)
             previous_item_id = item2_id
 
+            target_phase_skills = list(dict.fromkeys(w1_spec["skills"] + w2_spec["skills"]))
             phases_data.append({
                 "id": phase_id,
                 "month": month_num,
-                "title": p_cfg["title"],
-                "subtitle": p_cfg["subtitle"],
-                "description": p_cfg["description"],
+                "title": p_title,
+                "subtitle": p_sub,
+                "description": f"Master {', '.join(target_phase_skills)} to satisfy core production criteria for {career_title}.",
                 "status": "NOT_STARTED" if month_num == 1 else "LOCKED",
                 "progress_percent": 0.0,
-                "target_skills": p_cfg["target_skills"],
+                "target_skills": target_phase_skills,
                 "items_count": 2,
                 "completed_items_count": 0,
             })
 
         milestones = [
-            {"id": "m1", "title": "Foundations Complete", "month": 1, "completed": False},
-            {"id": "m2", "title": "Core Architectural Mastery", "month": 2, "completed": False},
-            {"id": "m3", "title": "Advanced Engineering Ready", "month": 3, "completed": False},
-            {"id": "m4", "title": "Production Deployment Cleared", "month": 4, "completed": False},
-            {"id": "m5", "title": "Portfolio Deliverable Built", "month": 5, "completed": False},
-            {"id": "m6", "title": "Career Readiness Certified", "month": 6, "completed": False},
+            {"id": "m1", "title": "Language & Data Structures Verified", "month": 1, "completed": False},
+            {"id": "m2", "title": "Framework & Database Architecture Cleared", "month": 2, "completed": False},
+            {"id": "m3", "title": "Testing & Docker Containerization Passing", "month": 3, "completed": False},
+            {"id": "m4", "title": "Automated CI/CD Deployment Verified", "month": 4, "completed": False},
+            {"id": "m5", "title": "High-Scale System Architecture Designed", "month": 5, "completed": False},
+            {"id": "m6", "title": "Production Capstone & Interview Certified", "month": 6, "completed": False},
         ]
 
         return {
@@ -257,101 +190,376 @@ class AIRoadmapGenerator:
             "milestones": milestones[:duration_months],
         }
 
-    def _get_resources_for_skills(self, skills: List[str]) -> List[Dict[str, Any]]:
-        links = []
-        for skill in skills:
-            for cat_key, resources in self.RESOURCE_CATALOG.items():
-                if cat_key.lower() in skill.lower() or skill.lower() in cat_key.lower():
-                    links.extend(resources)
-        if not links:
-            links = [
-                {"id": "res-def-1", "title": "Official Language Specification & Best Practices", "url": "https://docs.python.org/3/", "type": "Documentation"},
-                {"id": "res-def-2", "title": "System Architecture & Design Patterns Reference", "url": "https://developer.mozilla.org/", "type": "Tutorial"},
-            ]
-        # De-duplicate by URL
-        seen_urls = set()
-        deduped = []
-        for l in links:
-            if l["url"] not in seen_urls:
-                seen_urls.add(l["url"])
-                deduped.append({**l, "is_completed": False})
-        return deduped[:3]
-
-    def _build_phase_tasks(
+    def _resolve_resources_for_skills(
         self,
-        phase_num: int,
-        career_title: str,
-        skills1: List[str],
-        skills2: List[str],
-    ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        if phase_num == 1:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Review modern {skills1[0]} language idioms and type annotations", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Set up strict linting, formatting, and test-driven scaffolding", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Implement 10 core algorithmic and memory layout exercises", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Construct data structure modules for {skills2[0]}", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Write comprehensive unit tests with 90%+ code coverage", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Benchmark time and space complexities using profilers", "done": False},
-            ]
-        elif phase_num == 2:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Design relational schemas and queries for {skills1[0]}", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Implement asynchronous API endpoints with strict input validation", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Integrate JWT authentication and security headers", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Build automated data processing pipelines for {skills2[0]}", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Write integration test suites with mocked external services", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Optimize slow database queries using composite indexes", "done": False},
-            ]
-        elif phase_num == 3:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Design high-throughput asynchronous handlers for {skills1[0]}", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Incorporate Redis caching for low-latency read paths", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Perform concurrency benchmarks under simulated load", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Implement specialized domain logic for {skills2[0]}", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Establish structured JSON logging and error telemetry", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Document architecture decisions in formal ADR markdown", "done": False},
-            ]
-        elif phase_num == 4:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": "Create multi-stage Dockerfiles optimizing image size under 150MB", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Configure GitHub Actions CI/CD for automated linting & tests", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Deploy containerized services to a secure cloud runtime", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": "Set up health check endpoints and uptime monitoring", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Configure environment variable management and secrets injection", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Execute rolling deployment simulation with zero downtime", "done": False},
-            ]
-        elif phase_num == 5:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Draft end-to-end architecture specification for {career_title} capstone", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Build core business logic and full data persistence layer", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Create interactive user interface with real-time feedback", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": "Write end-to-end test suites verifying critical user journeys", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Deploy live working demo with publicly accessible URL", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Draft comprehensive GitHub README with architecture diagrams", "done": False},
-            ]
-        else:
-            tasks1 = [
-                {"id": uuid.uuid4().hex[:8], "text": f"Calibrate resume bullet points highlighting {career_title} stack", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Complete 15 LeetCode medium technical algorithm problems", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Conduct mock system design interview covering data partitioning", "done": False},
-            ]
-            tasks2 = [
-                {"id": uuid.uuid4().hex[:8], "text": "Record 3-minute video walkthrough showcasing capstone portfolio", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Tailor LinkedIn headline, summary, and verified skill badges", "done": False},
-                {"id": uuid.uuid4().hex[:8], "text": "Submit 5 targeted applications to verified hiring companies", "done": False},
-            ]
+        skills: List[str],
+        current_level: str,
+        target_level: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Selects and deduplicates official verified resources from W3Schools and GeeksforGeeks.
+        If no verified link exists, provides an explicit fallback notification.
+        """
+        combined: List[Dict[str, Any]] = []
+        seen_urls = set()
 
-        return tasks1, tasks2
+        for skill in skills:
+            matches = ResourceSelectionEngine.find_resources_for_skill(
+                skill_name=skill,
+                current_level=current_level,
+                target_level=target_level,
+                limit=2,
+            )
+            for m in matches:
+                if m["url"] not in seen_urls:
+                    seen_urls.add(m["url"])
+                    combined.append(m)
+
+        # Fallback explanation if no verified resource is found
+        if not combined and skills:
+            combined.append({
+                "id": f"res-fallback-{uuid.uuid4().hex[:6]}",
+                "provider": "CAREERAI",
+                "title": f"Independent Study: {skills[0]}",
+                "url": "",
+                "topic": skills[0],
+                "skill": skills[0],
+                "skill_level": current_level,
+                "resource_type": "REFERENCE",
+                "description": ResourceSelectionEngine.get_fallback_message(skills[0]),
+                "why_recommended": "No verified learning resource is currently available for this topic. Follow practice instructions below.",
+                "is_verified": False,
+            })
+
+        return combined
+
+    def _build_12_week_templates(
+        self,
+        career_title: str,
+        missing_skills: List[str],
+        known_skills: set,
+    ) -> List[Dict[str, Any]]:
+        """
+        Synthesizes 12 targeted weekly specifications grounded in candidate gaps.
+        """
+        career_lower = career_title.lower()
+        is_frontend = "frontend" in career_lower or "web" in career_lower
+        is_ai_data = "ai" in career_lower or "data" in career_lower or "machine learning" in career_lower
+
+        # Map primary gaps
+        gap1 = missing_skills[0] if len(missing_skills) > 0 else ("Python" if not is_frontend else "JavaScript")
+        gap2 = missing_skills[1] if len(missing_skills) > 1 else ("SQL" if not is_frontend else "React")
+        gap3 = missing_skills[2] if len(missing_skills) > 2 else ("FastAPI" if not is_frontend else "TypeScript")
+        gap4 = missing_skills[3] if len(missing_skills) > 3 else ("PostgreSQL" if not is_frontend else "Next.js")
+        gap5 = missing_skills[4] if len(missing_skills) > 4 else "Testing"
+        gap6 = missing_skills[5] if len(missing_skills) > 5 else ("Docker" if not is_frontend else "CSS3")
+        gap7 = missing_skills[6] if len(missing_skills) > 6 else "CI/CD"
+        gap8 = missing_skills[7] if len(missing_skills) > 7 else ("System Design" if not is_frontend else "Performance Optimization")
+
+        templates = [
+            # Week 1
+            {
+                "title": f"Language Foundations & Syntax Review ({gap1})",
+                "description": f"Master idiomatic syntax, data structures, and memory management for {gap1}.",
+                "skills": [gap1],
+                "current_level": "BEGINNER" if gap1.lower() not in known_skills else "INTERMEDIATE",
+                "target_level": "INTERMEDIATE",
+                "why_matters": f"{gap1} syntax fluency is a prerequisite for passing the technical screening for {career_title}.",
+                "practice_task": f"Complete interactive exercises on W3Schools and build 5 modular functions with strict typing.",
+                "assignment": {
+                    "title": f"Build a Modular CLI Data Processor in {gap1}",
+                    "description": "Construct a CLI tool handling JSON/CSV parsing, error logging, and unit tests.",
+                    "repo_template": "https://github.com/careerai-starters/cli-processor",
+                    "verification_criteria": "GitHub Actions passing unit tests with > 90% test coverage.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "CRITICAL",
+                "item_type": "learning",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w1-t1", "text": f"Review official {gap1} syntax and standard library tutorials", "done": False},
+                    {"id": "w1-t2", "text": "Implement unit tests asserting edge cases and boundary inputs", "done": False},
+                    {"id": "w1-t3", "text": "Refactor code to conform to PEP8 / ESLint clean code standards", "done": False},
+                ],
+            },
+            # Week 2
+            {
+                "title": f"Data Structures & Complexity Analysis ({gap1} & DSA)",
+                "description": "Deep dive into hash tables, lists, queues, and asymptotic Big-O runtime analysis.",
+                "skills": [gap1, "Data Structures"],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": "Efficient data structure choices directly dictate latency SLAs and backend throughput.",
+                "practice_task": "Solve 8 curated GeeksforGeeks problems focusing on array manipulation and hash maps.",
+                "assignment": {
+                    "title": "Implement an In-Memory LRU Cache with O(1) Eviction",
+                    "description": "Architect a double-linked list and hash map hybrid cache supporting get and put in O(1).",
+                    "repo_template": "https://github.com/careerai-starters/lru-cache",
+                    "verification_criteria": "All concurrency and eviction unit tests passing.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "CRITICAL",
+                "item_type": "practice",
+                "estimated_hours": 10.0,
+                "tasks": [
+                    {"id": "w2-t1", "text": "Study GeeksforGeeks DSA roadmap on space-time complexity", "done": False},
+                    {"id": "w2-t2", "text": "Benchmark dictionary lookups vs binary search tree implementations", "done": False},
+                    {"id": "w2-t3", "text": "Submit GitHub repository with passing automated test suite", "done": False},
+                ],
+            },
+            # Week 3
+            {
+                "title": f"Modern Framework Architecture ({gap3})",
+                "description": f"Architect asynchronous request handlers, validation schemas, and route middleware in {gap3}.",
+                "skills": [gap3, "REST APIs"],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": f"{gap3} is the core framework powering production services in your target {career_title} path.",
+                "practice_task": "Review GeeksforGeeks framework guide and configure strict request/response models.",
+                "assignment": {
+                    "title": f"Production REST API Service in {gap3}",
+                    "description": "Construct CRUD endpoints with JWT authentication, rate limiting, and OpenAPI docs.",
+                    "repo_template": "https://github.com/careerai-starters/api-service",
+                    "verification_criteria": "All endpoints respond with correct status codes and schema validation.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "learning",
+                "estimated_hours": 10.0,
+                "tasks": [
+                    {"id": "w3-t1", "text": f"Study {gap3} dependency injection and route handler paradigms", "done": False},
+                    {"id": "w3-t2", "text": "Implement input validation to defend against invalid payloads", "done": False},
+                    {"id": "w3-t3", "text": "Set up Swagger/OpenAPI interactive API documentation", "done": False},
+                ],
+            },
+            # Week 4
+            {
+                "title": f"Relational Schema Design & Query Optimization ({gap2} / {gap4})",
+                "description": f"Master database indexing, foreign keys, transactions, and migration scripts with {gap4}.",
+                "skills": [gap2, gap4],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": "Proper indexing prevents severe database locks and p99 query degradation under load.",
+                "practice_task": "Complete W3Schools SQL practice challenges and analyze query plans with EXPLAIN.",
+                "assignment": {
+                    "title": "Design a High-Throughput E-Commerce Database Schema",
+                    "description": "Create normalized PostgreSQL schema with composite indexes, foreign keys, and seed scripts.",
+                    "repo_template": "https://github.com/careerai-starters/ecommerce-schema",
+                    "verification_criteria": "Database migration completes cleanly and passes query speed benchmarks.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "practice",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w4-t1", "text": "Study GeeksforGeeks guide on B-Tree indexing and MVCC transactions", "done": False},
+                    {"id": "w4-t2", "text": "Write migration scripts creating relational tables with constraints", "done": False},
+                    {"id": "w4-t3", "text": "Optimize multi-table JOIN query to execute under 15ms", "done": False},
+                ],
+            },
+            # Week 5
+            {
+                "title": f"Automated Testing & Code Quality Assurance ({gap5})",
+                "description": "Write deterministic unit, integration, and contract tests with mock fixtures.",
+                "skills": [gap5],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": "Production hiring teams look for candidates who write testable code with high branch coverage.",
+                "practice_task": "Review GeeksforGeeks software testing fundamentals and mock external network calls.",
+                "assignment": {
+                    "title": "Comprehensive Test Suite with Pytest / Jest Fixtures",
+                    "description": "Implement automated test suite asserting database transactions and mock API responses.",
+                    "repo_template": "https://github.com/careerai-starters/testing-suite",
+                    "verification_criteria": "Code coverage report verifies > 85% branch coverage with zero flaky tests.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "learning",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w5-t1", "text": "Study testing pyramid concepts (Unit vs Integration vs E2E)", "done": False},
+                    {"id": "w5-t2", "text": "Construct parameterized test cases covering error boundaries", "done": False},
+                    {"id": "w5-t3", "text": "Configure coverage reporter in local git pre-commit hook", "done": False},
+                ],
+            },
+            # Week 6
+            {
+                "title": f"Containerization & Local Environment Isolation ({gap6})",
+                "description": f"Master multi-stage Dockerfile creation, volume mounts, and multi-service orchestration with {gap6}.",
+                "skills": [gap6],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": f"{gap6} containerization ensures identical execution across development, staging, and production.",
+                "practice_task": "Read GeeksforGeeks Docker tutorial and inspect container resource limits.",
+                "assignment": {
+                    "title": f"Dockerize your {gap3} Application with Multi-Stage Build",
+                    "description": "Write a production Dockerfile minimizing image size (< 150MB) and non-root security.",
+                    "repo_template": "https://github.com/careerai-starters/docker-compose-starter",
+                    "verification_criteria": "Docker container boots cleanly and passes healthcheck inspection.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "practice",
+                "estimated_hours": 10.0,
+                "tasks": [
+                    {"id": "w6-t1", "text": f"Study {gap6} container lifecycle, layers, and caching mechanics", "done": False},
+                    {"id": "w6-t2", "text": "Create docker-compose.yml coordinating backend API and PostgreSQL database", "done": False},
+                    {"id": "w6-t3", "text": "Run automated security vulnerability scan against base container image", "done": False},
+                ],
+            },
+            # Week 7
+            {
+                "title": f"Continuous Integration & Continuous Deployment ({gap7})",
+                "description": "Configure automated GitHub Actions / GitLab CI workflows running linters, tests, and security scans.",
+                "skills": [gap7, "Git"],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": "CI/CD pipelines automate quality gates, allowing teams to ship multiple times daily safely.",
+                "practice_task": "Review GeeksforGeeks CI/CD guide and construct a YAML workflow file.",
+                "assignment": {
+                    "title": "Production CI/CD Workflow with Automated Quality Gates",
+                    "description": "Configure GitHub Actions pipeline running lint, unit tests, and Docker image publishing.",
+                    "repo_template": "https://github.com/careerai-starters/ci-workflow",
+                    "verification_criteria": "Pull request triggers workflow and produces green checkmark.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "learning",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w7-t1", "text": "Study CI/CD pipeline triggers on push, pull_request, and release tags", "done": False},
+                    {"id": "w7-t2", "text": "Store encrypted deployment secrets in repository settings", "done": False},
+                    {"id": "w7-t3", "text": "Ensure failing unit test blocks merge to main branch", "done": False},
+                ],
+            },
+            # Week 8
+            {
+                "title": "Cloud Infrastructure & Deployment Fundamentals",
+                "description": "Deploy containerized services to modern cloud providers with environment configuration and HTTPS.",
+                "skills": ["Cloud Architecture", "DevOps"],
+                "current_level": "BEGINNER",
+                "target_level": "INTERMEDIATE",
+                "why_matters": "Employers require candidates who understand how code executes in real cloud environments.",
+                "practice_task": "Review GeeksforGeeks cloud computing overview and configure SSL certificates.",
+                "assignment": {
+                    "title": "Deploy Containerized API to Cloud Staging Environment",
+                    "description": "Provision cloud compute instance, configure reverse proxy with Nginx, and link custom domain.",
+                    "repo_template": "https://github.com/careerai-starters/cloud-deployment",
+                    "verification_criteria": "Service responds with 200 OK over HTTPS on public DNS endpoint.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "practice",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w8-t1", "text": "Study cloud networking, VPC security groups, and port bindings", "done": False},
+                    {"id": "w8-t2", "text": "Configure production environment variables and secrets management", "done": False},
+                    {"id": "w8-t3", "text": "Validate live uptime status via automated ping monitor", "done": False},
+                ],
+            },
+            # Week 9
+            {
+                "title": f"High-Scale System Design & Caching Patterns ({gap8})",
+                "description": "Architect distributed caching (Redis), asynchronous background queues, and rate limiters.",
+                "skills": [gap8, "System Design"],
+                "current_level": "INTERMEDIATE",
+                "target_level": "ADVANCED",
+                "why_matters": "System design determines whether an application collapses or thrives under traffic surges.",
+                "practice_task": "Study GeeksforGeeks System Design roadmap on caching strategies and write-through patterns.",
+                "assignment": {
+                    "title": "Architect a Distributed Sliding-Window Rate Limiter",
+                    "description": "Implement an API rate limiter using Redis sorted sets supporting 10,000 requests/second.",
+                    "repo_template": "https://github.com/careerai-starters/rate-limiter",
+                    "verification_criteria": "Concurrency load test asserts rate limit threshold compliance.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "CRITICAL",
+                "item_type": "learning",
+                "estimated_hours": 10.0,
+                "tasks": [
+                    {"id": "w9-t1", "text": "Study Redis data structures (Strings, Hashes, Sorted Sets)", "done": False},
+                    {"id": "w9-t2", "text": "Design system architecture diagram detailing caching and fallback layers", "done": False},
+                    {"id": "w9-t3", "text": "Profile memory usage and TTL expiration behavior", "done": False},
+                ],
+            },
+            # Week 10
+            {
+                "title": "Microservices Architecture & Event-Driven Patterns",
+                "description": "Decouple services using asynchronous messaging queues, event schemas, and idempotent handlers.",
+                "skills": ["Microservices", "System Design"],
+                "current_level": "INTERMEDIATE",
+                "target_level": "ADVANCED",
+                "why_matters": "Event-driven patterns ensure individual service failures do not cascade into full outages.",
+                "practice_task": "Review GeeksforGeeks microservices architecture guide and idempotency guarantees.",
+                "assignment": {
+                    "title": "Asynchronous Email Notification Worker with Dead-Letter Queue",
+                    "description": "Build an event consumer processing transactional alerts with retry backoff and dead-letter handling.",
+                    "repo_template": "https://github.com/careerai-starters/event-worker",
+                    "verification_criteria": "Failed jobs safely route to dead-letter queue without message loss.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "HIGH",
+                "item_type": "practice",
+                "estimated_hours": 10.0,
+                "tasks": [
+                    {"id": "w10-t1", "text": "Study event-driven architectures and publish-subscribe models", "done": False},
+                    {"id": "w10-t2", "text": "Implement exponential backoff retry policy for transient failures", "done": False},
+                    {"id": "w10-t3", "text": "Verify idempotency prevents duplicate notifications", "done": False},
+                ],
+            },
+            # Week 11
+            {
+                "title": f"Production Capstone Engineering Project ({career_title})",
+                "description": "Synthesize all newly acquired competencies into an enterprise-grade portfolio capstone.",
+                "skills": [gap1, gap3, gap4, "Docker", "CI/CD"],
+                "current_level": "INTERMEDIATE",
+                "target_level": "ADVANCED",
+                "why_matters": "A verified production-grade repository is the strongest proof of competence for hiring managers.",
+                "practice_task": "Draft technical RFC detailing architecture, database schemas, and API contracts.",
+                "assignment": {
+                    "title": f"Full-Lifecycle {career_title} Production Platform",
+                    "description": "Deliver multi-container application with auth, database migrations, CI/CD, and live demo link.",
+                    "repo_template": "https://github.com/careerai-starters/capstone-platform",
+                    "verification_criteria": "Live deployment active + automated CI pipeline green + complete documentation.",
+                },
+                "verification_type": "GITHUB_ACTIONS",
+                "priority": "CRITICAL",
+                "item_type": "project",
+                "estimated_hours": 12.0,
+                "tasks": [
+                    {"id": "w11-t1", "text": "Implement core business features and secure authorization", "done": False},
+                    {"id": "w11-t2", "text": "Write comprehensive unit and integration test coverage", "done": False},
+                    {"id": "w11-t3", "text": "Create architectural diagram and video walkthrough demo", "done": False},
+                ],
+            },
+            # Week 12
+            {
+                "title": "Technical Interview Calibration & Recruiter Defense",
+                "description": f"Master technical interview drills, system design whiteboard defense, and resume alignment for {career_title}.",
+                "skills": ["Technical Interviewing", "System Design"],
+                "current_level": "INTERMEDIATE",
+                "target_level": "ADVANCED",
+                "why_matters": "Clear technical communication and trade-off justification converts interviews into offers.",
+                "practice_task": "Complete GeeksforGeeks interview preparation guide and drill 5 mock rounds on CareerAI.",
+                "assignment": {
+                    "title": "Resume Defense & System Design Portfolio Presentation",
+                    "description": "Document architectural trade-offs made during Capstone project and defend against rubrics.",
+                    "repo_template": "https://github.com/careerai-starters/interview-defense",
+                    "verification_criteria": "Passed CareerAI AI Interview Simulator with composite score >= 8/10.",
+                },
+                "verification_type": "MANUAL_REVIEW",
+                "priority": "CRITICAL",
+                "item_type": "interview",
+                "estimated_hours": 8.0,
+                "tasks": [
+                    {"id": "w12-t1", "text": "Rehearse STAR framework responses for projects on your resume", "done": False},
+                    {"id": "w12-t2", "text": "Conduct live system design simulation with AI Interviewer", "done": False},
+                    {"id": "w12-t3", "text": "Polish resume keywords to achieve > 90% ATS match score", "done": False},
+                ],
+            },
+        ]
+
+        return templates
 
 
 ai_roadmap_generator = AIRoadmapGenerator()

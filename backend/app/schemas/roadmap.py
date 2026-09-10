@@ -8,6 +8,10 @@ class RoadmapResourceLink(BaseModel):
     title: str
     url: str
     type: str = "Documentation"  # Documentation, Course, Tutorial, Article, Practice, Video
+    provider: Optional[str] = "W3SCHOOLS"  # W3SCHOOLS, GEEKSFORGEEKS, OFFICIAL
+    resource_type: Optional[str] = "TUTORIAL"
+    why_recommended: Optional[str] = ""
+    is_verified: bool = True
     is_completed: bool = False
 
 
@@ -20,6 +24,8 @@ class RoadmapTaskItem(BaseModel):
 class RoadmapItemResponse(BaseModel):
     id: str
     month: int
+    week_number: int = 1
+    sequence_number: int = 1
     phase_id: str = "phase_1"
     title: str
     description: str
@@ -27,6 +33,12 @@ class RoadmapItemResponse(BaseModel):
     priority: str = "HIGH"  # CRITICAL, HIGH, MEDIUM, LOW
     status: str = "NOT_STARTED"  # LOCKED, NOT_STARTED, IN_PROGRESS, COMPLETED, SKIPPED
     skills: List[str] = Field(default_factory=list)
+    current_level: Optional[str] = "BEGINNER"
+    target_level: Optional[str] = "INTERMEDIATE"
+    why_matters: Optional[str] = ""
+    practice_task: Optional[str] = ""
+    assignment: Dict[str, Any] = Field(default_factory=dict)
+    verification_type: Optional[str] = "GITHUB_ACTIONS"
     tasks: List[Dict[str, Any]] = Field(default_factory=list)
     estimated_hours: float = 20.0
     actual_hours: float = 0.0
@@ -134,6 +146,7 @@ class RoadmapResponse(BaseModel):
     progress_percent: float
     status: str
     version: int = 1
+    is_current: bool = True
     hours_per_week: int = 10
     learning_pace: str = "balanced"
     career_readiness_score: float = 0.0

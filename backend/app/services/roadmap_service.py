@@ -120,21 +120,28 @@ class RoadmapService:
             have_skill_names = {us.skill.name.lower() for us in user_skills if us.skill}
             missing_skills = [cs.skill.name for cs in career_skills if cs.skill and cs.skill.name.lower() not in have_skill_names]
 
-        # 4. Generate structured curriculum
+        # 4. Generate structured 12-week curriculum with verified W3Schools & GeeksforGeeks resources
         curriculum = await ai_roadmap_generator.generate_curriculum(
             career_title=target_career.title,
             missing_skills=missing_skills,
             duration_months=duration_months,
             hours_per_week=hours_per_week,
             learning_pace=learning_pace,
+            candidate_skills=verified_skill_names,
         )
 
-        # 5. Archive any previous active roadmap for this career or user
-        stmt_prev = select(Roadmap).where(Roadmap.user_id == user_id, Roadmap.status == "ACTIVE")
+        # 5. Archive any previous active roadmap for this career and compute next version
+        stmt_prev = select(Roadmap).where(Roadmap.user_id == user_id, Roadmap.career_id == target_career.id)
         prev_roadmaps = list((await self.session.execute(stmt_prev)).scalars().all())
+        max_version = 0
         for pr in prev_roadmaps:
-            if pr.career_id == target_career.id:
+            if pr.status == "ACTIVE":
                 pr.status = "ARCHIVED"
+                pr.is_current = False
+            if pr.version > max_version:
+                max_version = pr.version
+
+        new_version = max_version + 1
 
         # Calculate estimated completion date
         total_hours = sum(item["estimated_hours"] for item in curriculum["items"])
@@ -146,11 +153,12 @@ class RoadmapService:
             user_id=user_id,
             career_id=target_career.id,
             title=f"Path to {target_career.title}",
-            description=f"Personalized {duration_months}-month mastery roadmap targeting critical skill gaps and production hiring bars.",
+            description=f"Personalized 12-week mastery roadmap targeting critical skill gaps and production hiring bars.",
             duration_months=duration_months,
             progress_percent=0.0,
             status="ACTIVE",
-            version=1,
+            version=new_version,
+            is_current=True,
             hours_per_week=hours_per_week,
             learning_pace=learning_pace,
             career_readiness_score=0.0,
@@ -171,12 +179,14 @@ class RoadmapService:
         self.session.add(new_roadmap)
         await self.session.flush()
 
-        # 7. Add RoadmapItems
+        # 7. Add RoadmapItems with 12-week attributes and verified resource links
         for item_dict in curriculum["items"]:
             r_item = RoadmapItem(
                 id=item_dict["id"],
                 roadmap_id=new_roadmap.id,
                 month=item_dict["month"],
+                week_number=item_dict.get("week_number", 1),
+                sequence_number=item_dict.get("sequence_number", 1),
                 phase_id=item_dict["phase_id"],
                 title=item_dict["title"],
                 description=item_dict["description"],
@@ -184,13 +194,19 @@ class RoadmapService:
                 priority=item_dict["priority"],
                 status=item_dict["status"],
                 skills=item_dict["skills"],
+                current_level=item_dict.get("current_level", "BEGINNER"),
+                target_level=item_dict.get("target_level", "INTERMEDIATE"),
+                why_matters=item_dict.get("why_matters", ""),
+                practice_task=item_dict.get("practice_task", ""),
+                assignment=item_dict.get("assignment", {}),
+                verification_type=item_dict.get("verification_type", "GITHUB_ACTIONS"),
                 tasks=item_dict["tasks"],
                 estimated_hours=item_dict["estimated_hours"],
                 actual_hours=0.0,
                 item_order=item_dict["item_order"],
                 dependencies=item_dict["dependencies"],
                 resource_links=item_dict["resource_links"],
-                project_id=item_dict["project_id"],
+                project_id=item_dict.get("project_id"),
                 is_completed=False,
                 notes="",
             )
@@ -585,6 +601,8 @@ class RoadmapService:
                 id=item_dict["id"],
                 roadmap_id=current.id,
                 month=item_dict["month"],
+                week_number=item_dict.get("week_number", 1),
+                sequence_number=item_dict.get("sequence_number", 1),
                 phase_id=item_dict["phase_id"],
                 title=item_dict["title"],
                 description=item_dict["description"],
@@ -592,13 +610,19 @@ class RoadmapService:
                 priority=item_dict["priority"],
                 status=item_dict["status"],
                 skills=item_dict["skills"],
+                current_level=item_dict.get("current_level", "BEGINNER"),
+                target_level=item_dict.get("target_level", "INTERMEDIATE"),
+                why_matters=item_dict.get("why_matters", ""),
+                practice_task=item_dict.get("practice_task", ""),
+                assignment=item_dict.get("assignment", {}),
+                verification_type=item_dict.get("verification_type", "GITHUB_ACTIONS"),
                 tasks=item_dict["tasks"],
                 estimated_hours=item_dict["estimated_hours"],
                 actual_hours=0.0,
                 item_order=item_dict["item_order"],
                 dependencies=item_dict["dependencies"],
                 resource_links=item_dict["resource_links"],
-                project_id=item_dict["project_id"],
+                project_id=item_dict.get("project_id"),
                 is_completed=False,
                 notes="",
             )
@@ -872,14 +896,20 @@ class RoadmapService:
                 res_links.append(RoadmapResourceLink(
                     id=r.get("id", str(uuid.uuid4())[:8]),
                     title=r.get("title", "Resource"),
-                    url=r.get("url", "https://docs.python.org/3/"),
-                    type=r.get("type", "Documentation"),
+                    url=r.get("url", "https://www.w3schools.com/"),
+                    type=r.get("type", r.get("resource_type", "Documentation")),
+                    provider=r.get("provider", "W3SCHOOLS"),
+                    resource_type=r.get("resource_type", "TUTORIAL"),
+                    why_recommended=r.get("why_recommended", ""),
+                    is_verified=bool(r.get("is_verified", True)),
                     is_completed=bool(r.get("is_completed", False)),
                 ))
 
             items_resp.append(RoadmapItemResponse(
                 id=i.id,
                 month=i.month,
+                week_number=getattr(i, "week_number", (i.month - 1) * 2 + 1),
+                sequence_number=getattr(i, "sequence_number", i.item_order),
                 phase_id=i.phase_id,
                 title=i.title,
                 description=i.description,
@@ -887,6 +917,12 @@ class RoadmapService:
                 priority=i.priority,
                 status=i.status,
                 skills=i.skills or [],
+                current_level=getattr(i, "current_level", "BEGINNER"),
+                target_level=getattr(i, "target_level", "INTERMEDIATE"),
+                why_matters=getattr(i, "why_matters", ""),
+                practice_task=getattr(i, "practice_task", ""),
+                assignment=getattr(i, "assignment", {}) or {},
+                verification_type=getattr(i, "verification_type", "GITHUB_ACTIONS"),
                 tasks=i.tasks or [],
                 estimated_hours=i.estimated_hours,
                 actual_hours=i.actual_hours,
@@ -936,6 +972,7 @@ class RoadmapService:
             progress_percent=roadmap.progress_percent,
             status=roadmap.status,
             version=roadmap.version,
+            is_current=getattr(roadmap, "is_current", True),
             hours_per_week=roadmap.hours_per_week,
             learning_pace=roadmap.learning_pace,
             career_readiness_score=roadmap.career_readiness_score,
@@ -951,6 +988,98 @@ class RoadmapService:
             created_at=roadmap.created_at,
             updated_at=roadmap.updated_at,
         )
+
+    async def track_resource_start(
+        self, user_id: str, item_id: str, resource_id: str
+    ) -> Dict[str, Any]:
+        """Records when a candidate initiates learning an external resource."""
+        from app.models.roadmap import ResourceInteraction
+
+        stmt_item = select(RoadmapItem).options(selectinload(RoadmapItem.roadmap)).where(RoadmapItem.id == item_id)
+        item = (await self.session.execute(stmt_item)).scalar_one_or_none()
+        if not item or (item.roadmap and item.roadmap.user_id != user_id):
+            raise PermissionDeniedError("You do not have access to this roadmap item.")
+
+        stmt = select(ResourceInteraction).where(
+            ResourceInteraction.user_id == user_id,
+            ResourceInteraction.roadmap_item_id == item_id,
+            ResourceInteraction.resource_id == resource_id,
+        )
+        interaction = (await self.session.execute(stmt)).scalar_one_or_none()
+        if not interaction:
+            interaction = ResourceInteraction(
+                user_id=user_id,
+                roadmap_item_id=item_id,
+                resource_id=resource_id,
+                started_at=datetime.utcnow(),
+            )
+            self.session.add(interaction)
+            await self.session.flush()
+
+        return {
+            "success": True,
+            "roadmap_item_id": item_id,
+            "resource_id": resource_id,
+            "started_at": interaction.started_at.isoformat(),
+        }
+
+    async def mark_resource_complete(
+        self, user_id: str, item_id: str, resource_id: str, notes: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Marks an external resource as completed by the user.
+        Distinguishes USER_MARKED_COMPLETE from automated CI VERIFIED_COMPLETION.
+        """
+        from app.models.roadmap import ResourceInteraction
+
+        stmt_item = select(RoadmapItem).options(selectinload(RoadmapItem.roadmap)).where(RoadmapItem.id == item_id)
+        item = (await self.session.execute(stmt_item)).scalar_one_or_none()
+        if not item or (item.roadmap and item.roadmap.user_id != user_id):
+            raise PermissionDeniedError("You do not have access to this roadmap item.")
+
+        stmt = select(ResourceInteraction).where(
+            ResourceInteraction.user_id == user_id,
+            ResourceInteraction.roadmap_item_id == item_id,
+            ResourceInteraction.resource_id == resource_id,
+        )
+        interaction = (await self.session.execute(stmt)).scalar_one_or_none()
+        now = datetime.utcnow()
+        if interaction:
+            interaction.completed_at = now
+            interaction.completion_type = "USER_MARKED_COMPLETE"
+            if notes:
+                interaction.notes = notes
+        else:
+            interaction = ResourceInteraction(
+                user_id=user_id,
+                roadmap_item_id=item_id,
+                resource_id=resource_id,
+                started_at=now,
+                completed_at=now,
+                completion_type="USER_MARKED_COMPLETE",
+                notes=notes,
+            )
+            self.session.add(interaction)
+
+        # Update resource link inside item JSON
+        updated_links = []
+        for r in (item.resource_links or []):
+            if r.get("id") == resource_id or r.get("url") == resource_id:
+                r_copy = dict(r)
+                r_copy["is_completed"] = True
+                updated_links.append(r_copy)
+            else:
+                updated_links.append(r)
+        item.resource_links = updated_links
+        await self.session.flush()
+
+        return {
+            "success": True,
+            "roadmap_item_id": item_id,
+            "resource_id": resource_id,
+            "completion_type": "USER_MARKED_COMPLETE",
+            "completed_at": now.isoformat(),
+        }
 
     async def _sync_to_firestore(self, roadmap: Roadmap) -> None:
         """Mirrors the complete roadmap document and user active roadmap in Firestore."""

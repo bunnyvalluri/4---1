@@ -140,6 +140,18 @@ async def skip_roadmap_item(
     return await service.skip_roadmap_item(current_user.id, item_id)
 
 
+@router.post("/items/{item_id}/resources/{resource_id}/start")
+async def start_roadmap_resource(
+    item_id: str,
+    resource_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Records the initiation of learning an external resource."""
+    service = RoadmapService(db)
+    return await service.track_resource_start(current_user.id, item_id, resource_id)
+
+
 @router.post("/items/{item_id}/resources/{resource_id}/complete", response_model=RoadmapItemResponse)
 async def complete_roadmap_resource(
     item_id: str,

@@ -42,6 +42,8 @@ export default function UserChatPage() {
     loadingSessions,
     isStreaming,
     thinkingState,
+    mode,
+    setMode,
     createSession,
     deleteSession,
     sendMessage,
@@ -288,20 +290,11 @@ export default function UserChatPage() {
       <div className="shrink-0 border-t border-slate-200/90 bg-white">
         <ChatComposer
           input={input}
-          setInput={setInput}
-          onSend={() => handleSend()}
-          onSelectPrompt={(prompt) => handleSend(prompt)}
+          onChange={setInput}
+          onSend={(text?: string) => handleSend(text)}
           isStreaming={isStreaming}
-          suggestedPrompts={
-            context?.suggested_prompts && context.suggested_prompts.length > 0
-              ? context.suggested_prompts
-              : [
-                  'What should I learn next?',
-                  'How can I improve my backend skills?',
-                  'Analyze my skill gaps for target career',
-                  'How to increase my Resume ATS score?',
-                ]
-          }
+          mode={mode}
+          onResetMode={() => setMode('standard')}
         />
       </div>
 
