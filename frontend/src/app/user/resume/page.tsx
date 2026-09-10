@@ -176,10 +176,25 @@ export default function UserResumePage() {
       }
 
       // Step 2: Trigger asynchronous background career intelligence job
-      setAnalysisStatusMessage('Triggering asynchronous career intelligence job...');
+      setAnalysisStatusMessage('Triggering career intelligence engine...');
       const jobRes = await apiClient.startResumeAnalysis(activeResumeId);
       const activeJobId = jobRes.job_id;
       setJobId(activeJobId);
+
+      // If analysis completed synchronously/fast, render immediately and notify portal
+      if (jobRes.status === 'COMPLETED' && (jobRes as any).result) {
+        const resObj = (jobRes as any).result;
+        setAnalysis(resObj);
+        setHistory((prev) => [resObj, ...prev.filter((h) => (h.id || h.resume_id) !== resObj.id)]);
+        setLocalCompletedStages(stagePipeline);
+        setLocalActiveStage('Assignments Generated');
+        setAnalyzing(false);
+        setAnalysisStatusMessage('');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('career:data-invalidated', { detail: { resumeId: activeResumeId } }));
+        }
+        return;
+      }
 
       // Step 3: Poll job status with SSE tracking for guaranteed result delivery
       setAnalysisStatusMessage('Analyzing competencies and generating roadmap...');
@@ -203,6 +218,9 @@ export default function UserResumePage() {
             setLocalActiveStage('Assignments Generated');
             setAnalyzing(false);
             setAnalysisStatusMessage('');
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('career:data-invalidated', { detail: { resumeId: activeResumeId } }));
+            }
             return;
           } else if (status.status === 'FAILED') {
             throw new ApiError({

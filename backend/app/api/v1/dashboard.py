@@ -175,7 +175,7 @@ async def get_dashboard_summary(
             "title": "Complete your Cognitive Psychometric Diagnostic",
             "reason": "Establishes your baseline analytical and problem-solving benchmarks for accurate career matching.",
             "action_label": "Start Diagnostic →",
-            "action_url": "/assessment",
+            "action_url": "/user/assessment",
             "priority": "HIGH",
         }
     elif not latest_resume:
@@ -183,7 +183,7 @@ async def get_dashboard_summary(
             "title": "Upload your latest Resume",
             "reason": "Allows our ATS parser to extract missing keywords and detect production competencies.",
             "action_label": "Upload Resume →",
-            "action_url": "/resume",
+            "action_url": "/user/resume",
             "priority": "HIGH",
         }
     elif profile_completion_pct < 80:
@@ -191,7 +191,7 @@ async def get_dashboard_summary(
             "title": "Complete your Career Profile",
             "reason": "Adding your preferred industries and work experience sharpens recommendation accuracy.",
             "action_label": "Update Profile →",
-            "action_url": "/profile",
+            "action_url": "/user/settings",
             "priority": "MEDIUM",
         }
     elif active_roadmap and any(not i.is_completed for i in active_roadmap.items):
@@ -200,7 +200,7 @@ async def get_dashboard_summary(
             "title": f"Master Month {first_incomplete.month}: '{first_incomplete.title}'",
             "reason": f"Completing this milestone directly improves your {target_career_title} readiness.",
             "action_label": "Continue Roadmap →",
-            "action_url": "/roadmap",
+            "action_url": "/user/roadmap",
             "priority": "HIGH",
         }
     else:
@@ -208,7 +208,7 @@ async def get_dashboard_summary(
             "title": "Explore Career Recommendations",
             "reason": f"Review your real-time matches and skill gap breakdown for {target_career_title}.",
             "action_label": "View Recommendations →",
-            "action_url": "/recommendations",
+            "action_url": "/user/recommendations",
             "priority": "HIGH",
         }
 
@@ -389,32 +389,6 @@ async def get_dashboard_skills(
                 "level": level,
                 "verified": us.verified,
             })
-    else:
-        categories["Technical Skills"] = [
-            {"name": "Python", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "SQL", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "REST API Architecture", "proficiency": 3, "level": "Intermediate", "verified": True},
-            {"name": "Data Structures", "proficiency": 4, "level": "Advanced", "verified": True},
-        ]
-        categories["Frameworks"] = [
-            {"name": "React.js", "proficiency": 3, "level": "Intermediate", "verified": True},
-            {"name": "FastAPI", "proficiency": 3, "level": "Intermediate", "verified": True},
-            {"name": "Next.js", "proficiency": 3, "level": "Intermediate", "verified": True},
-        ]
-        categories["Languages"] = [
-            {"name": "Python", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "JavaScript", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "TypeScript", "proficiency": 3, "level": "Intermediate", "verified": True},
-        ]
-        categories["Tools"] = [
-            {"name": "Git & GitHub", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "Docker", "proficiency": 2, "level": "Beginner", "verified": True},
-            {"name": "PostgreSQL", "proficiency": 3, "level": "Intermediate", "verified": True},
-        ]
-        categories["Soft Skills"] = [
-            {"name": "Analytical Problem Solving", "proficiency": 4, "level": "Advanced", "verified": True},
-            {"name": "Technical Documentation", "proficiency": 3, "level": "Intermediate", "verified": True},
-        ]
 
     return {"categories": categories}
 

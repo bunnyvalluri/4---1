@@ -66,9 +66,12 @@ export function useCareerEvents(token?: string | null) {
         } else if (evtType === 'roadmap.generated') {
           setActiveStage('Roadmap Generated');
           setCompletedStages((prev) => Array.from(new Set([...prev, 'Roadmap Generated'])));
-        } else if (evtType === 'assignments.generated') {
+        } else if (evtType === 'assignments.generated' || evtType === 'resume.analysis.completed') {
           setActiveStage('Assignments Generated');
           setCompletedStages((prev) => Array.from(new Set([...prev, 'Assignments Generated', 'Complete'])));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('career:data-invalidated', { detail: payload }));
+          }
         }
       } catch (err) {
         console.error('Failed to parse SSE message:', err);
@@ -88,6 +91,10 @@ export function useCareerEvents(token?: string | null) {
       'roadmap.generation_started',
       'roadmap.generated',
       'assignments.generated',
+      'resume.analysis.completed',
+      'profile.updated',
+      'skills.updated',
+      'career_matches.updated',
       'repository.connected',
       'assignment.started',
       'assignment.submitted',

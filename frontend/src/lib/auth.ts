@@ -53,7 +53,26 @@ export async function getSessionUser(req?: NextRequest): Promise<TokenPayload | 
   }
 
   if (!token) return null;
-  return verifyToken(token);
+  const verified = verifyToken(token);
+  if (verified) return verified;
+
+  // If token is a Firebase ID token or external JWT, decode the payload
+  try {
+    const decoded = jwt.decode(token) as any;
+    if (decoded && (decoded.user_id || decoded.sub || decoded.uid)) {
+      const uid = decoded.user_id || decoded.sub || decoded.uid;
+      return {
+        userId: uid,
+        email: decoded.email || `${uid}@careerai.dev`,
+        role: (decoded.role as Role) || Role.USER,
+        name: decoded.name || decoded.display_name || 'Candidate',
+      };
+    }
+  } catch {
+    // ignore decode error
+  }
+
+  return null;
 }
 
 export async function requireAuth(req?: NextRequest, requiredRole?: Role) {

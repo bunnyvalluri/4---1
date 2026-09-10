@@ -43,7 +43,7 @@ class EventHub:
         user_id: str,
         event_type: str,
         payload: Dict[str, Any],
-        persist: bool = True,
+        persist: bool = False,
     ):
         event_data = {
             "event": event_type,
@@ -51,7 +51,7 @@ class EventHub:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        # 1. Persist to Neon PostgreSQL if requested
+        # 1. Persist to Neon PostgreSQL only if explicitly requested
         if persist:
             try:
                 async with AsyncSessionLocal() as session:

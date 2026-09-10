@@ -163,7 +163,7 @@ export interface NotificationItem {
   created_at: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000');
 
 export function useDashboardRealtime() {
   const [loading, setLoading] = useState(true);
@@ -364,6 +364,11 @@ export function useDashboardRealtime() {
   useEffect(() => {
     fetchDashboardData();
 
+    const handleInvalidate = () => {
+      fetchDashboardData();
+    };
+    window.addEventListener('career:data-invalidated', handleInvalidate);
+
     // Check for Firebase Firestore Client
     const db = getFirebaseFirestore();
     const fbApp = getFirebaseApp();
@@ -411,6 +416,7 @@ export function useDashboardRealtime() {
     }
 
     return () => {
+      window.removeEventListener('career:data-invalidated', handleInvalidate);
       unsubscribersRef.current.forEach((unsub) => unsub());
       unsubscribersRef.current = [];
     };

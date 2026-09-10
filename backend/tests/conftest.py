@@ -4,6 +4,7 @@ import sys
 from typing import AsyncGenerator
 import pytest
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Ensure backend root is on sys.path
@@ -56,6 +57,20 @@ def event_loop():
 
 
 @pytest.fixture(autouse=True)
+async def cleanup_db_connections():
+    yield
+    from app.db.database import engine as real_engine
+    try:
+        await real_engine.dispose()
+    except Exception:
+        pass
+    try:
+        await test_engine.dispose()
+    except Exception:
+        pass
+
+
+@pytest.fixture(autouse=True)
 async def prepare_database():
     # Import all models to register on Base.metadata
     import app.models.user  # noqa: F401
@@ -103,6 +118,10 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 @pytest.fixture
 async def test_user() -> User:
     async with TestSessionLocal() as session:
+        stmt = select(User).where(User.email == "testuser@careerai.dev")
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing:
+            return existing
         user = User(
             name="Test Engineer",
             email="testuser@careerai.dev",
@@ -124,6 +143,10 @@ async def auth_headers(test_user: User) -> dict:
 @pytest.fixture
 async def test_admin() -> User:
     async with TestSessionLocal() as session:
+        stmt = select(User).where(User.email == "adminlead@careerai.dev")
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing:
+            return existing
         admin = User(
             name="Admin Lead",
             email="adminlead@careerai.dev",

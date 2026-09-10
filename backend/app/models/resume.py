@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import String, Float, ForeignKey, JSON, DateTime, func
+from sqlalchemy import String, Float, ForeignKey, JSON, DateTime, func, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -41,6 +41,9 @@ class ResumeAnalysis(Base):
         index=True,
     )
     file_name: Mapped[str] = mapped_column("file_name", String(255), nullable=False)
+    version: Mapped[int] = mapped_column("version", Integer, default=1, nullable=False)
+    is_current: Mapped[bool] = mapped_column("is_current", Boolean, default=True, nullable=False)
+    status: Mapped[str] = mapped_column("status", String(50), default="COMPLETED", nullable=False)
     ats_score: Mapped[float] = mapped_column("ats_score", Float, nullable=False)  # 0 to 100
     extracted_skills: Mapped[List[str]] = mapped_column("extracted_skills", TextArray, default=list, nullable=False)
     missing_skills: Mapped[List[str]] = mapped_column("missing_skills", TextArray, default=list, nullable=False)
