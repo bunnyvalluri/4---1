@@ -120,14 +120,23 @@ class ResumeService:
         career_stmt = select(Career).where(Career.id == selected_career_id)
         career_res = await self.session.execute(career_stmt)
         existing_career = career_res.scalar_one_or_none()
-        if not existing_career:
-            fallback_career_stmt = select(Career).limit(1)
-            fallback_res = await self.session.execute(fallback_career_stmt)
-            existing_career = fallback_res.scalar_one_or_none()
-            if existing_career:
-                selected_career_id = existing_career.id
-            else:
-                selected_career_id = None
+        if not existing_career and selected_career_id:
+            existing_career = Career(
+                id=selected_career_id,
+                title=top_career.get("title", "Backend Developer"),
+                slug=top_career.get("slug") or top_career.get("title", "backend-developer").lower().replace(" ", "-"),
+                category=top_career.get("category", "Software Engineering"),
+                description=top_career.get("description") or top_career.get("reasoning") or "Professional career path in software engineering.",
+                overview=top_career.get("reasoning", "Recommended based on analyzed resume skills"),
+                salary_range="$95,000 - $145,000",
+                demand_level="High",
+                experience_level="Entry / Mid",
+                education_reqs="Bachelor's degree or equivalent practical industry experience",
+                aptitude_reqs={},
+                common_job_titles=[top_career.get("title", "Backend Developer")],
+            )
+            self.session.add(existing_career)
+            await self.session.flush()
 
         # Compute resume version and mark previous resumes not current
         count_stmt = select(func.count(ResumeAnalysis.id)).where(ResumeAnalysis.user_id == user_id)

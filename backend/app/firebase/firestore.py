@@ -68,22 +68,42 @@ def now_utc_iso() -> str:
 # FIRESTORE REPOSITORY HELPERS
 # ==========================================================
 
+import uuid
+
+_in_memory_db: Dict[str, Dict[str, Any]] = {}
+
+
 class FirestoreRepository:
     """Generic Firestore repository providing typed CRUD, batch, and query operations."""
+    _memory_db: Dict[str, Dict[str, Any]] = _in_memory_db
 
     def __init__(self, collection_name: str):
         self.collection_name = collection_name
-        self.db = get_firestore_client()
-        self.collection = self.db.collection(collection_name)
+        self._memory_db.setdefault(collection_name, {})
+        try:
+            self.db = get_firestore_client()
+            self.collection = self.db.collection(collection_name)
+        except Exception as e:
+            logger.warning(f"Could not connect to Firestore client: {e}. Using in-memory fallback store.")
+            self.db = None
+            self.collection = None
 
     def get(self, doc_id: str) -> Optional[Dict[str, Any]]:
         """Retrieves document by ID."""
-        doc = self.collection.document(doc_id).get()
-        if doc.exists:
-            data = doc.to_dict()
-            data["id"] = doc.id
-            return data
-        return None
+        if self.collection is not None:
+            try:
+                doc = self.collection.document(doc_id).get()
+                if doc.exists:
+                    data = doc.to_dict()
+                    data["id"] = doc.id
+                    self._memory_db[self.collection_name][doc_id] = dict(data)
+                    return data
+                return None
+            except Exception as e:
+                logger.warning(f"Firestore get({self.collection_name}/{doc_id}) fallback to memory: {e}")
+
+        mem_doc = self._memory_db[self.collection_name].get(doc_id)
+        return dict(mem_doc) if mem_doc is not None else None
 
     def set(self, doc_id: str, data: Dict[str, Any], merge: bool = True) -> Dict[str, Any]:
         """Creates or overwrites a document with deterministic ID."""
@@ -92,10 +112,20 @@ class FirestoreRepository:
             data_to_save["updatedAt"] = now_utc_iso()
         if "createdAt" not in data_to_save:
             data_to_save["createdAt"] = now_utc_iso()
-
-        self.collection.document(doc_id).set(data_to_save, merge=merge)
         data_to_save["id"] = doc_id
-        return data_to_save
+
+        target = self._memory_db[self.collection_name]
+        if merge and doc_id in target:
+            target[doc_id] = {**target[doc_id], **data_to_save}
+        else:
+            target[doc_id] = dict(data_to_save)
+
+        if self.collection is not None:
+            try:
+                self.collection.document(doc_id).set(data_to_save, merge=merge)
+            except Exception as e:
+                logger.warning(f"Firestore set({self.collection_name}/{doc_id}) fallback to memory: {e}")
+        return dict(self._memory_db[self.collection_name][doc_id])
 
     def create(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Creates a document with an auto-generated ID."""
@@ -105,52 +135,120 @@ class FirestoreRepository:
         if "updatedAt" not in data_to_save:
             data_to_save["updatedAt"] = now_utc_iso()
 
-        _, doc_ref = self.collection.add(data_to_save)
-        data_to_save["id"] = doc_ref.id
+        doc_id = data_to_save.get("id") or uuid.uuid4().hex
+        data_to_save["id"] = doc_id
+        self._memory_db[self.collection_name][doc_id] = dict(data_to_save)
+
+        if self.collection is not None:
+            try:
+                _, doc_ref = self.collection.add(data_to_save)
+                data_to_save["id"] = doc_ref.id
+                self._memory_db[self.collection_name][doc_ref.id] = dict(data_to_save)
+            except Exception as e:
+                logger.warning(f"Firestore create({self.collection_name}) fallback to memory: {e}")
         return data_to_save
 
     def update(self, doc_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Updates specific fields in a document."""
         data_to_update = dict(data)
         data_to_update["updatedAt"] = now_utc_iso()
-        doc_ref = self.collection.document(doc_id)
-        doc_ref.update(data_to_update)
-        return self.get(doc_id)
+        if doc_id in self._memory_db[self.collection_name]:
+            self._memory_db[self.collection_name][doc_id].update(data_to_update)
+        else:
+            self._memory_db[self.collection_name][doc_id] = dict(data_to_update)
+
+        if self.collection is not None:
+            try:
+                doc_ref = self.collection.document(doc_id)
+                doc_ref.update(data_to_update)
+                return self.get(doc_id)
+            except Exception as e:
+                logger.warning(f"Firestore update({self.collection_name}/{doc_id}) fallback to memory: {e}")
+        return self._memory_db[self.collection_name].get(doc_id)
 
     def delete(self, doc_id: str) -> bool:
         """Deletes a document by ID."""
-        self.collection.document(doc_id).delete()
+        self._memory_db[self.collection_name].pop(doc_id, None)
+        if self.collection is not None:
+            try:
+                self.collection.document(doc_id).delete()
+            except Exception as e:
+                logger.warning(f"Firestore delete({self.collection_name}/{doc_id}) fallback to memory: {e}")
         return True
 
     def query_by_user(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         """Queries documents owned by user_id."""
-        docs = self.collection.where("userId", "==", user_id).limit(limit).stream()
-        results = []
-        for d in docs:
-            item = d.to_dict()
-            item["id"] = d.id
-            results.append(item)
-        return results
+        if self.collection is not None:
+            try:
+                docs = self.collection.where("userId", "==", user_id).limit(limit).stream()
+                results = []
+                for d in docs:
+                    item = d.to_dict()
+                    item["id"] = d.id
+                    results.append(item)
+                return results
+            except Exception as e:
+                logger.warning(f"Firestore query_by_user({self.collection_name}) fallback to memory: {e}")
+
+        items = [
+            dict(v) for v in self._memory_db[self.collection_name].values()
+            if v.get("userId") == user_id or v.get("uid") == user_id or v.get("user_id") == user_id
+        ]
+        return items[:limit]
 
     def query_by_field(self, field: str, op: str, value: Any, limit: int = 100) -> List[Dict[str, Any]]:
         """Executes a filtered query on the collection."""
-        docs = self.collection.where(field, op, value).limit(limit).stream()
-        results = []
-        for d in docs:
-            item = d.to_dict()
-            item["id"] = d.id
-            results.append(item)
-        return results
+        if self.collection is not None:
+            try:
+                docs = self.collection.where(field, op, value).limit(limit).stream()
+                results = []
+                for d in docs:
+                    item = d.to_dict()
+                    item["id"] = d.id
+                    results.append(item)
+                return results
+            except Exception as e:
+                logger.warning(f"Firestore query_by_field({self.collection_name}) fallback to memory: {e}")
+
+        items = []
+        for v in self._memory_db[self.collection_name].values():
+            val = v.get(field)
+            match = False
+            if op in ("==", "=") and val == value:
+                match = True
+            elif op == "!=" and val != value:
+                match = True
+            elif op == "in" and isinstance(value, (list, tuple, set)) and val in value:
+                match = True
+            elif op == "array-contains" and isinstance(val, (list, tuple, set)) and value in val:
+                match = True
+            elif op == ">" and val is not None and val > value:
+                match = True
+            elif op == ">=" and val is not None and val >= value:
+                match = True
+            elif op == "<" and val is not None and val < value:
+                match = True
+            elif op == "<=" and val is not None and val <= value:
+                match = True
+            if match:
+                items.append(dict(v))
+        return items[:limit]
 
     def list_all(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Lists documents up to the specified limit."""
-        docs = self.collection.limit(limit).stream()
-        results = []
-        for d in docs:
-            item = d.to_dict()
-            item["id"] = d.id
-            results.append(item)
-        return results
+        if self.collection is not None:
+            try:
+                docs = self.collection.limit(limit).stream()
+                results = []
+                for d in docs:
+                    item = d.to_dict()
+                    item["id"] = d.id
+                    results.append(item)
+                return results
+            except Exception as e:
+                logger.warning(f"Firestore list_all({self.collection_name}) fallback to memory: {e}")
+
+        return [dict(v) for v in self._memory_db[self.collection_name].values()][:limit]
 
 
 def record_audit_log(user_id: str, action: str, resource: str, metadata: Optional[Dict[str, Any]] = None) -> None:

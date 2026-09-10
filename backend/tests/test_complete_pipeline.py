@@ -4,7 +4,7 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.services.events import event_hub
 from app.services.resume_service import ResumeService
-from app.db.database import AsyncSessionLocal
+from conftest import TestSessionLocal as AsyncSessionLocal
 from app.models.resume import ResumeAnalysis
 from app.models.assignment import Assignment, AssignmentSubmission
 from app.models.roadmap import Roadmap
