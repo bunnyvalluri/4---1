@@ -54,12 +54,6 @@ export default function UserPortalLayout({
           return;
         }
 
-        const role = String(user.role || '').toUpperCase();
-        if (role === 'ADMIN') {
-          router.replace('/admin/dashboard');
-          return;
-        }
-
         if (isMounted) {
           setCurrentUser(user);
           setAuthLoading(false);

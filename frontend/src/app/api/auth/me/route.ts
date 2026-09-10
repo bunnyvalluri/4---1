@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const user = await prisma.user.findUnique({
+      const userPromise = prisma.user.findUnique({
         where: { id: session.userId },
         select: {
           id: true,
@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
           profile: true,
         },
       });
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+      const user = await Promise.race([userPromise, timeoutPromise]);
 
       if (user) {
         return NextResponse.json({ user });

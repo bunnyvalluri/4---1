@@ -4,7 +4,7 @@ import { uploadRateLimiter, getClientIp } from '@/lib/rateLimit';
 import { ResumeParserService } from '@/lib/resumeParser';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 15; // Netlify / Vercel execution ceiling
+export const maxDuration = 30; // Netlify / Vercel execution ceiling
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB upload ceiling
 const ALLOWED_EXTENSIONS = new Set(['.pdf', '.docx', '.txt', '.doc']);
