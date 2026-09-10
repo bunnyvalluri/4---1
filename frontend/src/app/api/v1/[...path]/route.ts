@@ -79,4 +79,5 @@ async function forwardRequest(req: NextRequest, { params }: { params: Promise<{ 
 export const GET = forwardRequest;
 export const POST = forwardRequest;
 export const PUT = forwardRequest;
+export const PATCH = forwardRequest;
 export const DELETE = forwardRequest;

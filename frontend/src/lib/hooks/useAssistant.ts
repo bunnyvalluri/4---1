@@ -137,7 +137,7 @@ export function useAssistant() {
   const fetchContext = useCallback(async () => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/context`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/context`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -160,8 +160,8 @@ export function useAssistant() {
     try {
       const token = await getAuthToken();
       const endpoint = query && query.trim()
-        ? `${BACKEND_URL}/api/v1/assistant/sessions?q=${encodeURIComponent(query.trim())}`
-        : `${BACKEND_URL}/api/v1/assistant/sessions`;
+        ? `${BACKEND_URL}/api/v1/chat/sessions?q=${encodeURIComponent(query.trim())}`
+        : `${BACKEND_URL}/api/v1/chat/sessions`;
       const res = await fetch(endpoint, {
         credentials: 'include',
         headers: {
@@ -191,7 +191,7 @@ export function useAssistant() {
     setLoadingMessages(true);
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions/${sessionId}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -236,7 +236,7 @@ export function useAssistant() {
   const createSession = async (title: string = 'New Consultation', sessionMode: AssistantMode = 'standard') => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -264,7 +264,7 @@ export function useAssistant() {
     if (!newTitle.trim()) return;
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions/${sessionId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
@@ -286,7 +286,7 @@ export function useAssistant() {
   const archiveSession = async (sessionId: string) => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions/${sessionId}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: {
@@ -311,7 +311,7 @@ export function useAssistant() {
   const deleteSession = async (sessionId: string) => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${sessionId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions/${sessionId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -401,7 +401,7 @@ export function useAssistant() {
 
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/sessions/${targetSessionId || 'default'}/stream`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/sessions/${targetSessionId || 'default'}/stream`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -530,7 +530,7 @@ export function useAssistant() {
   ): Promise<{ success: boolean; message: string; data?: any }> => {
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${BACKEND_URL}/api/v1/assistant/actions/execute`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/chat/actions/execute`, {
         method: 'POST',
         credentials: 'include',
         headers: {

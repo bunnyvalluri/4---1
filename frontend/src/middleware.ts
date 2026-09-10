@@ -18,9 +18,28 @@ function decodeJwtPayload(token: string): { role?: string; userId?: string } | n
   }
 }
 
+// Map old candidate routes to their canonical /user/* equivalents
+const LEGACY_ROUTE_MAP: Record<string, string> = {
+  '/dashboard': '/user/dashboard',
+  '/recommendations': '/user/recommendations',
+  '/skills': '/user/skills',
+  '/assessment': '/user/assessment',
+  '/roadmap': '/user/roadmap',
+  '/projects': '/user/projects',
+  '/resume': '/user/resume',
+  '/chat': '/user/chat',
+  '/interview': '/user/interview',
+  '/market': '/user/market',
+  '/applications': '/user/jobs',
+  '/jobs': '/user/jobs',
+  '/trajectory': '/user/trajectory',
+  '/mentors': '/user/mentors',
+  '/profile': '/user/settings',
+};
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('career_auth_token')?.value;
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   // 1. CSRF Defense: Block cross-origin mutation requests to API routes
   if (pathname.startsWith('/api/')) {
@@ -48,11 +67,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 2. Canonical /user root redirect
+  if (pathname === '/user') {
+    return NextResponse.redirect(new URL(`/user/dashboard${search}`, request.url));
+  }
+
+  // 3. Legacy Candidate Route Redirects (/dashboard -> /user/dashboard, etc.)
+  for (const [legacyPath, canonicalPath] of Object.entries(LEGACY_ROUTE_MAP)) {
+    if (pathname === legacyPath || pathname.startsWith(`${legacyPath}/`)) {
+      const subPath = pathname.slice(legacyPath.length);
+      const targetUrl = new URL(`${canonicalPath}${subPath}${search}`, request.url);
+      return NextResponse.redirect(targetUrl, 308);
+    }
+  }
+
   const payload = token ? decodeJwtPayload(token) : null;
   const userRole = payload?.role?.toUpperCase() || '';
   const isAdmin = userRole === 'ADMIN';
 
-  // 2. Admin Route Protection
+  // 4. Admin Route Protection (/admin/*)
   if (pathname.startsWith('/admin')) {
     if (!token) {
       const loginUrl = new URL('/login', request.url);
@@ -60,27 +93,16 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     if (!isAdmin) {
-      // Candidate attempting to access /admin/* -> Return forbidden and redirect to candidate dashboard
-      const dashboardUrl = new URL('/dashboard', request.url);
+      // Candidate attempting to access /admin/* -> Redirect to User Portal
+      const dashboardUrl = new URL('/user/dashboard', request.url);
       dashboardUrl.searchParams.set('denied', 'admin_access_forbidden');
       return NextResponse.redirect(dashboardUrl);
     }
     return NextResponse.next();
   }
 
-  // 3. Candidate Workspace Protection: Prevent Admin from hijacking candidate dashboard
-  const isCandidateRoute =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/assessment') ||
-    pathname.startsWith('/recommendations') ||
-    pathname.startsWith('/roadmap') ||
-    pathname.startsWith('/resume') ||
-    pathname.startsWith('/chat') ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/skills') ||
-    pathname.startsWith('/projects');
-
-  if (isCandidateRoute) {
+  // 5. User Portal Route Protection (/user/*)
+  if (pathname.startsWith('/user')) {
     if (!token) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
@@ -93,13 +115,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 4. Auth Pages Redirection (/login, /register)
+  // 6. Auth Pages Redirection (/login, /register)
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
   if (isAuthPage && token) {
     if (isAdmin) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url));
     }
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/user/dashboard', request.url));
   }
 
   return NextResponse.next();
@@ -107,15 +129,38 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/user/:path*',
+    '/user',
     '/dashboard/:path*',
+    '/dashboard',
     '/assessment/:path*',
+    '/assessment',
     '/recommendations/:path*',
+    '/recommendations',
     '/roadmap/:path*',
+    '/roadmap',
     '/resume/:path*',
+    '/resume',
     '/chat/:path*',
+    '/chat',
     '/profile/:path*',
+    '/profile',
     '/skills/:path*',
+    '/skills',
     '/projects/:path*',
+    '/projects',
+    '/interview/:path*',
+    '/interview',
+    '/market/:path*',
+    '/market',
+    '/applications/:path*',
+    '/applications',
+    '/jobs/:path*',
+    '/jobs',
+    '/trajectory/:path*',
+    '/trajectory',
+    '/mentors/:path*',
+    '/mentors',
     '/admin/:path*',
     '/login',
     '/register',

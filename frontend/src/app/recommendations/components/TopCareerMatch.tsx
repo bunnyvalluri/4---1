@@ -213,14 +213,14 @@ export function TopCareerMatch({ match }: TopCareerMatchProps) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/roadmap"
+                href="/user/roadmap"
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all"
               >
                 <Map className="h-4 w-4 text-slate-500" />
                 Start Career Roadmap
               </Link>
               <Link
-                href="/chat"
+                href="/user/chat"
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all"
               >
                 <MessageSquare className="h-4 w-4 text-slate-500" />

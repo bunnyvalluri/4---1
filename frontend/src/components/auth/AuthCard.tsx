@@ -119,7 +119,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
         if (role === 'ADMIN') {
           router.push('/admin/dashboard');
         } else {
-          router.push('/dashboard');
+          router.push('/user/dashboard');
         }
         router.refresh();
       } else {
@@ -158,15 +158,23 @@ export function AuthCard({ initialMode }: AuthCardProps) {
 
       if (!firebaseAuth || !provider) {
         setGoogleLoading(false);
-        setError('Firebase is not configured. Please contact support.');
+        setError('Firebase Authentication is not configured. Please verify environment variables.');
         return;
       }
 
-      // Replace client references below
-      const client = { auth: firebaseAuth, googleProvider: provider };
+      let userCredential;
+      try {
+        userCredential = await signInWithPopup(firebaseAuth, provider);
+      } catch (popupErr: any) {
+        if (popupErr.code === 'auth/popup-blocked') {
+          console.warn('[Firebase Auth] Popup was blocked by browser. Attempting redirect fallback...');
+          await signInWithRedirect(firebaseAuth, provider);
+          return;
+        }
+        throw popupErr;
+      }
 
-      const result = await signInWithPopup(client.auth, client.googleProvider!);
-      const user = result.user;
+      const user = userCredential.user;
       const idToken = await user.getIdToken();
 
       const res = await fetch('/api/auth/google', {
@@ -191,7 +199,7 @@ export function AuthCard({ initialMode }: AuthCardProps) {
       if (role === 'ADMIN') {
         router.push('/admin/dashboard');
       } else {
-        router.push(mode === 'login' ? '/dashboard' : '/onboarding');
+        router.push(mode === 'login' ? '/user/dashboard' : '/onboarding');
       }
       router.refresh();
     } catch (err: unknown) {

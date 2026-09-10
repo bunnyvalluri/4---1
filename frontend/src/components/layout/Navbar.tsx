@@ -76,6 +76,7 @@ export function Navbar() {
     pathname.startsWith('/onboarding');
 
   const isWorkspacePage =
+    pathname.startsWith('/user') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/chat') ||
     pathname.startsWith('/assessment') ||

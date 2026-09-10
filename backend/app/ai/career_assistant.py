@@ -269,7 +269,7 @@ class CareerAssistant:
                 "action_type": "OPEN_ROADMAP",
                 "title": "Open Active Roadmap",
                 "description": f"Progress: {roadmap.get('progressPercent', 0)}%" if roadmap else "View learning plan",
-                "route": "/roadmap",
+                "route": "/user/roadmap",
                 "requires_confirmation": False,
             })
 
@@ -279,7 +279,7 @@ class CareerAssistant:
                 "action_type": "OPEN_SKILLS",
                 "title": f"Review {top_gap} Gap",
                 "description": "Examine verified skills and required proficiencies",
-                "route": "/skills",
+                "route": "/user/skills",
                 "requires_confirmation": False,
             })
 
@@ -288,7 +288,7 @@ class CareerAssistant:
                 "action_type": "OPEN_PROJECT",
                 "title": active_project.get("title", "Portfolio Projects") if active_project else "Browse Recommended Projects",
                 "description": "Work on applied milestone code",
-                "route": "/projects",
+                "route": "/user/projects",
                 "requires_confirmation": False,
             })
 
@@ -297,7 +297,7 @@ class CareerAssistant:
                 "action_type": "OPEN_RESUME",
                 "title": "Open Resume ATS Scanner",
                 "description": f"Current Score: {ats_score}/100" if ats_score else "Scan and evaluate your resume",
-                "route": "/resume",
+                "route": "/user/resume",
                 "requires_confirmation": False,
             })
 

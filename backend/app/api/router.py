@@ -11,6 +11,7 @@ from app.api.v1 import (
     projects,
     resumes,
     assistant,
+    chat,
     notifications,
     admin,
     dashboard,
@@ -47,6 +48,7 @@ api_router.include_router(assignments.router)
 api_router.include_router(integrations.router)
 api_router.include_router(webhooks.router)
 api_router.include_router(assistant.router)
+api_router.include_router(chat.router)
 api_router.include_router(notifications.router)
 api_router.include_router(admin.router)
 api_router.include_router(email.router)

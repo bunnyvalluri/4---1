@@ -47,74 +47,68 @@ interface QuickToolItem {
 const moreCandidateTools: QuickToolItem[] = [
   {
     name: 'Assessments',
-    href: '/assessment',
+    href: '/user/assessment',
     icon: BrainCircuit,
     description: 'Aptitude & personality evaluation',
   },
   {
     name: 'Portfolio Projects',
-    href: '/projects',
+    href: '/user/projects',
     icon: FolderGit2,
     description: 'Hands-on industry projects',
   },
   {
     name: 'Resume ATS',
-    href: '/resume',
+    href: '/user/resume',
     icon: FileCheck,
     badge: 'ATS',
     description: 'Instant keyword & match audit',
   },
   {
     name: 'AI Copilot',
-    href: '/chat',
+    href: '/user/chat',
     icon: MessageSquare,
     badge: 'Live',
     description: '24/7 intelligent career mentor',
   },
   {
     name: 'Interview Sim',
-    href: '/interview',
+    href: '/user/interview',
     icon: Mic,
     badge: 'New',
     description: 'AI-guided mock interviews',
   },
   {
     name: 'Market Intel',
-    href: '/market',
+    href: '/user/market',
     icon: LineChart,
     badge: 'New',
     description: 'Real-time hiring & salary data',
   },
   {
     name: 'Job Tracker',
-    href: '/applications',
+    href: '/user/jobs',
     icon: Briefcase,
     badge: 'New',
     description: 'Application pipeline & status',
   },
   {
     name: 'Career Trajectory',
-    href: '/trajectory',
+    href: '/user/trajectory',
     icon: TrendingUp,
     badge: 'New',
     description: '5-year compensation growth',
   },
   {
     name: 'Mentors',
-    href: '/mentors',
+    href: '/user/mentors',
     icon: Users,
     badge: 'New',
     description: 'Verified industry mentorship',
   },
   {
-    name: 'My Profile',
-    href: '/profile',
-    icon: User,
-    description: 'Personal info, target career, skills',
-  },
-  {
-    name: 'Account Settings',
-    href: '/profile',
+    name: 'Preferences',
+    href: '/user/settings',
     icon: Settings,
     description: 'Privacy, password & preferences',
   },
@@ -187,6 +181,7 @@ export function UserMobileNav() {
 
   // Render exclusively on candidate workspace routes
   const isCandidateWorkspace =
+    pathname.startsWith('/user') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/chat') ||
     pathname.startsWith('/assessment') ||
@@ -208,11 +203,13 @@ export function UserMobileNav() {
   }
 
   // Active status determinations
-  const isDashboardActive = pathname === '/dashboard';
+  const isDashboardActive = pathname === '/user/dashboard' || pathname === '/dashboard';
   const isRecommendationsActive =
-    pathname.startsWith('/recommendations') || pathname.startsWith('/careers');
-  const isSkillsActive = pathname.startsWith('/skills');
-  const isRoadmapActive = pathname.startsWith('/roadmap');
+    pathname.startsWith('/user/recommendations') ||
+    pathname.startsWith('/recommendations') ||
+    pathname.startsWith('/careers');
+  const isSkillsActive = pathname.startsWith('/user/skills') || pathname.startsWith('/skills');
+  const isRoadmapActive = pathname.startsWith('/user/roadmap') || pathname.startsWith('/roadmap');
 
   return (
     <>
@@ -227,7 +224,7 @@ export function UserMobileNav() {
         <div className="flex items-center justify-around bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-full shadow-[0_10px_35px_-5px_rgba(15,23,42,0.16)] px-3 py-1.5 transition-all">
           {/* 1. Dashboard Tab */}
           <Link
-            href="/dashboard"
+            href="/user/dashboard"
             className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
           >
             <div
@@ -256,7 +253,7 @@ export function UserMobileNav() {
 
           {/* 2. Recommendations Tab */}
           <Link
-            href="/recommendations"
+            href="/user/recommendations"
             className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
           >
             <div
@@ -285,7 +282,7 @@ export function UserMobileNav() {
 
           {/* 3. Skills Tab */}
           <Link
-            href="/skills"
+            href="/user/skills"
             className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
           >
             <div
@@ -314,7 +311,7 @@ export function UserMobileNav() {
 
           {/* 4. Roadmap Tab */}
           <Link
-            href="/roadmap"
+            href="/user/roadmap"
             className="flex flex-col items-center justify-center flex-1 py-1 group transition-transform active:scale-95"
           >
             <div
