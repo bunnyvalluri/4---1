@@ -53,6 +53,16 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  env: {
+    DATABASE_URL:
+      process.env.DATABASE_URL ||
+      'postgresql://neondb_owner:npg_SwidG35QXDWx@ep-muddy-math-aeqfkwpn-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&pgbouncer=true&connect_timeout=30',
+    DIRECT_URL:
+      process.env.DIRECT_URL ||
+      'postgresql://neondb_owner:npg_SwidG35QXDWx@ep-muddy-math-aeqfkwpn.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&connect_timeout=30',
+    JWT_SECRET:
+      process.env.JWT_SECRET || 'super-secure-production-jwt-secret-career-ai-2026-key',
+  },
   async headers() {
     return [
       {
