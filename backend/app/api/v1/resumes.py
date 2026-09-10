@@ -1,12 +1,15 @@
 import uuid
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, BackgroundTasks, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db, AsyncSessionLocal
 from app.api.deps import get_current_user
 from app.models.user import User
+from app.models.resume import ResumeAnalysis
 from app.services.resume_service import ResumeService
 from app.services.job_service import job_manager, JobStatus
+from app.services.events import event_hub
+from app.firebase.storage import upload_file_bytes, download_file_bytes, generate_resume_storage_path
 from app.utils.file_utils import sanitize_filename
 from app.utils.validators import is_allowed_file_extension
 from app.core.logging import logger
@@ -15,6 +18,9 @@ router = APIRouter(prefix="/resumes", tags=["Resume"])
 # Also support legacy /resume router prefix
 legacy_router = APIRouter(prefix="/resume", tags=["Resume Legacy"])
 
+# In-memory buffer cache for uploaded files between upload and analyze
+_resume_bytes_cache: Dict[str, Tuple[str, bytes]] = {}
+
 
 async def run_resume_analysis_pipeline(
     job_id: str,
@@ -22,6 +28,7 @@ async def run_resume_analysis_pipeline(
     file_name: str,
     file_bytes: bytes,
     career_id: Optional[str] = None,
+    existing_resume_id: Optional[str] = None,
 ):
     """Background processor for multi-stage resume parsing, career matching, and roadmap generation."""
     try:
@@ -33,6 +40,7 @@ async def run_resume_analysis_pipeline(
                 file_name=file_name,
                 file_bytes=file_bytes,
                 career_id=career_id,
+                resume_id=existing_resume_id,
             )
 
         job_manager.update_job(
@@ -74,19 +82,18 @@ async def run_resume_analysis_pipeline(
         )
 
 
-@router.post("")
-@router.post("/upload-async")
-@legacy_router.post("/upload-async")
-async def upload_resume_endpoint(
-    background_tasks: BackgroundTasks,
+@router.post("/upload")
+@legacy_router.post("/upload")
+async def upload_resume_file_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     file: Optional[UploadFile] = File(None),
     text: Optional[str] = Form(None),
     career_id: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """
-    Ingests resume payload (File or Direct Paste) and immediately queues background analysis.
-    Returns job_id < 50ms.
+    Ingests resume payload (File or Direct Paste) and persists initial analysis in Neon DB.
+    Returns resume_id, ats_score, extracted_skills, and verified metadata.
     """
     file_bytes: bytes = b""
     file_name: str = "Pasted_Resume.txt"
@@ -120,6 +127,86 @@ async def upload_resume_endpoint(
             detail="Resume payload exceeds maximum allowable 10MB limit.",
         )
 
+    service = ResumeService(db)
+    saved = await service.analyze_and_save_resume(
+        user_id=current_user.id,
+        file_name=file_name,
+        file_bytes=file_bytes,
+        career_id=career_id,
+    )
+
+    # Cache file bytes in-memory for instant background job dispatch if requested
+    _resume_bytes_cache[saved.id] = (saved.file_name, file_bytes)
+
+    return {
+        "resume_id": saved.id,
+        "id": saved.id,
+        "fileName": saved.file_name,
+        "fileSize": len(file_bytes),
+        "status": "uploaded",
+        "ats_score": saved.ats_score,
+        "atsScore": saved.ats_score,
+        "extracted_skills": saved.extracted_skills,
+        "extractedSkills": saved.extracted_skills,
+        "missing_skills": saved.missing_skills,
+        "missingSkills": saved.missing_skills,
+        "ranked_careers": saved.ranked_careers,
+        "rankedCareers": saved.ranked_careers,
+        "recommendations": saved.recommendations,
+        "summary": saved.summary,
+        "personalInfo": saved.personal_info,
+        "education": saved.education,
+        "experience": saved.experience,
+        "projects": saved.projects,
+        "certifications": saved.certifications,
+        "careerSignals": saved.career_signals,
+        "subScores": saved.sub_scores,
+        "message": "Resume uploaded successfully and analyzed in Neon PostgreSQL.",
+    }
+
+
+@router.post("/{resume_id}/analyze")
+@legacy_router.post("/{resume_id}/analyze")
+async def analyze_existing_resume_endpoint(
+    resume_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    career_id: Optional[str] = Form(None),
+) -> Dict[str, Any]:
+    """
+    Triggers asynchronous resume analysis and career roadmap pipeline for a previously uploaded resume.
+    Returns job_id < 50ms and emits real-time SSE lifecycle events.
+    """
+    service = ResumeService(db)
+    existing_record = await service.resume_repo.get_by_id(resume_id)
+    if not existing_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Resume record '{resume_id}' not found.",
+        )
+
+    # Enforce candidate data ownership
+    if existing_record.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to analyze this resume.",
+        )
+
+    # Retrieve bytes from memory cache or storage
+    cached = _resume_bytes_cache.get(resume_id)
+    if cached:
+        file_name, file_bytes = cached
+    else:
+        file_name = existing_record.file_name
+        if existing_record.storage_path:
+            try:
+                file_bytes = download_file_bytes(existing_record.storage_path)
+            except Exception:
+                file_bytes = (existing_record.raw_text or "").encode("utf-8")
+        else:
+            file_bytes = (existing_record.raw_text or "").encode("utf-8")
+
     job_id = f"job-{uuid.uuid4().hex[:12]}"
     job_manager.create_job(job_id=job_id, user_id=current_user.id, job_type="RESUME_CAREER_ENGINE")
 
@@ -130,10 +217,84 @@ async def upload_resume_endpoint(
         file_name=file_name,
         file_bytes=file_bytes,
         career_id=career_id,
+        existing_resume_id=resume_id,
     )
 
     return {
         "job_id": job_id,
+        "resume_id": resume_id,
+        "status": JobStatus.QUEUED,
+        "progress": 5,
+        "step_message": "Analysis queued for background processing",
+    }
+
+
+@router.post("")
+@router.post("/upload-async")
+@legacy_router.post("/upload-async")
+async def upload_resume_endpoint(
+    background_tasks: BackgroundTasks,
+    current_user: Annotated[User, Depends(get_current_user)],
+    file: Optional[UploadFile] = File(None),
+    text: Optional[str] = Form(None),
+    career_id: Optional[str] = Form(None),
+) -> Dict[str, Any]:
+    """
+    Ingests resume payload (File or Direct Paste) and immediately queues background analysis.
+    Returns job_id and resume_id < 50ms.
+    """
+    file_bytes: bytes = b""
+    file_name: str = "Pasted_Resume.txt"
+
+    if file and file.filename:
+        safe_ext = file.filename.lower()
+        if not (safe_ext.endswith(".pdf") or safe_ext.endswith(".docx") or safe_ext.endswith(".txt") or safe_ext.endswith(".doc")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported file format. Please upload a PDF, DOCX, or TXT file.",
+            )
+        file_bytes = await file.read()
+        file_name = file.filename
+    elif text and text.strip():
+        if len(text.strip()) < 50:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Pasted resume text is too short. Please provide comprehensive resume content.",
+            )
+        file_bytes = text.encode("utf-8")
+        file_name = "Direct_Input_Resume.txt"
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide either a resume document file or pasted resume text.",
+        )
+
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Resume payload exceeds maximum allowable 10MB limit.",
+        )
+
+    safe_name = sanitize_filename(file_name)
+    resume_id = f"res_{uuid.uuid4().hex[:12]}"
+    _resume_bytes_cache[resume_id] = (safe_name, file_bytes)
+
+    job_id = f"job-{uuid.uuid4().hex[:12]}"
+    job_manager.create_job(job_id=job_id, user_id=current_user.id, job_type="RESUME_CAREER_ENGINE")
+
+    background_tasks.add_task(
+        run_resume_analysis_pipeline,
+        job_id=job_id,
+        user_id=current_user.id,
+        file_name=safe_name,
+        file_bytes=file_bytes,
+        career_id=career_id,
+        existing_resume_id=resume_id,
+    )
+
+    return {
+        "job_id": job_id,
+        "resume_id": resume_id,
         "status": JobStatus.QUEUED,
         "progress": 5,
         "step_message": "Resume received. Asynchronous AI career analysis pipeline queued.",

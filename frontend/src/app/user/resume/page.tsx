@@ -37,16 +37,21 @@ function GithubIcon({ className = "h-5 w-5" }: { className?: string }) {
 }
 import Link from 'next/link';
 import { useCareerEvents } from '@/lib/hooks/useCareerEvents';
+import { apiClient, ApiError } from '@/lib/api/client';
 
 export default function UserResumePage() {
   const [file, setFile] = useState<File | null>(null);
   const [directText, setDirectText] = useState('');
   const [inputMode, setInputMode] = useState<'upload' | 'paste'>('upload');
+  const [resumeId, setResumeId] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analysisStatusMessage, setAnalysisStatusMessage] = useState<string>('');
   const [analysis, setAnalysis] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorPayload, setErrorPayload] = useState<{ message: string; code?: string; requestId?: string } | null>(null);
   const [copiedKeyword, setCopiedKeyword] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -72,19 +77,21 @@ export default function UserResumePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [profRes, historyRes, asgnRes] = await Promise.all([
+        const [profRes, historyData, asgnRes] = await Promise.all([
           fetch('/api/profile').catch(() => null),
-          fetch('/api/resume/history').catch(() => null),
+          apiClient.getResumeHistory().catch(() => null),
           fetch('/api/v1/assignments').catch(() => null),
         ]);
 
         const profData = profRes && profRes.ok ? await profRes.json().catch(() => null) : null;
-        const historyData = historyRes && historyRes.ok ? await historyRes.json().catch(() => null) : null;
-
         if (profData?.user) setUserProfile(profData.user);
-        if (historyData?.history && historyData.history.length > 0) {
-          setHistory(historyData.history);
-          setAnalysis(historyData.history[0]);
+
+        if (Array.isArray(historyData) && historyData.length > 0) {
+          setHistory(historyData);
+          setAnalysis(historyData[0]);
+          if (historyData[0]?.id) {
+            setResumeId(historyData[0].id);
+          }
         }
 
         if (asgnRes && asgnRes.ok) {
@@ -123,14 +130,15 @@ export default function UserResumePage() {
       if (ext.endsWith('.pdf') || ext.endsWith('.docx') || ext.endsWith('.txt')) {
         setFile(droppedFile);
         setError(null);
+        setErrorPayload(null);
       } else {
         setError('Unsupported format. Please drop a PDF, DOCX, or TXT file.');
       }
     }
   };
 
-  const handleUploadAndAnalyze = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUploadAndAnalyze = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!file && !directText.trim()) {
       setError('Please choose a PDF, DOCX, or TXT file or paste your resume text.');
       return;
@@ -138,6 +146,7 @@ export default function UserResumePage() {
 
     setAnalyzing(true);
     setError(null);
+    setErrorPayload(null);
     clearStages();
     setLocalActiveStage('Uploaded');
     setLocalCompletedStages(['Uploaded']);
@@ -153,50 +162,81 @@ export default function UserResumePage() {
       'Assignments Generated',
     ];
 
-    let currentStep = 1;
-    const stageInterval = setInterval(() => {
-      if (currentStep < stagePipeline.length) {
-        const nextStage = stagePipeline[currentStep];
-        setLocalActiveStage(nextStage);
-        setLocalCompletedStages((prev) => Array.from(new Set([...prev, nextStage])));
-        currentStep++;
-      }
-    }, 400);
-
     try {
-      const formData = new FormData();
-      if (file) formData.append('file', file);
-      if (directText) formData.append('text', directText);
+      // Step 1: Ingest and persist resume in Neon PostgreSQL via centralized API Client
+      setAnalysisStatusMessage('Uploading resume & persisting in Neon DB...');
+      const uploadRes = await apiClient.uploadResume(file, directText);
+      const activeResumeId = uploadRes.resume_id || uploadRes.id;
+      setResumeId(activeResumeId);
 
-      const res = await fetch('/api/resume/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const text = await res.text();
-      let data: any = null;
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch {
-        throw new Error(`Server returned unexpected response (${res.status}). Please try again.`);
+      // If upload response already contains immediate parsed results, populate state
+      if (uploadRes.atsScore || uploadRes.ats_score) {
+        setAnalysis(uploadRes);
+        setHistory((prev) => [uploadRes, ...prev.filter((h) => (h.id || h.resume_id) !== activeResumeId)]);
       }
 
-      if (!res.ok || !data) {
-        throw new Error(data?.error || `Analysis failed (${res.status}). Please try again.`);
+      // Step 2: Trigger asynchronous background career intelligence job
+      setAnalysisStatusMessage('Triggering asynchronous career intelligence job...');
+      const jobRes = await apiClient.startResumeAnalysis(activeResumeId);
+      const activeJobId = jobRes.job_id;
+      setJobId(activeJobId);
+
+      // Step 3: Poll job status with SSE tracking for guaranteed result delivery
+      setAnalysisStatusMessage('Analyzing competencies and generating roadmap...');
+      let attempts = 0;
+      const maxAttempts = 40; // 60s timeout window
+
+      while (attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        attempts++;
+
+        try {
+          const status = await apiClient.getJobStatus(activeJobId);
+          if (status.step_message) {
+            setAnalysisStatusMessage(status.step_message);
+          }
+
+          if (status.status === 'COMPLETED' && status.result) {
+            setAnalysis(status.result);
+            setHistory((prev) => [status.result, ...prev.filter((h) => (h.id || h.resume_id) !== status.result.id)]);
+            setLocalCompletedStages(stagePipeline);
+            setLocalActiveStage('Assignments Generated');
+            setAnalyzing(false);
+            setAnalysisStatusMessage('');
+            return;
+          } else if (status.status === 'FAILED') {
+            throw new ApiError({
+              status: 500,
+              code: 'PIPELINE_FAILED',
+              message: status.error || 'CareerAI could not process the resume. Please try again.',
+            });
+          }
+        } catch (pollErr: any) {
+          if (pollErr instanceof ApiError && pollErr.code === 'PIPELINE_FAILED') {
+            throw pollErr;
+          }
+          console.warn('[JobPoll] Transient poll warning:', pollErr.message);
+        }
       }
 
-      setLocalCompletedStages(stagePipeline);
-      setLocalActiveStage('Assignments Generated');
-
-      if (data.analysis) {
-        setAnalysis(data.analysis);
-        setHistory((prev) => [data.analysis, ...prev]);
+      // If polling reaches ceiling but upload had valid ATS score, finalize display
+      if (uploadRes.atsScore || uploadRes.ats_score) {
+        setLocalCompletedStages(stagePipeline);
+        setLocalActiveStage('Assignments Generated');
       }
     } catch (err: any) {
-      setError(err.message || 'Analysis failed. Please try again.');
+      console.error('[ResumeAnalysisError]', err);
+      if (err instanceof ApiError) {
+        setError(err.message);
+        setErrorPayload({ message: err.message, code: err.code, requestId: err.requestId });
+      } else {
+        const fallbackMsg = err.message || 'Unable to complete resume analysis. Please verify backend connectivity.';
+        setError(fallbackMsg);
+        setErrorPayload({ message: fallbackMsg });
+      }
     } finally {
-      clearInterval(stageInterval);
       setAnalyzing(false);
+      setAnalysisStatusMessage('');
     }
   };
 
@@ -347,9 +387,26 @@ export default function UserResumePage() {
           {/* Upload & Direct Paste Card */}
           <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 lg:p-8 shadow-xs space-y-5">
             {error && (
-              <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-3">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
-                <span>{error}</span>
+              <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-xs font-medium text-red-800 space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 font-bold text-red-700">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
+                    <span>{error}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUploadAndAnalyze()}
+                    disabled={analyzing}
+                    className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    Retry Analysis
+                  </button>
+                </div>
+                {errorPayload?.requestId && (
+                  <div className="text-[10px] font-mono text-red-500 pl-6.5">
+                    Request ID: {errorPayload.requestId} {errorPayload.code ? `• Code: ${errorPayload.code}` : ''}
+                  </div>
+                )}
               </div>
             )}
 
@@ -364,7 +421,7 @@ export default function UserResumePage() {
                         Real-Time AI Processing Pipeline
                       </h3>
                       <p className="text-xs text-blue-700">
-                        FastAPI backend worker analyzing telemetry and persisting to Neon PostgreSQL...
+                        {analysisStatusMessage || 'FastAPI backend worker analyzing telemetry and persisting to Neon PostgreSQL...'}
                       </p>
                     </div>
                   </div>
@@ -466,7 +523,7 @@ export default function UserResumePage() {
                       {file ? file.name : 'Drag & Drop or Choose a Resume Document'}
                     </div>
                     <div className="text-xs text-slate-500">
-                      {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB • Ready for parsing` : 'Supports PDF, DOCX, or TXT formats (Max 10MB)'}
+                      {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB • ${resumeId ? 'Verified in Neon DB • Ready for analysis' : 'Ready for parsing'}` : 'Supports PDF, DOCX, or TXT formats (Max 10MB)'}
                     </div>
                   </div>
 
@@ -477,7 +534,9 @@ export default function UserResumePage() {
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
                         setFile(e.target.files[0]);
+                        setResumeId(null);
                         setError(null);
+                        setErrorPayload(null);
                       }
                     }}
                     className="hidden"
@@ -493,7 +552,10 @@ export default function UserResumePage() {
                     {file && (
                       <button
                         type="button"
-                        onClick={() => setFile(null)}
+                        onClick={() => {
+                          setFile(null);
+                          setResumeId(null);
+                        }}
                         className="text-xs font-bold text-red-600 hover:text-red-700 min-h-[44px] inline-flex items-center gap-1 cursor-pointer px-3"
                       >
                         <X className="h-4 w-4" /> Clear File
@@ -527,7 +589,7 @@ export default function UserResumePage() {
                   className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3 text-xs font-extrabold text-white shadow-sm shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all hover:-translate-y-0.5 cursor-pointer"
                 >
                   {analyzing ? <RotateCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  <span>{analyzing ? 'Processing Telemetry...' : 'Analyze Resume & Generate Roadmap'}</span>
+                  <span>{analyzing ? (analysisStatusMessage || 'Processing Telemetry...') : analysis ? 'Re-analyze Resume & Roadmap' : 'Analyze Resume & Generate Roadmap'}</span>
                 </button>
               </div>
             </form>

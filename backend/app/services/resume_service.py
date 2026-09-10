@@ -27,6 +27,7 @@ class ResumeService:
         file_name: str,
         file_bytes: bytes,
         career_id: Optional[str] = None,
+        resume_id: Optional[str] = None,
     ) -> ResumeAnalysis:
         safe_name = sanitize_filename(file_name) if file_name else "resume_input.txt"
 
@@ -101,7 +102,7 @@ class ResumeService:
         })
 
         # 7. File Storage Persistence (Firebase Cloud Storage with fallback)
-        resume_record_id = f"res_{uuid.uuid4().hex[:12]}"
+        resume_record_id = resume_id or f"res_{uuid.uuid4().hex[:12]}"
         ext = ".pdf" if safe_name.lower().endswith(".pdf") else ".docx" if safe_name.lower().endswith(".docx") else ".txt"
         storage_dest = generate_resume_storage_path(user_id, resume_record_id, ext)
         mime_type = "application/pdf" if ext == ".pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document" if ext == ".docx" else "text/plain"
@@ -125,31 +126,55 @@ class ResumeService:
             else:
                 selected_career_id = None
 
-        analysis = ResumeAnalysis(
-            id=resume_record_id,
-            user_id=user_id,
-            career_id=selected_career_id,
-            file_name=safe_name,
-            ats_score=audit["ats_score"],
-            extracted_skills=extracted_skills,
-            missing_skills=audit["missing_skills"],
-            formatting_issues=audit["formatting_issues"],
-            weak_bullet_points=audit["weak_bullet_points"],
-            suggested_keywords=audit["suggested_keywords"],
-            recommendations=audit["recommendations"],
-            summary=audit["summary"],
-            raw_text=parsed_doc["raw_text"][:45000],
-            storage_path=storage_dest,
-            personal_info=parsed_doc["personal_info"],
-            education=parsed_doc["education"],
-            experience=parsed_doc["experience"],
-            projects=parsed_doc["projects"],
-            certifications=parsed_doc["certifications"],
-            career_signals=parsed_doc["career_signals"],
-            ranked_careers=ranked_careers,
-            sub_scores=audit["sub_scores"],
-        )
-        saved = await self.resume_repo.create(analysis)
+        existing_record = await self.resume_repo.get_by_id(resume_record_id)
+        if existing_record:
+            existing_record.career_id = selected_career_id
+            existing_record.file_name = safe_name
+            existing_record.ats_score = audit["ats_score"]
+            existing_record.extracted_skills = extracted_skills
+            existing_record.missing_skills = audit["missing_skills"]
+            existing_record.formatting_issues = audit["formatting_issues"]
+            existing_record.weak_bullet_points = audit["weak_bullet_points"]
+            existing_record.suggested_keywords = audit["suggested_keywords"]
+            existing_record.recommendations = audit["recommendations"]
+            existing_record.summary = audit["summary"]
+            existing_record.raw_text = parsed_doc["raw_text"][:45000]
+            existing_record.storage_path = storage_dest
+            existing_record.personal_info = parsed_doc["personal_info"]
+            existing_record.education = parsed_doc["education"]
+            existing_record.experience = parsed_doc["experience"]
+            existing_record.projects = parsed_doc["projects"]
+            existing_record.certifications = parsed_doc["certifications"]
+            existing_record.career_signals = parsed_doc["career_signals"]
+            existing_record.ranked_careers = ranked_careers
+            existing_record.sub_scores = audit["sub_scores"]
+            saved = existing_record
+        else:
+            analysis = ResumeAnalysis(
+                id=resume_record_id,
+                user_id=user_id,
+                career_id=selected_career_id,
+                file_name=safe_name,
+                ats_score=audit["ats_score"],
+                extracted_skills=extracted_skills,
+                missing_skills=audit["missing_skills"],
+                formatting_issues=audit["formatting_issues"],
+                weak_bullet_points=audit["weak_bullet_points"],
+                suggested_keywords=audit["suggested_keywords"],
+                recommendations=audit["recommendations"],
+                summary=audit["summary"],
+                raw_text=parsed_doc["raw_text"][:45000],
+                storage_path=storage_dest,
+                personal_info=parsed_doc["personal_info"],
+                education=parsed_doc["education"],
+                experience=parsed_doc["experience"],
+                projects=parsed_doc["projects"],
+                certifications=parsed_doc["certifications"],
+                career_signals=parsed_doc["career_signals"],
+                ranked_careers=ranked_careers,
+                sub_scores=audit["sub_scores"],
+            )
+            saved = await self.resume_repo.create(analysis)
 
         # Persist Assignments in Neon DB if Career is valid
         if selected_career_id:
